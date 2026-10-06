@@ -1,6 +1,6 @@
 # Solana Desk Dashboard
 
-Plain white, minimal desk for **Christian Sanchez** — bots wander the floor; status line and three cards stay easy to read.
+Plain white desk for **Christian Sanchez** — large sprite bots on a clean floor; **Connect Wallet** (Phantom) turns trading **LIVE** when the admin wallet connects.
 
 | Agent | Role | Sprite |
 |-------|------|--------|
@@ -9,11 +9,9 @@ Plain white, minimal desk for **Christian Sanchez** — bots wander the floor; s
 | **Solana Trader** | Execution under caps | Purple round |
 | **Portfolio Guard** | Risk / PnL | Green round + status bubble |
 
-Sprites from `assets/bots.png` (flat sheet, dark bg keyed out). Fifth sheet character (brown pill) kept as `assets/bot-brown.png` unused.
+Sprites from `assets/*.png` (flat sheet characters).
 
-**Mode: LIVE.** Display-only — no signing wallet, no secrets, no order placement. Feed may stay sample until bots append to `data/activity.json`.
-
-### Caps (LIVE)
+### Caps
 
 | Cap | Value |
 |-----|-------|
@@ -21,9 +19,9 @@ Sprites from `assets/bots.png` (flat sheet, dark bg keyed out). Fifth sheet char
 | Max open | **$75** |
 | Daily loss halt | **$50** |
 
-**ADMIN trading wallet:** `3GfDwiEtei62mumu1J8XnaqkUFtbkVLQE2Btpr5yAeek` — **~0.35 SOL** — public address only.
+**ADMIN / agent wallet:** `3GfDwiEtei62mumu1J8XnaqkUFtbkVLQE2Btpr5yAeek` — public address only. **No private keys** are stored in this repo or in the browser app.
 
-![Mode](https://img.shields.io/badge/mode-LIVE-171717?style=flat-square&labelColor=f5f5f5) ![License](https://img.shields.io/badge/license-MIT-525252?style=flat-square&labelColor=f5f5f5)
+![Mode](https://img.shields.io/badge/mode-LIVE_when_admin_connects-171717?style=flat-square&labelColor=f5f5f5) ![License](https://img.shields.io/badge/license-MIT-525252?style=flat-square&labelColor=f5f5f5)
 
 ## Quick start
 
@@ -33,16 +31,47 @@ npm start          # http://127.0.0.1:8765
 # or: python3 server.py
 ```
 
-> Use HTTP — `file://` may block JSON fetch.
+> Use HTTP — `file://` may block JSON fetch and wallet injection.
+
+**Live (GitHub Pages):** https://samsagewize.github.io/solana-desk-dashboard/
+
+## Connect Wallet (Phantom)
+
+The header **Connect Wallet** button uses `window.solana` (Phantom):
+
+1. Install [Phantom](https://phantom.app/) and unlock it in the browser.
+2. Click **Connect Wallet** and approve the connection.
+3. If the connected address equals the **admin** wallet above:
+   - Status shows **LIVE** · **Trading ON** · **Admin**
+   - The **Deposit $5 to test agent** panel appears
+4. If any other address connects:
+   - Status stays **OFF** / Trading off
+   - A **wrong-wallet** warning asks you to switch to the admin address
+5. **Disconnect** clears the session (trading off again).
+
+Trading visualization is gated on admin connect only. The dashboard still does **not** place exchange orders by itself; it never asks for or stores seeds/private keys.
+
+## Deposit $5 to test agent
+
+Shown only when the **admin** wallet is connected.
+
+| Control | What it does |
+|---------|----------------|
+| **Deposit $5** | Looks up SOL/USD, computes ≈ $5 in SOL, then either (a) opens a **guided Jupiter** fund flow into the admin/agent wallet (usual case — admin *is* the agent address), or (b) if a *different* funding pubkey were used, builds a Phantom-signed `SystemProgram.transfer` of that SOL amount to the admin wallet via `@solana/web3.js` (CDN). |
+| **Open Jupiter** | Same ~$5 SOL amount as a Jupiter swap deep link for manual funding. |
+
+- Address is copied to the clipboard on guided fund when possible.
+- RPC: public Solana mainnet endpoint for blockhash / send when a transfer is built.
+- **Never** paste a private key into this site.
 
 ## Layout
 
 ```
 solana-desk-dashboard/
 ├── index.html
-├── css/styles.css      # White · sparse · thin borders
-├── js/app.js           # Status · floor bots · cards · feed
-├── assets/             # Flat bot sprites (transparent PNGs)
+├── css/styles.css      # White · larger sprites · sparse chrome
+├── js/app.js           # Phantom connect · deposit · floor bots · cards
+├── assets/             # Flat bot sprites
 ├── data/activity.json  # Shared desk state
 ├── server.js / server.py
 ├── vercel.json
@@ -51,12 +80,13 @@ solana-desk-dashboard/
 
 ## What you see
 
-1. **Status line** — `LIVE · admin 3GfD…Aeek · PnL $0.00`
-2. **Desk floor** — four flat-bot sprites gently wander (CSS). Hover or click to pause and show last action from `activity.json`
-3. **Cards** — Wallet · PnL · Caps (short labels, large type)
-4. **Activity** — last few events, one line each
+1. **Header** — Connect Wallet · status line (`LIVE` only when admin connected)
+2. **Desk floor** — four large sprites wander; hover/click for last action
+3. **Deposit panel** — admin-only $5 test fund controls
+4. **Cards** — Wallet · PnL · Caps ($25 / $75 / $50)
+5. **Activity** — last few events from `data/activity.json`
 
-Still static-hostable (GitHub Pages / Vercel). Polls `data/activity.json` every 15s.
+Polls `data/activity.json` every 15s. Static-hostable (GitHub Pages / Vercel).
 
 ## How bots append events
 
@@ -79,13 +109,13 @@ Append to `events` (**newest first**):
 | `bot` | `grok-bot` \| `solana-scout` \| `solana-trader` \| `portfolio-guard` |
 | `level` | `info` \| `signal` \| `trade` \| `warn` \| `research` |
 
-Also update `bots[].lastAction`, `wallet`, `pnl`, `riskCaps`, `status.tradingMode`, `meta.updatedAt` when state changes. Never put keys or secrets in this file.
+Also update `bots[].lastAction`, `wallet`, `pnl`, `riskCaps`, `meta.updatedAt` when state changes. Never put keys or secrets in this file.
 
 ## Security
 
-- No wallet keys, seeds, or API secrets
-- Dashboard never submits orders
-- ADMIN address in JSON is public only
+- No wallet keys, seeds, or API secrets in the repo
+- Phantom holds keys; the page only requests connect / optional transfer signature
+- ADMIN address in JSON and UI is public only
 
 ## License
 

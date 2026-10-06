@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Minimal Solana desk for Christian Sanchez — Grok Bot, Scout, Trader, Guard." />
+  <meta name="description" content="Minimal Solana desk for Christian Sanchez — sprite bots, Phantom connect, LIVE when admin connects." />
   <meta name="color-scheme" content="light" />
   <title>Solana Desk · Christian Sanchez</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -15,17 +15,26 @@
 <body>
   <div class="app">
     <header class="header">
-      <div class="header-title">
-        <h1>Solana Desk</h1>
-        <p>Christian Sanchez</p>
+      <div class="header-row">
+        <div class="header-title">
+          <h1>Solana Desk</h1>
+          <p>Christian Sanchez</p>
+        </div>
+        <div class="header-actions">
+          <button type="button" id="btn-connect" class="btn btn-primary">Connect Wallet</button>
+          <button type="button" id="btn-disconnect" class="btn btn-ghost" hidden>Disconnect</button>
+        </div>
       </div>
       <p id="status-line" class="status-line" aria-live="polite">
-        <span class="status-live">LIVE</span>
+        <span id="status-mode" class="status-mode off">OFF</span>
         <span class="sep">·</span>
-        <span id="status-wallet">admin …</span>
+        <span id="status-trading">Trading off</span>
+        <span class="sep">·</span>
+        <span id="status-wallet">not connected</span>
         <span class="sep">·</span>
         <span id="status-pnl">PnL —</span>
       </p>
+      <div id="wallet-banner" class="wallet-banner" hidden role="status"></div>
     </header>
 
     <!-- Desk floor: bots wander here -->
@@ -33,6 +42,23 @@
       <div class="floor-grid" aria-hidden="true"></div>
       <div class="bots" id="bots"></div>
       <div id="bot-tooltip" class="bot-tooltip" hidden role="tooltip"></div>
+    </section>
+
+    <!-- Deposit control (admin only) -->
+    <section id="deposit-panel" class="deposit-panel" hidden aria-label="Test deposit">
+      <div class="deposit-inner">
+        <div>
+          <h2>Deposit $5 to test agent</h2>
+          <p id="deposit-hint" class="deposit-hint">
+            Sends ~$5 of SOL to the admin/agent wallet via Phantom. No private keys are stored.
+          </p>
+        </div>
+        <div class="deposit-actions">
+          <button type="button" id="btn-deposit" class="btn btn-primary">Deposit $5</button>
+          <a id="link-jupiter" class="btn btn-ghost" href="#" target="_blank" rel="noopener">Open Jupiter</a>
+        </div>
+      </div>
+      <p id="deposit-status" class="deposit-status" aria-live="polite"></p>
     </section>
 
     <!-- Three simple cards -->
@@ -65,9 +91,10 @@
 
     <footer class="footer">
       <span id="data-updated">—</span>
-      <span>Display only · no keys · <code>data/activity.json</code></span>
+      <span>Display + Phantom connect · no keys · <code>data/activity.json</code></span>
     </footer>
   </div>
+  <script src="https://unpkg.com/@solana/web3.js@1.95.4/lib/index.iife.min.js"></script>
   <script src="js/app.js" defer></script>
 </body>
 </html>
