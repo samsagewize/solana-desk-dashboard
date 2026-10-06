@@ -1159,3 +1159,43 @@ body {
   .bot { width: 96px; }
   .desk-floor { height: 320px; }
 }
+
+/* —— Global desk pause —— */
+#btn-pause.is-paused {
+  background: #fffbeb;
+  border-color: #fde68a;
+  color: #92400e;
+  font-weight: 600;
+}
+
+.desk-floor.is-desk-paused .bot {
+  animation-play-state: paused !important;
+}
+
+.desk-floor.is-desk-paused .bot-figure,
+.desk-floor.is-desk-paused .bot.active .bot-figure,
+.desk-floor.is-desk-paused .bot.active .bot-visor,
+.desk-floor.is-desk-paused .bot.active .bot-glow,
+.desk-floor.is-desk-paused .bot.active .bot-leg.l,
+.desk-floor.is-desk-paused .bot.active .bot-leg.r {
+  animation-play-state: paused !important;
+}
+
+.desk-floor.is-desk-paused {
+  filter: saturate(0.92);
+}
+
+.activity-console.is-desk-paused .console-dot {
+  background: #fbbf24;
+  box-shadow: 0 0 8px rgba(251, 191, 36, 0.55);
+  animation: none;
+}
+
+.activity-console.is-desk-paused .console-live {
+  color: #fbbf24;
+}
+
+.activity-console.is-desk-paused .console-feed .cursor-line::after {
+  animation: none;
+  opacity: 0.35;
+}

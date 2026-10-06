@@ -137,6 +137,7 @@
 
   let state = null;
   let pausedBotId = null;
+  let deskPaused = false;
   let connectedPubkey = null;
   let isAdminConnected = false;
   let solPriceUsd = null;
@@ -146,6 +147,7 @@
   let rotateTimer = null;
   let streamSeq = 0;
   let reduceMotion = false;
+  let savedActiveBotId = null;
 
   const $ = (sel, el = document) => el.querySelector(sel);
 
@@ -532,7 +534,8 @@
   function setPaused(botId) {
     pausedBotId = botId;
     $$bots($("#bots")).forEach((el) => {
-      el.classList.toggle("paused", el.dataset.bot === botId);
+      const freeze = deskPaused || el.dataset.bot === botId;
+      el.classList.toggle("paused", freeze);
     });
   }
 
@@ -552,9 +555,12 @@
     if (shell) shell.classList.toggle("is-streaming", !!botId);
     const live = $("#console-live");
     if (live) {
-      live.textContent = botId
-        ? "STREAM · " + botShort(botId)
-        : "IDLE";
+      if (deskPaused) live.textContent = "PAUSED";
+      else {
+        live.textContent = botId
+          ? "STREAM · " + botShort(botId)
+          : "IDLE";
+      }
     }
   }
 
@@ -707,9 +713,11 @@
           return buildFeedItem(e, { fresh });
         })
         .join("") +
-      (activeBotId
-        ? `<li class="cursor-line" aria-hidden="true">[${botShort(activeBotId)}] working</li>`
-        : "");
+      (deskPaused
+        ? `<li class="cursor-line" aria-hidden="true">desk paused — press Resume</li>`
+        : activeBotId
+          ? `<li class="cursor-line" aria-hidden="true">[${botShort(activeBotId)}] working</li>`
+          : "");
 
     knownEventIds = nextIds;
     if (countEl) {
@@ -725,7 +733,7 @@
   }
 
   function prependStreamLine(botId, title, message) {
-    if (!state) return;
+    if (!state || deskPaused) return;
     streamSeq += 1;
     const evt = {
       id: `live-${botId}-${streamSeq}-${Date.now()}`,
@@ -750,17 +758,28 @@
     state.events = state.events.filter((e) => !e._ephemeral);
   }
 
-  function stopBotStream() {
+  function stopBotStream(opts) {
+    const keepActive = !!(opts && opts.keepActive);
     if (streamTimer) {
       clearInterval(streamTimer);
       streamTimer = null;
     }
-    setActiveBot(null);
-    clearEphemeral();
-    if (state) renderFeed(state.events);
+    if (!keepActive) {
+      setActiveBot(null);
+      clearEphemeral();
+      if (state) renderFeed(state.events);
+    } else if (state) {
+      // Freeze feed cursor text while paused
+      renderFeed(state.events);
+    }
   }
 
   function startBotStream(botId) {
+    if (deskPaused) {
+      savedActiveBotId = botId;
+      setActiveBot(botId);
+      return;
+    }
     if (reduceMotion) {
       setActiveBot(botId);
       return;
@@ -772,6 +791,7 @@
     ];
     let i = 0;
     const push = () => {
+      if (deskPaused) return;
       const line = lines[i % lines.length];
       i += 1;
       prependStreamLine(botId, line.title, line.message);
@@ -780,12 +800,17 @@
     streamTimer = setInterval(push, 2200);
   }
 
-  function scheduleBotRotation() {
-    if (rotateTimer) clearInterval(rotateTimer);
-    if (reduceMotion) return;
+  function scheduleBotRotation(opts) {
+    if (rotateTimer) {
+      clearInterval(rotateTimer);
+      rotateTimer = null;
+    }
+    if (reduceMotion || deskPaused) return;
 
+    const skipImmediate = !!(opts && opts.skipImmediate);
     let idx = 0;
     const cycle = () => {
+      if (deskPaused) return;
       // Prefer bot that has the newest persisted event
       let pick = BOT_ORDER[idx % BOT_ORDER.length];
       if (state?.events?.length) {
@@ -797,14 +822,69 @@
       }
       idx += 1;
       startBotStream(pick);
-      // Hold this bot active for a burst, then rotate
-      setTimeout(() => {
-        /* keep streaming until next cycle replaces */
-      }, 0);
     };
 
-    cycle();
+    if (!skipImmediate) cycle();
     rotateTimer = setInterval(cycle, 9000);
+  }
+
+  function syncPauseUi() {
+    const btn = $("#btn-pause");
+    const floor = $("#desk-floor");
+    const consoleEl = $(".activity-console");
+    if (btn) {
+      btn.textContent = deskPaused ? "Resume" : "Pause";
+      btn.classList.toggle("is-paused", deskPaused);
+      btn.setAttribute("aria-pressed", deskPaused ? "true" : "false");
+      btn.title = deskPaused
+        ? "Resume bot motion and activity streaming"
+        : "Pause all bot motion and activity streaming";
+    }
+    if (floor) floor.classList.toggle("is-desk-paused", deskPaused);
+    if (consoleEl) consoleEl.classList.toggle("is-desk-paused", deskPaused);
+    const live = $("#console-live");
+    if (live && deskPaused) {
+      live.textContent = "PAUSED";
+    } else if (live && !deskPaused) {
+      live.textContent = activeBotId
+        ? "STREAM · " + botShort(activeBotId)
+        : "IDLE";
+    }
+    // Force all bots into paused animation state when desk is frozen
+    $$bots($("#bots") || document).forEach((el) => {
+      if (deskPaused) el.classList.add("paused");
+      else el.classList.toggle("paused", pausedBotId === el.dataset.bot);
+    });
+  }
+
+  function setDeskPaused(next) {
+    deskPaused = !!next;
+    if (deskPaused) {
+      savedActiveBotId = activeBotId;
+      if (rotateTimer) {
+        clearInterval(rotateTimer);
+        rotateTimer = null;
+      }
+      stopBotStream({ keepActive: true });
+      // Keep last active highlight but freeze motion via CSS + .paused
+      if (savedActiveBotId) setActiveBot(savedActiveBotId);
+      syncPauseUi();
+      return;
+    }
+    const resumeBot = savedActiveBotId;
+    savedActiveBotId = null;
+    syncPauseUi();
+    if (resumeBot) {
+      startBotStream(resumeBot);
+      scheduleBotRotation({ skipImmediate: true });
+    } else {
+      scheduleBotRotation();
+    }
+    syncPauseUi();
+  }
+
+  function toggleDeskPause() {
+    setDeskPaused(!deskPaused);
   }
 
   function paint(data, ephemeralKeep) {
@@ -976,6 +1056,7 @@
   }
 
   function bindWalletUi() {
+    $("#btn-pause")?.addEventListener("click", toggleDeskPause);
     $("#btn-connect")?.addEventListener("click", connectWallet);
     $("#btn-connect-main")?.addEventListener("click", connectWallet);
     $("#btn-disconnect")?.addEventListener("click", disconnectWallet);
@@ -1015,6 +1096,7 @@
     )?.matches;
     bindWalletUi();
     updateConnectUi();
+    syncPauseUi();
     bindParallax();
     fetchSolPrice().then((p) => {
       solPriceUsd = p;
