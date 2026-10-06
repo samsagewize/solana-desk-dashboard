@@ -1,8 +1,8 @@
 {
   "meta": {
     "mode": "live",
-    "label": "LIVE \u2014 visualization UI; feed may still show sample until bots write",
-    "updatedAt": "2026-10-06T22:53:00Z",
+    "label": "LIVE — visualization UI; feed may still show sample until bots write",
+    "updatedAt": "2026-10-06T23:40:00Z",
     "bots": [
       "grok-bot",
       "solana-scout",
@@ -10,7 +10,7 @@
       "portfolio-guard"
     ],
     "owner": "Christian Sanchez",
-    "notes": "Mode=LIVE. Chip shows Live. ADMIN trading wallet 3GfDwi\u2026Aeek. UI is display-only; activity/events may remain sample until bots append to this file. No secrets. Caps $25/$75/$50. Goal: net-positive."
+    "notes": "Mode=LIVE. Full activity console shows every event. ADMIN trading wallet 3GfDwi…Aeek. Caps $25/$75/$50. Goal: net-positive. No secrets."
   },
   "riskCaps": {
     "perTradeUsd": 25,
@@ -29,7 +29,7 @@
     "otherUsd": 0,
     "totalUsd": 42.35,
     "address": "3GfDwiEtei62mumu1J8XnaqkUFtbkVLQE2Btpr5yAeek",
-    "note": "ADMIN \u00b7 0.35 SOL \u00b7 ~$42 @ ~$121/SOL \u00b7 public address only \u00b7 no keys in repo"
+    "note": "ADMIN · 0.35 SOL · ~$42 @ ~$121/SOL · public address only · no keys in repo"
   },
   "bots": [
     {
@@ -37,9 +37,9 @@
       "name": "Grok Bot",
       "role": "Coordinator",
       "status": "online",
-      "tagline": "Routes Scout \u2192 Trader \u2192 Guard \u00b7 keeps the desk organized",
-      "focus": "Orchestration \u00b7 LIVE \u00b7 ADMIN wallet \u00b7 caps broadcast",
-      "lastAction": "ADMIN wallet marked \u00b7 LIVE \u00b7 caps $25 / $75 / $50 \u00b7 goal net +",
+      "tagline": "Routes Scout → Trader → Guard · keeps the desk organized",
+      "focus": "Orchestration · LIVE · ADMIN wallet · caps broadcast",
+      "lastAction": "ADMIN wallet marked · LIVE · caps $25 / $75 / $50 · goal net +",
       "lastAt": "2026-10-06T22:53:00Z",
       "metrics": [
         {
@@ -61,9 +61,9 @@
       "name": "Solana Scout",
       "role": "Research",
       "status": "online",
-      "tagline": "Price watch + research \u00b7 feeds Trader with scored setups",
-      "focus": "SOL/USDC momentum \u00b7 watchlist scoring",
-      "lastAction": "SOL watch @ ~$121 \u00b7 score 78 \u00b7 bias bullish 15m\u20131h",
+      "tagline": "Price watch + research · feeds Trader with scored setups",
+      "focus": "SOL/USDC momentum · watchlist scoring",
+      "lastAction": "SOL watch @ ~$121 · score 78 · bias bullish 15m–1h",
       "lastAt": "2026-10-06T22:35:01Z",
       "metrics": [
         {
@@ -85,10 +85,10 @@
       "name": "Solana Trader",
       "role": "Execution",
       "status": "online",
-      "tagline": "Buy/sell under small caps \u00b7 LIVE mode armed",
-      "focus": "\u2264$25/trade \u00b7 Scout follow-through only",
-      "lastAction": "LIVE armed under $25/$75/$50 \u00b7 awaiting Scout clears",
-      "lastAt": "2026-10-06T22:47:00Z",
+      "tagline": "Buy/sell under small caps · LIVE mode armed",
+      "focus": "≤$25/trade · Scout follow-through only",
+      "lastAction": "LIVE armed under $25/$75/$50 · awaiting Scout clears",
+      "lastAt": "2026-10-06T22:40:00Z",
       "metrics": [
         {
           "label": "Open size",
@@ -109,9 +109,9 @@
       "name": "Portfolio Guard",
       "role": "Risk / PnL",
       "status": "online",
-      "tagline": "Keep the book healthy \u00b7 push net-positive \u00b7 halt on breach",
-      "focus": "Max open $75 \u00b7 daily halt -$50 \u00b7 green book bias",
-      "lastAction": "LIVE book \u00b7 ADMIN wallet ~$42 SOL \u00b7 caps intact \u00b7 goal net +",
+      "tagline": "Keep the book healthy · push net-positive · halt on breach",
+      "focus": "Max open $75 · daily halt -$50 · green book bias",
+      "lastAction": "LIVE book · ADMIN wallet ~$42 SOL · caps intact · goal net +",
       "lastAt": "2026-10-06T22:53:00Z",
       "metrics": [
         {
@@ -133,14 +133,14 @@
     {
       "symbol": "SOL",
       "pair": "SOL/USDC",
-      "price": 121.0,
+      "price": 121,
       "change24hPct": 1.05,
       "volume24h": 1840000000
     },
     {
       "symbol": "BONK",
       "pair": "BONK/USDC",
-      "price": 2.14e-05,
+      "price": 0.0000214,
       "change24hPct": -1.82,
       "volume24h": 92000000
     },
@@ -183,7 +183,7 @@
     {
       "symbol": "SOL",
       "bias": "bullish",
-      "horizon": "15m\u20131h",
+      "horizon": "15m–1h",
       "note": "Primary momentum pair",
       "scoutScore": 78
     },
@@ -191,7 +191,7 @@
       "symbol": "JUP",
       "bias": "bullish",
       "horizon": "1h",
-      "note": "Above VWAP \u00b7 volume rising",
+      "note": "Above VWAP · volume rising",
       "scoutScore": 71
     },
     {
@@ -205,7 +205,7 @@
       "symbol": "WIF",
       "bias": "bearish",
       "horizon": "30m",
-      "note": "Below short MA \u00b7 skip",
+      "note": "Below short MA · skip",
       "scoutScore": 28
     },
     {
@@ -223,7 +223,7 @@
       "rpc": {
         "label": "Solana RPC",
         "state": "online",
-        "detail": "Public RPC \u00b7 read-only display"
+        "detail": "Public RPC · read-only display"
       },
       "priceFeed": {
         "label": "Price feed",
@@ -233,7 +233,7 @@
       "coordinator": {
         "label": "Grok Bot",
         "state": "online",
-        "detail": "Desk coordinator \u00b7 LIVE"
+        "detail": "Desk coordinator · LIVE"
       },
       "scout": {
         "label": "Solana Scout",
@@ -243,7 +243,7 @@
       "trader": {
         "label": "Solana Trader",
         "state": "online",
-        "detail": "LIVE \u00b7 caps armed"
+        "detail": "LIVE · caps armed"
       },
       "guard": {
         "label": "Portfolio Guard",
@@ -259,7 +259,7 @@
       "bot": "grok-bot",
       "level": "info",
       "title": "ADMIN trading wallet set",
-      "message": "Marked 3GfDwiEtei62mumu1J8XnaqkUFtbkVLQE2Btpr5yAeek as the ADMIN trading wallet for Christian Sanchez. LIVE \u00b7 0.35 SOL (~$42) \u00b7 caps $25/$75/$50 \u00b7 public address only.",
+      "message": "Marked 3GfDwiEtei62mumu1J8XnaqkUFtbkVLQE2Btpr5yAeek as the ADMIN trading wallet for Christian Sanchez. LIVE · 0.35 SOL (~$42) · caps $25/$75/$50 · public address only.",
       "tags": [
         "admin",
         "wallet",
@@ -273,7 +273,7 @@
       "bot": "grok-bot",
       "level": "info",
       "title": "LIVE mode on",
-      "message": "Desk switched to LIVE for Christian Sanchez. Wallet 3GfDwi\u2026Aeek \u00b7 0.35 SOL (~$42 @ ~$121). Caps $25/$75/$50. Goal: net-positive. UI is visualization \u2014 bots should append real events here.",
+      "message": "Desk switched to LIVE for Christian Sanchez. Wallet 3GfDwi…Aeek · 0.35 SOL (~$42 @ ~$121). Caps $25/$75/$50. Goal: net-positive. UI is visualization — bots should append real events here.",
       "tags": [
         "live",
         "mode",
@@ -300,10 +300,23 @@
       "bot": "grok-bot",
       "level": "info",
       "title": "Caps broadcast",
-      "message": "Coordinator synced desk caps: $25/trade \u00b7 $75 max open \u00b7 $50 daily loss halt. Goal: stay net-positive.",
+      "message": "Coordinator synced desk caps: $25/trade · $75 max open · $50 daily loss halt. Goal: stay net-positive.",
       "tags": [
         "caps",
         "coordinator"
+      ]
+    },
+    {
+      "id": "evt-011",
+      "ts": "2026-10-06T22:40:00Z",
+      "bot": "solana-trader",
+      "level": "info",
+      "title": "LIVE armed",
+      "message": "Trader LIVE under caps $25/$75/$50 · zero open · awaiting Scout clears before any fill.",
+      "tags": [
+        "live",
+        "caps",
+        "exec"
       ]
     },
     {
@@ -343,15 +356,40 @@
       ]
     },
     {
+      "id": "evt-009",
+      "ts": "2026-10-06T21:45:33Z",
+      "bot": "solana-trader",
+      "level": "info",
+      "title": "Stand down on WIF",
+      "message": "Scout skip (score 28) honored · no WIF order staged · capital reserved for SOL/JUP clears only.",
+      "tags": [
+        "WIF",
+        "skip",
+        "exec"
+      ]
+    },
+    {
       "id": "evt-008",
       "ts": "2026-10-06T21:12:08Z",
       "bot": "solana-scout",
       "level": "research",
       "title": "JUP watchlist upgrade",
-      "message": "JUP reclaimed short MA with rising relative volume. Bias \u2192 bullish on 1h horizon.",
+      "message": "JUP reclaimed short MA with rising relative volume. Bias → bullish on 1h horizon.",
       "tags": [
         "JUP",
         "watchlist"
+      ]
+    },
+    {
+      "id": "evt-006",
+      "ts": "2026-10-06T20:41:00Z",
+      "bot": "solana-trader",
+      "level": "info",
+      "title": "Trader boot",
+      "message": "Solana Trader online · sized for ≤$25/trade · Scout follow-through only · Guard halt latch wired.",
+      "tags": [
+        "boot",
+        "exec"
       ]
     },
     {

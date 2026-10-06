@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Minimal Solana desk for Christian Sanchez — sprite bots, Phantom connect, LIVE when admin connects." />
+  <meta name="description" content="Solana desk for Christian Sanchez — 3D CSS bots, full activity console, Phantom connect, LIVE when admin connects." />
   <meta name="color-scheme" content="light" />
   <title>Solana Desk · Christian Sanchez</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -37,21 +37,55 @@
       <div id="wallet-banner" class="wallet-banner" hidden role="status"></div>
     </header>
 
-    <!-- Large primary connect CTA (main content — also keep header button) -->
-    <section id="connect-cta" class="connect-cta" aria-label="Connect Phantom to trade">
+    <section id="connect-cta" class="connect-cta glass-lift" aria-label="Connect Phantom to trade">
       <p class="connect-cta-copy">Connect Phantom (admin) to start trading</p>
       <button type="button" id="btn-connect-main" class="btn btn-primary btn-connect-lg">Connect Wallet</button>
     </section>
 
-    <!-- Desk floor: bots wander here -->
-    <section class="desk-floor" id="desk-floor" aria-label="Bot desk floor">
-      <div class="floor-grid" aria-hidden="true"></div>
-      <div class="bots" id="bots"></div>
-      <div id="bot-tooltip" class="bot-tooltip" hidden role="tooltip"></div>
+    <!-- 3D perspective desk -->
+    <section class="desk-stage" aria-label="3D bot desk">
+      <div class="desk-floor" id="desk-floor">
+        <div class="floor-plane" aria-hidden="true">
+          <div class="floor-grid"></div>
+          <div class="floor-shine"></div>
+        </div>
+        <div class="desk-objects" aria-hidden="true">
+          <div class="desk-monitor">
+            <div class="monitor-screen"></div>
+            <div class="monitor-stand"></div>
+          </div>
+          <div class="desk-pad"></div>
+        </div>
+        <div class="bots" id="bots"></div>
+        <div id="bot-tooltip" class="bot-tooltip glass-lift" hidden role="tooltip"></div>
+      </div>
     </section>
 
-    <!-- Deposit control (admin only) -->
-    <section id="deposit-panel" class="deposit-panel" hidden aria-label="Test deposit">
+    <!-- Full activity console — every event, terminal vibe -->
+    <section class="activity-console glass-lift" aria-label="Full bot activity log">
+      <div class="console-chrome">
+        <div class="console-title">
+          <span class="console-dot"></span>
+          <h2>Activity console</h2>
+          <span id="console-count" class="console-count">0 events</span>
+        </div>
+        <div class="console-meta">
+          <span id="console-live" class="console-live">IDLE</span>
+          <span class="console-src">data/activity.json</span>
+        </div>
+      </div>
+      <div class="console-toolbar" aria-hidden="true">
+        <span class="tag-chip grok-bot">Grok</span>
+        <span class="tag-chip solana-scout">Scout</span>
+        <span class="tag-chip solana-trader">Trader</span>
+        <span class="tag-chip portfolio-guard">Guard</span>
+      </div>
+      <div class="console-viewport" id="console-viewport">
+        <ul class="console-feed" id="activity-feed" aria-live="polite"></ul>
+      </div>
+    </section>
+
+    <section id="deposit-panel" class="deposit-panel glass-lift" hidden aria-label="Test deposit">
       <div class="deposit-inner">
         <div>
           <h2>Deposit $5 to test agent</h2>
@@ -67,21 +101,20 @@
       <p id="deposit-status" class="deposit-status" aria-live="polite"></p>
     </section>
 
-    <!-- Three simple cards -->
     <section class="cards" aria-label="Desk summary">
-      <article class="card" id="card-wallet">
+      <article class="card glass-lift" id="card-wallet">
         <h2>Wallet</h2>
         <div class="card-body" id="wallet-body">
           <p class="muted">Loading…</p>
         </div>
       </article>
-      <article class="card" id="card-pnl">
+      <article class="card glass-lift" id="card-pnl">
         <h2>PnL</h2>
         <div class="card-body" id="pnl-body">
           <p class="muted">Loading…</p>
         </div>
       </article>
-      <article class="card" id="card-caps">
+      <article class="card glass-lift" id="card-caps">
         <h2>Caps</h2>
         <div class="card-body" id="caps-body">
           <p class="muted">Loading…</p>
@@ -89,15 +122,9 @@
       </article>
     </section>
 
-    <!-- Minimal activity -->
-    <section class="activity" aria-label="Recent activity">
-      <h2>Activity</h2>
-      <ul class="feed" id="activity-feed" aria-live="polite"></ul>
-    </section>
-
     <footer class="footer">
       <span id="data-updated">—</span>
-      <span>Display + Phantom connect · no keys · <code>data/activity.json</code></span>
+      <span>Display + Phantom connect · no keys · full log from <code>data/activity.json</code></span>
     </footer>
   </div>
   <script src="https://unpkg.com/@solana/web3.js@1.95.4/lib/index.iife.min.js"></script>

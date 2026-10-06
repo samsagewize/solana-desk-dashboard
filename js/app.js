@@ -1,14 +1,14 @@
 /**
- * Solana Desk — white sprite desk + Phantom connect
+ * Solana Desk — CSS 3D bots + full activity console + Phantom connect
  * Connect Wallet (window.solana). Admin address → Trading ON + LIVE.
  * Deposit $5 ≈ SOL transfer to admin wallet via Phantom. No private keys stored.
+ * Activity: every event from data/activity.json rendered; live stream when bots work.
  */
 (function () {
   "use strict";
 
   const DATA_URL = "data/activity.json";
   const REFRESH_MS = 15000;
-  const FEED_LIMIT = 8;
   const ADMIN_WALLET = "3GfDwiEtei62mumu1J8XnaqkUFtbkVLQE2Btpr5yAeek";
   const DEPOSIT_USD = 5;
   const RPC_URL = "https://api.mainnet-beta.solana.com";
@@ -19,29 +19,120 @@
 
   const BOT_META = {
     "grok-bot": {
-      short: "GRK",
-      label: "Grok Bot",
+      short: "GROK",
+      label: "Grok",
       statusHint: "Coordinating",
-      sprite: "assets/grok-bot.png",
+      accent: "grok-bot",
     },
     "solana-scout": {
-      short: "SCT",
+      short: "SCOUT",
       label: "Scout",
       statusHint: "Watching",
-      sprite: "assets/solana-scout.png",
+      accent: "solana-scout",
     },
     "solana-trader": {
-      short: "TRD",
+      short: "TRADER",
       label: "Trader",
       statusHint: "Ready",
-      sprite: "assets/solana-trader.png",
+      accent: "solana-trader",
     },
     "portfolio-guard": {
-      short: "GRD",
+      short: "GUARD",
       label: "Guard",
       statusHint: "Watching book",
-      sprite: "assets/portfolio-guard.png",
+      accent: "portfolio-guard",
     },
+  };
+
+  const BOT_ORDER = [
+    "grok-bot",
+    "solana-scout",
+    "solana-trader",
+    "portfolio-guard",
+  ];
+
+  /** Seed events if activity.json has none — realistic ops lines, CT times via fmtTime */
+  const SAMPLE_EVENTS = [
+    {
+      id: "seed-001",
+      ts: new Date(Date.now() - 48 * 60000).toISOString(),
+      bot: "grok-bot",
+      level: "info",
+      title: "Desk boot",
+      message: "Coordinator online · routing Scout → Trader → Guard · caps $25/$75/$50",
+    },
+    {
+      id: "seed-002",
+      ts: new Date(Date.now() - 42 * 60000).toISOString(),
+      bot: "solana-scout",
+      level: "info",
+      title: "Scout boot",
+      message: "Watchlist armed: SOL JUP BONK WIF RAY · momentum scanner idle",
+    },
+    {
+      id: "seed-003",
+      ts: new Date(Date.now() - 35 * 60000).toISOString(),
+      bot: "solana-scout",
+      level: "signal",
+      title: "SOL momentum pulse",
+      message: "SOL/USDC score 78 · above VWAP · volume confirm last 3 bars",
+    },
+    {
+      id: "seed-004",
+      ts: new Date(Date.now() - 28 * 60000).toISOString(),
+      bot: "solana-trader",
+      level: "info",
+      title: "Caps armed",
+      message: "LIVE under $25/trade · $75 max open · awaiting Scout clears",
+    },
+    {
+      id: "seed-005",
+      ts: new Date(Date.now() - 20 * 60000).toISOString(),
+      bot: "portfolio-guard",
+      level: "info",
+      title: "Book baseline",
+      message: "Open $0 / $75 · day PnL flat · halt buffer $50 · goal net+",
+    },
+    {
+      id: "seed-006",
+      ts: new Date(Date.now() - 12 * 60000).toISOString(),
+      bot: "grok-bot",
+      level: "info",
+      title: "ADMIN wallet set",
+      message: "3GfDwi…Aeek marked ADMIN · public address only · no keys on site",
+    },
+    {
+      id: "seed-007",
+      ts: new Date(Date.now() - 5 * 60000).toISOString(),
+      bot: "portfolio-guard",
+      level: "info",
+      title: "Risk sweep",
+      message: "Exposure check OK · no halt flags · book healthy",
+    },
+  ];
+
+  /** Rotating work lines streamed while a bot is marked active */
+  const WORK_LINES = {
+    "grok-bot": [
+      { title: "Route tick", message: "Syncing Scout scores → Trader queue · Guard risk latch" },
+      { title: "Caps broadcast", message: "Re-assert $25 / $75 / $50 · goal net-positive" },
+      { title: "Desk heartbeat", message: "All agents ack · orchestration OK" },
+    ],
+    "solana-scout": [
+      { title: "Price poll", message: "SOL/USDC tick · scoring short-horizon momentum" },
+      { title: "Watchlist scan", message: "JUP BONK WIF RAY · relative volume check" },
+      { title: "Signal draft", message: "Bias update · waiting for bar close confirmation" },
+    ],
+    "solana-trader": [
+      { title: "Order book peek", message: "No fill · under cap · standing by Scout clear" },
+      { title: "Size check", message: "Starter size ≤ $25 · open room vs $75 max" },
+      { title: "Exec idle", message: "LIVE armed · zero open · waiting signal" },
+    ],
+    "portfolio-guard": [
+      { title: "PnL mark", message: "Day PnL flat · halt buffer full" },
+      { title: "Exposure sweep", message: "Open $0 · max $75 · no breach" },
+      { title: "Goal check", message: "Net-positive bias · book healthy" },
+    ],
   };
 
   let state = null;
@@ -49,6 +140,12 @@
   let connectedPubkey = null;
   let isAdminConnected = false;
   let solPriceUsd = null;
+  let knownEventIds = new Set();
+  let activeBotId = null;
+  let streamTimer = null;
+  let rotateTimer = null;
+  let streamSeq = 0;
+  let reduceMotion = false;
 
   const $ = (sel, el = document) => el.querySelector(sel);
 
@@ -88,9 +185,27 @@
           day: "numeric",
           hour: "numeric",
           minute: "2-digit",
+          second: "2-digit",
           hour12: true,
         }) + " CT"
       );
+    } catch {
+      return iso || "";
+    }
+  }
+
+  function fmtTimeCompact(iso) {
+    try {
+      const d = new Date(iso);
+      return d.toLocaleString("en-US", {
+        timeZone: "America/Chicago",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false,
+      });
     } catch {
       return iso || "";
     }
@@ -100,6 +215,10 @@
     if (n > 0) return "pos";
     if (n < 0) return "neg";
     return "flat";
+  }
+
+  function botShort(botId) {
+    return BOT_META[botId]?.short || String(botId || "?").toUpperCase();
   }
 
   function getProvider() {
@@ -113,6 +232,22 @@
     const res = await fetch(DATA_URL + "?t=" + Date.now(), { cache: "no-store" });
     if (!res.ok) throw new Error(`Failed to load ${DATA_URL}: ${res.status}`);
     return res.json();
+  }
+
+  function ensureEvents(data) {
+    const events = Array.isArray(data.events) ? data.events.slice() : [];
+    if (events.length === 0) {
+      data.events = SAMPLE_EVENTS.map((e) => ({ ...e }));
+      data._seeded = true;
+    } else {
+      // Newest-first for display; keep every row
+      data.events = events.slice().sort((a, b) => {
+        const ta = new Date(a.ts || 0).getTime();
+        const tb = new Date(b.ts || 0).getTime();
+        return tb - ta;
+      });
+    }
+    return data;
   }
 
   async function fetchSolPrice() {
@@ -131,7 +266,7 @@
         if (p) return Number(p);
       }
     } catch (_) { /* fall through */ }
-    return 120; // fallback estimate
+    return 120;
   }
 
   function solForDeposit() {
@@ -143,7 +278,6 @@
     const link = $("#link-jupiter");
     if (!link) return;
     const sol = solForDeposit();
-    // Jupiter swap UI as optional path; deposit button prefers Phantom transfer
     link.href =
       "https://jup.ag/swap/SOL-USDC?inAmount=" +
       encodeURIComponent(sol.toFixed(4));
@@ -246,7 +380,6 @@
       if (deposit) deposit.hidden = true;
     }
 
-    // Keep PnL from JSON when available
     if (state) renderStatusPnl(state);
   }
 
@@ -272,7 +405,6 @@
   }
 
   function renderStatusLine(data) {
-    // Wallet/trading status driven by Phantom; PnL from JSON
     renderStatusPnl(data);
   }
 
@@ -286,7 +418,7 @@
 
   function shortName(b) {
     const map = {
-      "grok-bot": "Grok Bot",
+      "grok-bot": "Grok",
       "solana-scout": "Scout",
       "solana-trader": "Trader",
       "portfolio-guard": "Guard",
@@ -296,6 +428,20 @@
 
   function $$bots(el) {
     return [...el.querySelectorAll(".bot")];
+  }
+
+  function botFigureHtml() {
+    return `
+      <span class="bot-figure" aria-hidden="true">
+        <span class="bot-glow"></span>
+        <span class="bot-shadow"></span>
+        <span class="bot-body-3d">
+          <span class="bot-head"><span class="bot-visor"></span></span>
+          <span class="bot-torso"></span>
+          <span class="bot-leg l"></span>
+          <span class="bot-leg r"></span>
+        </span>
+      </span>`;
   }
 
   function renderBots(bots) {
@@ -320,24 +466,24 @@
         node.dataset.lastAt = b.lastAt || "";
         const nameEl = node.querySelector(".bot-name");
         if (nameEl) nameEl.textContent = shortName(b);
+        node.classList.toggle("active", activeBotId === b.id);
+        node.classList.toggle("paused", pausedBotId === b.id);
       });
       return;
     }
 
     el.innerHTML = list
       .map((b, i) => {
-        const meta = BOT_META[b.id] || { short: "?", label: b.name, sprite: "" };
-        const sprite = meta.sprite
-          ? `<img class="bot-sprite" src="${escapeHtml(meta.sprite)}" width="80" height="80" alt="" draggable="false" />`
-          : `<span class="bot-sprite fallback">${escapeHtml(meta.short)}</span>`;
+        const active = activeBotId === b.id ? " active" : "";
+        const paused = pausedBotId === b.id ? " paused" : "";
         return `
-        <button type="button" class="bot${pausedBotId === b.id ? " paused" : ""}"
+        <button type="button" class="bot${active}${paused}"
           data-bot="${escapeHtml(b.id)}"
           data-path="${i % 4}"
           data-last-action="${escapeHtml(b.lastAction || "")}"
           data-last-at="${escapeHtml(b.lastAt || "")}"
           aria-label="${escapeHtml(b.name)} — ${escapeHtml(oneLineStatus(b))}">
-          ${sprite}
+          ${botFigureHtml()}
           <span class="bot-name">${escapeHtml(shortName(b))}</span>
           <span class="bot-status-line">${escapeHtml(oneLineStatus(b))}</span>
         </button>`;
@@ -388,6 +534,28 @@
     $$bots($("#bots")).forEach((el) => {
       el.classList.toggle("paused", el.dataset.bot === botId);
     });
+  }
+
+  function setActiveBot(botId) {
+    activeBotId = botId;
+    $$bots($("#bots")).forEach((el) => {
+      el.classList.toggle("active", el.dataset.bot === botId);
+    });
+    document.querySelectorAll(".tag-chip").forEach((chip) => {
+      const hot =
+        botId &&
+        (chip.classList.contains(botId) ||
+          [...chip.classList].some((c) => c === botId));
+      chip.classList.toggle("is-hot", !!hot);
+    });
+    const shell = $(".activity-console");
+    if (shell) shell.classList.toggle("is-streaming", !!botId);
+    const live = $("#console-live");
+    if (live) {
+      live.textContent = botId
+        ? "STREAM · " + botShort(botId)
+        : "IDLE";
+    }
   }
 
   function bindBotInteractions() {
@@ -448,9 +616,8 @@
       el.innerHTML = `<p class="muted">No wallet data</p>`;
       return;
     }
-    const showAdmin = isAdminConnected || wallet.isAdmin || wallet.role === "admin";
     el.innerHTML = `
-      ${showAdmin && isAdminConnected ? `<span class="admin-tag">Admin · Trading ON</span>` : isAdminConnected ? `<span class="admin-tag">Admin</span>` : `<span class="admin-tag" style="color:var(--text-mute);border-color:var(--border);background:var(--bg-soft)">Waiting for connect</span>`}
+      ${isAdminConnected ? `<span class="admin-tag">Admin · Trading ON</span>` : `<span class="admin-tag" style="color:var(--text-mute);border-color:var(--border);background:var(--bg-soft)">Waiting for connect</span>`}
       <div class="big">${fmtUsd(wallet.totalUsd)}</div>
       <div class="sub">${(wallet.solBalance ?? 0).toFixed(2)} SOL · ${escapeHtml(wallet.label || "Wallet")}</div>
       <div class="mono" title="${escapeHtml(wallet.address || ADMIN_WALLET)}">${escapeHtml(shortAddr(wallet.address || ADMIN_WALLET))}</div>
@@ -484,64 +651,201 @@
     `;
   }
 
-  function renderFeed(events) {
-    const el = $("#activity-feed");
-    if (!el) return;
-    const list = (events || []).slice(0, FEED_LIMIT);
-    if (!list.length) {
-      el.innerHTML = `<li class="muted">No activity yet</li>`;
-      return;
-    }
-    el.innerHTML = list
-      .map((e) => {
-        const meta = BOT_META[e.bot] || { label: e.bot };
-        const short =
-          e.bot === "grok-bot"
-            ? "Grok"
-            : e.bot === "solana-scout"
-              ? "Scout"
-              : e.bot === "solana-trader"
-                ? "Trader"
-                : e.bot === "portfolio-guard"
-                  ? "Guard"
-                  : meta.label;
-        return `<li>
-          <span class="bot-label ${escapeHtml(e.bot || "")}">${escapeHtml(short)}</span>
-          <span class="title">${escapeHtml(e.title)}</span>
-          <span class="ts">${fmtTime(e.ts)}</span>
-        </li>`;
-      })
-      .join("");
+  function eventKey(e) {
+    return e.id || `${e.ts}|${e.bot}|${e.title}`;
   }
 
-  function paint(data) {
+  function buildFeedItem(e, opts) {
+    const fresh = opts?.fresh ? " fresh" : "";
+    const level = e.level ? ` level-${escapeHtml(e.level)}` : "";
+    const botClass = escapeHtml(e.bot || "");
+    const msg = e.message
+      ? `<span class="line-msg">${escapeHtml(e.message)}</span>`
+      : "";
+    const levelBadge = e.level
+      ? `<span class="line-level">${escapeHtml(e.level)}</span>`
+      : "";
+    return `<li class="${fresh}${level}" data-eid="${escapeHtml(eventKey(e))}">
+      <span class="ts">${escapeHtml(fmtTimeCompact(e.ts))}</span>
+      <span class="bot-tag ${botClass}">${escapeHtml(botShort(e.bot))}</span>
+      <span class="line-body">
+        <span class="line-title">${escapeHtml(e.title || "event")}</span>${levelBadge}
+        ${msg}
+      </span>
+    </li>`;
+  }
+
+  /** Full log — every event, no silent truncation */
+  function renderFeed(events, opts) {
+    const el = $("#activity-feed");
+    const countEl = $("#console-count");
+    const viewport = $("#console-viewport");
+    if (!el) return;
+
+    const list = Array.isArray(events) ? events.slice() : [];
+    // Display newest first for ops console (already sorted in ensureEvents)
+    if (!list.length) {
+      el.innerHTML = `<li class="muted-line">No activity yet — waiting for data/activity.json</li>`;
+      if (countEl) countEl.textContent = "0 events";
+      knownEventIds = new Set();
+      return;
+    }
+
+    const stickBottom =
+      viewport &&
+      viewport.scrollTop + viewport.clientHeight >= viewport.scrollHeight - 40;
+
+    const prevIds = knownEventIds;
+    const nextIds = new Set(list.map(eventKey));
+    const isFirstPaint = prevIds.size === 0;
+
+    el.innerHTML =
+      list
+        .map((e) => {
+          const key = eventKey(e);
+          const fresh = !isFirstPaint && !prevIds.has(key);
+          return buildFeedItem(e, { fresh });
+        })
+        .join("") +
+      (activeBotId
+        ? `<li class="cursor-line" aria-hidden="true">[${botShort(activeBotId)}] working</li>`
+        : "");
+
+    knownEventIds = nextIds;
+    if (countEl) {
+      countEl.textContent =
+        list.length === 1 ? "1 event" : `${list.length} events`;
+    }
+
+    if (opts?.scrollTop || isFirstPaint) {
+      if (viewport) viewport.scrollTop = 0;
+    } else if (stickBottom && viewport) {
+      viewport.scrollTop = 0; // newest at top — stay at top on refresh
+    }
+  }
+
+  function prependStreamLine(botId, title, message) {
+    if (!state) return;
+    streamSeq += 1;
+    const evt = {
+      id: `live-${botId}-${streamSeq}-${Date.now()}`,
+      ts: new Date().toISOString(),
+      bot: botId,
+      level: "info",
+      title,
+      message,
+      _ephemeral: true,
+    };
+    // Keep full persisted history + ephemeral stream lines at front
+    const persisted = (state.events || []).filter((e) => !e._ephemeral);
+    const ephemeral = (state.events || []).filter((e) => e._ephemeral).slice(0, 24);
+    state.events = [evt, ...ephemeral, ...persisted];
+    renderFeed(state.events);
+    const viewport = $("#console-viewport");
+    if (viewport) viewport.scrollTop = 0;
+  }
+
+  function clearEphemeral() {
+    if (!state?.events) return;
+    state.events = state.events.filter((e) => !e._ephemeral);
+  }
+
+  function stopBotStream() {
+    if (streamTimer) {
+      clearInterval(streamTimer);
+      streamTimer = null;
+    }
+    setActiveBot(null);
+    clearEphemeral();
+    if (state) renderFeed(state.events);
+  }
+
+  function startBotStream(botId) {
+    if (reduceMotion) {
+      setActiveBot(botId);
+      return;
+    }
+    stopBotStream();
+    setActiveBot(botId);
+    const lines = WORK_LINES[botId] || [
+      { title: "tick", message: "working…" },
+    ];
+    let i = 0;
+    const push = () => {
+      const line = lines[i % lines.length];
+      i += 1;
+      prependStreamLine(botId, line.title, line.message);
+    };
+    push();
+    streamTimer = setInterval(push, 2200);
+  }
+
+  function scheduleBotRotation() {
+    if (rotateTimer) clearInterval(rotateTimer);
+    if (reduceMotion) return;
+
+    let idx = 0;
+    const cycle = () => {
+      // Prefer bot that has the newest persisted event
+      let pick = BOT_ORDER[idx % BOT_ORDER.length];
+      if (state?.events?.length) {
+        const persisted = state.events.filter((e) => !e._ephemeral);
+        if (persisted[0]?.bot && BOT_META[persisted[0].bot]) {
+          // Alternate: sometimes follow newest writer, sometimes round-robin
+          pick = idx % 2 === 0 ? persisted[0].bot : pick;
+        }
+      }
+      idx += 1;
+      startBotStream(pick);
+      // Hold this bot active for a burst, then rotate
+      setTimeout(() => {
+        /* keep streaming until next cycle replaces */
+      }, 0);
+    };
+
+    cycle();
+    rotateTimer = setInterval(cycle, 9000);
+  }
+
+  function paint(data, ephemeralKeep) {
+    ensureEvents(data);
+    const ephemeral = Array.isArray(ephemeralKeep)
+      ? ephemeralKeep
+      : (state?.events || []).filter((e) => e._ephemeral);
+    const fromFile = (data.events || []).filter((e) => !e._ephemeral);
+    data.events = [...ephemeral, ...fromFile];
     state = data;
     renderStatusLine(data);
     renderBots(data.bots || []);
     renderWallet(data.wallet);
     renderPnL(data.pnl || {});
     renderCaps(data.riskCaps);
-    renderFeed(data.events || []);
+    renderFeed(state.events);
     updateConnectUi();
     const upd = $("#data-updated");
     if (upd) {
       upd.textContent = data.meta?.updatedAt
         ? `Updated ${fmtTime(data.meta.updatedAt)}`
-        : "";
+        : data._seeded
+          ? "Sample activity seeded (file empty)"
+          : "";
     }
   }
 
   async function refresh() {
     try {
+      const ephemeral = state?.events?.filter((e) => e._ephemeral) || [];
       const data = await loadData();
-      paint(data);
+      paint(data, ephemeral);
     } catch (err) {
       console.error(err);
       const el = $("#activity-feed");
       if (el) {
         el.innerHTML =
-          `<li class="muted">Could not load <code>data/activity.json</code>. Serve over HTTP.</li>`;
+          `<li class="muted-line">Could not load data/activity.json — serve over HTTP (npm start).</li>`;
       }
+      const countEl = $("#console-count");
+      if (countEl) countEl.textContent = "0 events";
       updateConnectUi();
     }
   }
@@ -625,8 +929,6 @@
       const from = new PublicKey(connectedPubkey);
       const to = new PublicKey(ADMIN_WALLET);
 
-      // Admin wallet IS the agent wallet — cannot self-transfer meaningfully.
-      // Guided fund: copy amount, open Jupiter (or Phantom browse) for ~$5 SOL.
       if (from.equals(to)) {
         const amt = solAmount.toFixed(4);
         try {
@@ -685,7 +987,6 @@
         applyConnected(pk ? pk.toString() : null);
       });
       provider.on?.("disconnect", () => applyConnected(null));
-      // Eager reconnect if already trusted
       if (provider.isConnected && provider.publicKey) {
         applyConnected(provider.publicKey.toString());
       } else if (provider.publicKey) {
@@ -694,14 +995,33 @@
     }
   }
 
+  function bindParallax() {
+    const floor = $("#desk-floor");
+    if (!floor || reduceMotion) return;
+    floor.addEventListener("pointermove", (e) => {
+      const r = floor.getBoundingClientRect();
+      const x = ((e.clientX - r.left) / r.width - 0.5) * 6;
+      const y = ((e.clientY - r.top) / r.height - 0.5) * 4;
+      floor.style.transform = `rotateX(${2 - y}deg) rotateY(${x}deg)`;
+    });
+    floor.addEventListener("pointerleave", () => {
+      floor.style.transform = "";
+    });
+  }
+
   async function init() {
+    reduceMotion = window.matchMedia?.(
+      "(prefers-reduced-motion: reduce)"
+    )?.matches;
     bindWalletUi();
     updateConnectUi();
+    bindParallax();
     fetchSolPrice().then((p) => {
       solPriceUsd = p;
       updateDepositHint();
     });
     await refresh();
+    scheduleBotRotation();
     setInterval(refresh, REFRESH_MS);
   }
 
