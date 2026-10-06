@@ -164,22 +164,34 @@
     el.innerHTML = html;
   }
 
+  function syncConnectButtons(label, disabled, wrong) {
+    const headerBtn = $("#btn-connect");
+    const mainBtn = $("#btn-connect-main");
+    for (const btn of [headerBtn, mainBtn]) {
+      if (!btn) continue;
+      btn.textContent = label;
+      btn.disabled = !!disabled;
+      if (btn === mainBtn) {
+        btn.classList.toggle("wrong", !!wrong);
+      }
+    }
+  }
+
   function updateConnectUi() {
-    const btn = $("#btn-connect");
     const disc = $("#btn-disconnect");
     const modeEl = $("#status-mode");
     const tradingEl = $("#status-trading");
     const walletEl = $("#status-wallet");
     const deposit = $("#deposit-panel");
+    const cta = $("#connect-cta");
+    const ctaCopy = cta?.querySelector(".connect-cta-copy");
 
     if (connectedPubkey) {
-      if (btn) {
-        btn.textContent = isAdminConnected ? "Admin connected" : "Wrong wallet";
-        btn.disabled = true;
-      }
       if (disc) disc.hidden = false;
 
       if (isAdminConnected) {
+        syncConnectButtons("Admin connected", true, false);
+        if (cta) cta.hidden = true;
         if (modeEl) {
           modeEl.textContent = "LIVE";
           modeEl.className = "status-mode live";
@@ -195,6 +207,11 @@
         if (deposit) deposit.hidden = false;
         updateDepositHint();
       } else {
+        syncConnectButtons("Wrong wallet", true, true);
+        if (cta) cta.hidden = false;
+        if (ctaCopy) {
+          ctaCopy.textContent = "Connect Phantom (admin) to start trading";
+        }
         if (modeEl) {
           modeEl.textContent = "OFF";
           modeEl.className = "status-mode off";
@@ -210,9 +227,10 @@
         if (deposit) deposit.hidden = true;
       }
     } else {
-      if (btn) {
-        btn.textContent = "Connect Wallet";
-        btn.disabled = false;
+      syncConnectButtons("Connect Wallet", false, false);
+      if (cta) cta.hidden = false;
+      if (ctaCopy) {
+        ctaCopy.textContent = "Connect Phantom (admin) to start trading";
       }
       if (disc) disc.hidden = true;
       if (modeEl) {
@@ -657,6 +675,7 @@
 
   function bindWalletUi() {
     $("#btn-connect")?.addEventListener("click", connectWallet);
+    $("#btn-connect-main")?.addEventListener("click", connectWallet);
     $("#btn-disconnect")?.addEventListener("click", disconnectWallet);
     $("#btn-deposit")?.addEventListener("click", depositFiveDollars);
 

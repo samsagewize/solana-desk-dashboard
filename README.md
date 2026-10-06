@@ -37,7 +37,7 @@ npm start          # http://127.0.0.1:8765
 
 ## Connect Wallet (Phantom)
 
-The header **Connect Wallet** button uses `window.solana` (Phantom):
+A large **Connect Wallet** CTA sits under the status line (copy: *Connect Phantom (admin) to start trading*), and the header keeps a Connect button too. Both use `window.solana` (Phantom):
 
 1. Install [Phantom](https://phantom.app/) and unlock it in the browser.
 2. Click **Connect Wallet** and approve the connection.
@@ -81,10 +81,11 @@ solana-desk-dashboard/
 ## What you see
 
 1. **Header** — Connect Wallet · status line (`LIVE` only when admin connected)
-2. **Desk floor** — four large sprites wander; hover/click for last action
-3. **Deposit panel** — admin-only $5 test fund controls
-4. **Cards** — Wallet · PnL · Caps ($25 / $75 / $50)
-5. **Activity** — last few events from `data/activity.json`
+2. **Connect CTA** — large primary button under status: *Connect Phantom (admin) to start trading*
+3. **Desk floor** — four large sprites wander; hover/click for last action
+4. **Deposit panel** — admin-only $5 test fund controls
+5. **Cards** — Wallet · PnL · Caps ($25 / $75 / $50)
+6. **Activity** — last few events from `data/activity.json`
 
 Polls `data/activity.json` every 15s. Static-hostable (GitHub Pages / Vercel).
 
