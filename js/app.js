@@ -205,11 +205,18 @@
     const solUsd = wallet.solUsd ?? 0;
     const pct = Math.min(100, (solUsd / target) * 100);
     const onTarget = solUsd >= target * 0.9;
+    const isAdmin = wallet.isAdmin || wallet.role === "admin";
+    const adminChip = isAdmin
+      ? `<span class="admin-chip wallet-admin-chip" title="ADMIN trading wallet"><span class="dot"></span> Admin</span>`
+      : "";
 
     el.innerHTML = `
       <div class="wallet-hero">
         <div>
-          <div class="label">${escapeHtml(wallet.label || "Wallet")}</div>
+          <div class="label-row">
+            <div class="label">${escapeHtml(wallet.label || "Wallet")}</div>
+            ${adminChip}
+          </div>
           <div class="total">${fmtUsd(wallet.totalUsd)}</div>
         </div>
         <div class="wallet-target">

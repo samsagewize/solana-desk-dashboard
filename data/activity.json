@@ -2,7 +2,7 @@
   "meta": {
     "mode": "live",
     "label": "LIVE \u2014 visualization UI; feed may still show sample until bots write",
-    "updatedAt": "2026-10-06T22:47:00Z",
+    "updatedAt": "2026-10-06T22:53:00Z",
     "bots": [
       "grok-bot",
       "solana-scout",
@@ -10,7 +10,7 @@
       "portfolio-guard"
     ],
     "owner": "Christian Sanchez",
-    "notes": "Mode=LIVE. Chip shows Live. UI is display-only; activity/events may remain sample until bots append to this file. No secrets. Caps $25/$75/$50. Goal: net-positive."
+    "notes": "Mode=LIVE. Chip shows Live. ADMIN trading wallet 3GfDwi\u2026Aeek. UI is display-only; activity/events may remain sample until bots append to this file. No secrets. Caps $25/$75/$50. Goal: net-positive."
   },
   "riskCaps": {
     "perTradeUsd": 25,
@@ -19,7 +19,9 @@
     "strategy": "SOL/USDC short-horizon momentum"
   },
   "wallet": {
-    "label": "Live wallet",
+    "label": "ADMIN trading wallet",
+    "role": "admin",
+    "isAdmin": true,
     "targetSolUsd": 40,
     "solBalance": 0.35,
     "solUsd": 42.35,
@@ -27,7 +29,7 @@
     "otherUsd": 0,
     "totalUsd": 42.35,
     "address": "3GfDwiEtei62mumu1J8XnaqkUFtbkVLQE2Btpr5yAeek",
-    "note": "0.35 SOL \u00b7 ~$42 @ ~$121/SOL \u00b7 public address only \u00b7 no keys in repo"
+    "note": "ADMIN \u00b7 0.35 SOL \u00b7 ~$42 @ ~$121/SOL \u00b7 public address only \u00b7 no keys in repo"
   },
   "bots": [
     {
@@ -36,9 +38,9 @@
       "role": "Coordinator",
       "status": "online",
       "tagline": "Routes Scout \u2192 Trader \u2192 Guard \u00b7 keeps the desk organized",
-      "focus": "Orchestration \u00b7 LIVE mode \u00b7 caps broadcast",
-      "lastAction": "Switched desk to LIVE \u00b7 caps $25 / $75 / $50 \u00b7 goal net +",
-      "lastAt": "2026-10-06T22:47:00Z",
+      "focus": "Orchestration \u00b7 LIVE \u00b7 ADMIN wallet \u00b7 caps broadcast",
+      "lastAction": "ADMIN wallet marked \u00b7 LIVE \u00b7 caps $25 / $75 / $50 \u00b7 goal net +",
+      "lastAt": "2026-10-06T22:53:00Z",
       "metrics": [
         {
           "label": "Mode",
@@ -109,8 +111,8 @@
       "status": "online",
       "tagline": "Keep the book healthy \u00b7 push net-positive \u00b7 halt on breach",
       "focus": "Max open $75 \u00b7 daily halt -$50 \u00b7 green book bias",
-      "lastAction": "LIVE book check \u00b7 wallet ~$42 SOL \u00b7 caps intact \u00b7 goal net +",
-      "lastAt": "2026-10-06T22:47:00Z",
+      "lastAction": "LIVE book \u00b7 ADMIN wallet ~$42 SOL \u00b7 caps intact \u00b7 goal net +",
+      "lastAt": "2026-10-06T22:53:00Z",
       "metrics": [
         {
           "label": "Day PnL",
@@ -251,6 +253,20 @@
     }
   },
   "events": [
+    {
+      "id": "evt-017",
+      "ts": "2026-10-06T22:53:00Z",
+      "bot": "grok-bot",
+      "level": "info",
+      "title": "ADMIN trading wallet set",
+      "message": "Marked 3GfDwiEtei62mumu1J8XnaqkUFtbkVLQE2Btpr5yAeek as the ADMIN trading wallet for Christian Sanchez. LIVE \u00b7 0.35 SOL (~$42) \u00b7 caps $25/$75/$50 \u00b7 public address only.",
+      "tags": [
+        "admin",
+        "wallet",
+        "live",
+        "coordinator"
+      ]
+    },
     {
       "id": "evt-016",
       "ts": "2026-10-06T22:47:00Z",

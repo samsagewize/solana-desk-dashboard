@@ -1069,3 +1069,52 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
   .bot-metrics { grid-template-columns: repeat(3, 1fr); }
   .pnl-goal-banner { grid-column: span 1; }
 }
+
+/* —— Admin wallet chip —— */
+.admin-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.22rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border: 1px solid rgba(153, 69, 255, 0.5);
+  color: #d4b3ff;
+  background: linear-gradient(135deg, rgba(153, 69, 255, 0.22), rgba(20, 241, 149, 0.1));
+  box-shadow: 0 0 14px rgba(153, 69, 255, 0.25);
+}
+
+.admin-chip .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-2);
+  box-shadow: 0 0 8px var(--accent-2);
+}
+
+.panel-header-badges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.wallet-hero .label-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+  margin-bottom: 0.15rem;
+}
+
+.wallet-hero .label-row .label {
+  margin-bottom: 0;
+}
+
+.wallet-admin-chip {
+  font-size: 0.62rem;
+  padding: 0.18rem 0.5rem;
+}

@@ -19,7 +19,7 @@ Dark-theme single-page **trading desk** for **Christian Sanchez** — one organi
 | Max open | **$75** |
 | Daily loss halt | **$50** |
 
-Starter strategy: **SOL/USDC short-horizon momentum**. Live wallet: **0.35 SOL (~$42 @ ~$121/SOL)** — public address only in JSON (no keys).
+Starter strategy: **SOL/USDC short-horizon momentum**. **ADMIN trading wallet:** `3GfDwiEtei62mumu1J8XnaqkUFtbkVLQE2Btpr5yAeek` — **0.35 SOL (~$42 @ ~$121/SOL)** — public address only in JSON (no keys).
 
 ![Theme](https://img.shields.io/badge/theme-dark%20desk-14f195?style=flat-square) ![Mode](https://img.shields.io/badge/mode-LIVE-14f195?style=flat-square) ![License](https://img.shields.io/badge/license-MIT-9945ff?style=flat-square)
 
@@ -75,7 +75,7 @@ solana-desk-dashboard/
 1. **Status chips** — **Live** mode, agents, **goal: net +**, CT clock  
 2. **Price strip** — SOL + placeholders (BONK, JUP, WIF, RAY)  
 3. **Desk bots** — four organized cards: Grok Bot · Scout · Trader · Guard  
-4. **Wallet** — live balances (0.35 SOL · ~$42) + public address  
+4. **Wallet** — **Admin** chip · ADMIN trading wallet · 0.35 SOL · ~$42 + public address  
 5. **PnL · net-positive goal** — day / realized / unrealized + goal banner  
 6. **Risk gauges** — $25 / $75 / $50 headroom  
 7. **Open positions** — filled by Trader when it writes the book  
@@ -114,7 +114,7 @@ Append to `events` (**newest first**):
 Also update when state changes:
 
 - `bots[]` — per-agent cards (status, lastAction, metrics)
-- `wallet` — balances / SOL progress (public address only)
+- `wallet` — balances / SOL progress / `isAdmin` + `role: "admin"` (public address only)
 - `prices[]`, `positions[]`, `pnl`, `watchlist[]`
 - `status.connections`, `status.tradingMode` (`live` | `paper`), `meta.updatedAt`
 - `meta.mode` — keep in sync with `status.tradingMode`
@@ -153,7 +153,8 @@ Keep writes **small and atomic**. Never put private keys, RPC auth tokens, or se
 - No wallet keys, seed phrases, or API secrets.
 - `.gitignore` blocks `.env`, `*.pem`, `wallet*.json`, keypair files.
 - Dashboard never submits orders — display-only JSON state.
-- Live wallet address in JSON is **public** only (no private material).
+- ADMIN trading wallet address in JSON is **public** only (no private material).
+- Wallet panel shows a clear **Admin** chip/badge for the designated trading wallet.
 
 ## License
 
