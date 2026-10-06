@@ -1,6 +1,6 @@
 # Solana Desk Dashboard
 
-Minimal dark desk for **Christian Sanchez** — bots visibly wander the floor while a short status line and three cards stay easy to read.
+Plain white, minimal desk for **Christian Sanchez** — bots wander the floor; status line and three cards stay easy to read.
 
 | Agent | Role |
 |-------|------|
@@ -21,7 +21,7 @@ Minimal dark desk for **Christian Sanchez** — bots visibly wander the floor wh
 
 **ADMIN trading wallet:** `3GfDwiEtei62mumu1J8XnaqkUFtbkVLQE2Btpr5yAeek` — **~0.35 SOL** — public address only.
 
-![Mode](https://img.shields.io/badge/mode-LIVE-3dd68c?style=flat-square) ![License](https://img.shields.io/badge/license-MIT-a78bfa?style=flat-square)
+![Mode](https://img.shields.io/badge/mode-LIVE-171717?style=flat-square&labelColor=f5f5f5) ![License](https://img.shields.io/badge/license-MIT-525252?style=flat-square&labelColor=f5f5f5)
 
 ## Quick start
 
@@ -38,7 +38,7 @@ npm start          # http://127.0.0.1:8765
 ```
 solana-desk-dashboard/
 ├── index.html
-├── css/styles.css      # Calm dark · sparse
+├── css/styles.css      # White · sparse · thin borders
 ├── js/app.js           # Status · floor bots · cards · feed
 ├── data/activity.json  # Shared desk state
 ├── server.js / server.py
