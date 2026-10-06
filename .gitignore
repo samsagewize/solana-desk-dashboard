@@ -37,3 +37,5 @@ data/activity.local.json
 # Logs
 *.log
 logs/
+
+public/

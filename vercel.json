@@ -1,6 +1,7 @@
 {
   "version": 2,
-  "name": "solana-desk-dashboard",
+  "buildCommand": "node build.cjs",
+  "outputDirectory": "public",
   "cleanUrls": true,
   "trailingSlash": false
 }
