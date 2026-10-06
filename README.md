@@ -2,12 +2,14 @@
 
 Plain white, minimal desk for **Christian Sanchez** — bots wander the floor; status line and three cards stay easy to read.
 
-| Agent | Role |
-|-------|------|
-| **Grok Bot** | Coordinator |
-| **Solana Scout** | Research / watch |
-| **Solana Trader** | Execution under caps |
-| **Portfolio Guard** | Risk / PnL |
+| Agent | Role | Sprite |
+|-------|------|--------|
+| **Grok Bot** | Coordinator | White round + orange star badge |
+| **Solana Scout** | Research / watch | Teal teardrop |
+| **Solana Trader** | Execution under caps | Purple round |
+| **Portfolio Guard** | Risk / PnL | Green round + status bubble |
+
+Sprites from `assets/bots.png` (flat sheet, dark bg keyed out). Fifth sheet character (brown pill) kept as `assets/bot-brown.png` unused.
 
 **Mode: LIVE.** Display-only — no signing wallet, no secrets, no order placement. Feed may stay sample until bots append to `data/activity.json`.
 
@@ -40,6 +42,7 @@ solana-desk-dashboard/
 ├── index.html
 ├── css/styles.css      # White · sparse · thin borders
 ├── js/app.js           # Status · floor bots · cards · feed
+├── assets/             # Flat bot sprites (transparent PNGs)
 ├── data/activity.json  # Shared desk state
 ├── server.js / server.py
 ├── vercel.json
@@ -49,7 +52,7 @@ solana-desk-dashboard/
 ## What you see
 
 1. **Status line** — `LIVE · admin 3GfD…Aeek · PnL $0.00`
-2. **Desk floor** — four bot sprites gently wander (CSS). Hover or click to pause and show last action from `activity.json`
+2. **Desk floor** — four flat-bot sprites gently wander (CSS). Hover or click to pause and show last action from `activity.json`
 3. **Cards** — Wallet · PnL · Caps (short labels, large type)
 4. **Activity** — last few events, one line each
 

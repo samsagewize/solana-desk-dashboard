@@ -174,27 +174,40 @@ body {
 }
 
 .bot-sprite {
-  width: 40px;
-  height: 40px;
-  border-radius: var(--radius);
+  width: 48px;
+  height: 48px;
+  border-radius: 0;
+  display: block;
+  object-fit: contain;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  background: transparent;
+  border: none;
+  position: relative;
+  flex-shrink: 0;
+  filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.06));
+  transition: transform 0.15s ease;
+}
+
+.bot:hover .bot-sprite,
+.bot:focus-visible .bot-sprite,
+.bot.paused .bot-sprite {
+  transform: scale(1.08);
+}
+
+.bot-sprite.fallback {
+  width: 48px;
+  height: 48px;
   display: grid;
   place-items: center;
   font-size: 0.62rem;
   font-weight: 600;
-  letter-spacing: 0.02em;
   color: var(--text);
   background: var(--bg);
   border: 1px solid var(--border-strong);
-  position: relative;
-}
-
-.bot-sprite.grok-bot,
-.bot-sprite.solana-scout,
-.bot-sprite.solana-trader,
-.bot-sprite.portfolio-guard {
-  background: var(--bg);
-  border-color: var(--border-strong);
-  color: var(--text);
+  border-radius: var(--radius);
+  image-rendering: auto;
+  filter: none;
 }
 
 .bot-name {
@@ -534,7 +547,7 @@ body {
   }
 
   .bot { width: 88px; }
-  .bot-sprite { width: 36px; height: 36px; font-size: 0.58rem; }
+  .bot-sprite { width: 42px; height: 42px; }
   .desk-floor { height: 300px; }
   .status-line { font-size: 0.875rem; }
 }

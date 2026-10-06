@@ -10,10 +10,34 @@
   const FEED_LIMIT = 8;
 
   const BOT_META = {
-    "grok-bot": { short: "GRK", label: "Grok Bot", statusHint: "Coordinating" },
-    "solana-scout": { short: "SCT", label: "Scout", statusHint: "Watching" },
-    "solana-trader": { short: "TRD", label: "Trader", statusHint: "Ready" },
-    "portfolio-guard": { short: "GRD", label: "Guard", statusHint: "Watching book" },
+    "grok-bot": {
+      short: "GRK",
+      label: "Grok Bot",
+      statusHint: "Coordinating",
+      sprite: "assets/grok-bot.png",
+      spriteDesc: "White round bot with star badge",
+    },
+    "solana-scout": {
+      short: "SCT",
+      label: "Scout",
+      statusHint: "Watching",
+      sprite: "assets/solana-scout.png",
+      spriteDesc: "Teal teardrop scout bot",
+    },
+    "solana-trader": {
+      short: "TRD",
+      label: "Trader",
+      statusHint: "Ready",
+      sprite: "assets/solana-trader.png",
+      spriteDesc: "Purple round trader bot",
+    },
+    "portfolio-guard": {
+      short: "GRD",
+      label: "Guard",
+      statusHint: "Watching book",
+      sprite: "assets/portfolio-guard.png",
+      spriteDesc: "Green round guard bot with status bubble",
+    },
   };
 
   let state = null;
@@ -141,7 +165,10 @@
 
     el.innerHTML = list
       .map((b, i) => {
-        const meta = BOT_META[b.id] || { short: "?", label: b.name };
+        const meta = BOT_META[b.id] || { short: "?", label: b.name, sprite: "" };
+        const sprite = meta.sprite
+          ? `<img class="bot-sprite" src="${escapeHtml(meta.sprite)}" width="48" height="48" alt="" draggable="false" />`
+          : `<span class="bot-sprite fallback">${escapeHtml(meta.short)}</span>`;
         return `
         <button type="button" class="bot${pausedBotId === b.id ? " paused" : ""}"
           data-bot="${escapeHtml(b.id)}"
@@ -149,7 +176,7 @@
           data-last-action="${escapeHtml(b.lastAction || "")}"
           data-last-at="${escapeHtml(b.lastAt || "")}"
           aria-label="${escapeHtml(b.name)} — ${escapeHtml(oneLineStatus(b))}">
-          <span class="bot-sprite ${escapeHtml(b.id)}">${meta.short}</span>
+          ${sprite}
           <span class="bot-name">${escapeHtml(shortName(b))}</span>
           <span class="bot-status-line">${escapeHtml(oneLineStatus(b))}</span>
         </button>`;
