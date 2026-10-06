@@ -1,0 +1,22 @@
+{
+  "name": "solana-desk-dashboard",
+  "version": "1.0.0",
+  "description": "Dark-theme Solana trading desk for Christian Sanchez \u2014 Grok Bot, Scout, Trader, Guard. LIVE mode visualization. Caps $25/$75/$50, 0.35 SOL (~$42) wallet, net-positive PnL goal. Display-only; no secrets.",
+  "private": true,
+  "scripts": {
+    "start": "node server.js",
+    "serve": "node server.js",
+    "serve:py": "python3 server.py"
+  },
+  "keywords": [
+    "solana",
+    "dashboard",
+    "trading-desk",
+    "live"
+  ],
+  "author": "Christian Sanchez",
+  "license": "MIT",
+  "engines": {
+    "node": ">=16"
+  }
+}

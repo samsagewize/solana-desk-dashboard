@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Solana trading desk dashboard for Christian Sanchez — Grok Bot, Scout, Trader, and Portfolio Guard (LIVE mode visualization)." />
+  <meta name="color-scheme" content="dark" />
+  <title>Solana Desk · Christian Sanchez</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop stop-color='%239945ff'/%3E%3Cstop offset='1' stop-color='%2314f195'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='8' fill='url(%23g)'/%3E%3Ctext x='16' y='22' text-anchor='middle' font-size='14' font-family='sans-serif' font-weight='700' fill='%2307090f'%3ESD%3C/text%3E%3C/svg%3E" />
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">SD</div>
+        <div>
+          <h1>Solana Desk</h1>
+          <p>Christian Sanchez · one organized trading desk</p>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <span id="chip-mode" class="chip live"><span class="dot"></span> Live mode</span>
+        <span id="chip-live-pending" class="chip demo" hidden><span class="dot"></span> Live pending</span>
+        <span class="chip online"><span class="dot"></span> 4 agents</span>
+        <span class="chip goal"><span class="dot"></span> Goal: net +</span>
+        <time id="clock" class="clock" datetime="">—</time>
+      </div>
+    </header>
+
+    <div id="demo-banner" class="demo-banner" role="status">
+      <span><strong>LIVE</strong> — Loading desk data…</span>
+    </div>
+
+    <section class="price-strip" id="price-strip" aria-label="Price strip">
+      <div class="ticker loading"><div class="sym">SOL/USDC</div><div class="price">—</div></div>
+    </section>
+
+    <!-- Bot roster — organized desk row -->
+    <section class="desk-section" aria-label="Bot roster">
+      <div class="section-label">
+        <h2>Desk bots</h2>
+        <span>Grok Bot coordinates · Scout researches · Trader executes · Guard protects</span>
+      </div>
+      <div class="bot-grid" id="bot-panels"></div>
+    </section>
+
+    <main class="desk-grid">
+      <!-- Wallet -->
+      <section class="panel panel-wallet">
+        <div class="panel-header">
+          <h2>Wallet</h2>
+          <span class="panel-badge">0.35 SOL · ~$42</span>
+        </div>
+        <div class="panel-body" id="wallet-panel"></div>
+      </section>
+
+      <!-- PnL — net-positive emphasis -->
+      <section class="panel panel-pnl">
+        <div class="panel-header">
+          <h2>PnL · net-positive goal</h2>
+          <span class="panel-badge" id="pnl-goal-badge">goal</span>
+        </div>
+        <div class="panel-body">
+          <div class="pnl-grid" id="pnl-summary"></div>
+        </div>
+      </section>
+
+      <!-- Risk -->
+      <section class="panel">
+        <div class="panel-header">
+          <h2>Risk gauges</h2>
+          <span class="panel-badge">$25 / $75 / $50</span>
+        </div>
+        <div class="panel-body">
+          <div class="gauges" id="risk-gauges"></div>
+        </div>
+      </section>
+
+      <!-- Positions -->
+      <section class="panel span-2">
+        <div class="panel-header">
+          <h2>Open positions</h2>
+          <span class="panel-badge">live book</span>
+        </div>
+        <div class="panel-body table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Symbol</th>
+                <th>Side</th>
+                <th>Size</th>
+                <th>Entry</th>
+                <th>Mark</th>
+                <th>PnL</th>
+                <th>Bot</th>
+                <th>Note</th>
+              </tr>
+            </thead>
+            <tbody id="positions-body">
+              <tr><td colspan="8" class="muted">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Watchlist -->
+      <section class="panel">
+        <div class="panel-header">
+          <h2>Watchlist</h2>
+          <span class="panel-badge">Scout</span>
+        </div>
+        <div class="panel-body">
+          <div class="watch-list" id="watchlist"></div>
+        </div>
+      </section>
+
+      <!-- Connections -->
+      <section class="panel">
+        <div class="panel-header">
+          <h2>Status &amp; connections</h2>
+          <span class="panel-badge">desk</span>
+        </div>
+        <div class="panel-body">
+          <div class="conn-list" id="connections"></div>
+        </div>
+      </section>
+
+      <!-- Activity feed -->
+      <section class="panel span-2">
+        <div class="panel-header">
+          <h2>Bot activity feed</h2>
+          <div class="filter-row" role="group" aria-label="Filter by bot">
+            <button type="button" class="filter-btn active" data-filter="all">All</button>
+            <button type="button" class="filter-btn" data-filter="grok-bot">Grok</button>
+            <button type="button" class="filter-btn" data-filter="solana-scout">Scout</button>
+            <button type="button" class="filter-btn" data-filter="solana-trader">Trader</button>
+            <button type="button" class="filter-btn" data-filter="portfolio-guard">Guard</button>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="feed" id="activity-feed" aria-live="polite"></div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div>
+        <span id="data-updated"></span>
+        · Source <code>data/activity.json</code>
+        · No wallet keys · Display-only (no order placement)
+      </div>
+      <div>MIT · Solana Desk Dashboard · Refresh every 15s</div>
+    </footer>
+  </div>
+  <script src="js/app.js" defer></script>
+</body>
+</html>

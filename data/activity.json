@@ -1,0 +1,365 @@
+{
+  "meta": {
+    "mode": "live",
+    "label": "LIVE \u2014 visualization UI; feed may still show sample until bots write",
+    "updatedAt": "2026-10-06T22:47:00Z",
+    "bots": [
+      "grok-bot",
+      "solana-scout",
+      "solana-trader",
+      "portfolio-guard"
+    ],
+    "owner": "Christian Sanchez",
+    "notes": "Mode=LIVE. Chip shows Live. UI is display-only; activity/events may remain sample until bots append to this file. No secrets. Caps $25/$75/$50. Goal: net-positive."
+  },
+  "riskCaps": {
+    "perTradeUsd": 25,
+    "maxOpenUsd": 75,
+    "dailyLossHaltUsd": 50,
+    "strategy": "SOL/USDC short-horizon momentum"
+  },
+  "wallet": {
+    "label": "Live wallet",
+    "targetSolUsd": 40,
+    "solBalance": 0.35,
+    "solUsd": 42.35,
+    "usdcBalance": 0,
+    "otherUsd": 0,
+    "totalUsd": 42.35,
+    "address": "3GfDwiEtei62mumu1J8XnaqkUFtbkVLQE2Btpr5yAeek",
+    "note": "0.35 SOL \u00b7 ~$42 @ ~$121/SOL \u00b7 public address only \u00b7 no keys in repo"
+  },
+  "bots": [
+    {
+      "id": "grok-bot",
+      "name": "Grok Bot",
+      "role": "Coordinator",
+      "status": "online",
+      "tagline": "Routes Scout \u2192 Trader \u2192 Guard \u00b7 keeps the desk organized",
+      "focus": "Orchestration \u00b7 LIVE mode \u00b7 caps broadcast",
+      "lastAction": "Switched desk to LIVE \u00b7 caps $25 / $75 / $50 \u00b7 goal net +",
+      "lastAt": "2026-10-06T22:47:00Z",
+      "metrics": [
+        {
+          "label": "Mode",
+          "value": "Live"
+        },
+        {
+          "label": "Bots armed",
+          "value": "3/3"
+        },
+        {
+          "label": "Desk goal",
+          "value": "Net +"
+        }
+      ]
+    },
+    {
+      "id": "solana-scout",
+      "name": "Solana Scout",
+      "role": "Research",
+      "status": "online",
+      "tagline": "Price watch + research \u00b7 feeds Trader with scored setups",
+      "focus": "SOL/USDC momentum \u00b7 watchlist scoring",
+      "lastAction": "SOL watch @ ~$121 \u00b7 score 78 \u00b7 bias bullish 15m\u20131h",
+      "lastAt": "2026-10-06T22:35:01Z",
+      "metrics": [
+        {
+          "label": "Watching",
+          "value": "5"
+        },
+        {
+          "label": "Top score",
+          "value": "78 SOL"
+        },
+        {
+          "label": "Signals today",
+          "value": "4"
+        }
+      ]
+    },
+    {
+      "id": "solana-trader",
+      "name": "Solana Trader",
+      "role": "Execution",
+      "status": "online",
+      "tagline": "Buy/sell under small caps \u00b7 LIVE mode armed",
+      "focus": "\u2264$25/trade \u00b7 Scout follow-through only",
+      "lastAction": "LIVE armed under $25/$75/$50 \u00b7 awaiting Scout clears",
+      "lastAt": "2026-10-06T22:47:00Z",
+      "metrics": [
+        {
+          "label": "Open size",
+          "value": "$0.00"
+        },
+        {
+          "label": "Fills today",
+          "value": "0"
+        },
+        {
+          "label": "Cap/trade",
+          "value": "$25"
+        }
+      ]
+    },
+    {
+      "id": "portfolio-guard",
+      "name": "Portfolio Guard",
+      "role": "Risk / PnL",
+      "status": "online",
+      "tagline": "Keep the book healthy \u00b7 push net-positive \u00b7 halt on breach",
+      "focus": "Max open $75 \u00b7 daily halt -$50 \u00b7 green book bias",
+      "lastAction": "LIVE book check \u00b7 wallet ~$42 SOL \u00b7 caps intact \u00b7 goal net +",
+      "lastAt": "2026-10-06T22:47:00Z",
+      "metrics": [
+        {
+          "label": "Day PnL",
+          "value": "+$0.00"
+        },
+        {
+          "label": "Halt buffer",
+          "value": "$50"
+        },
+        {
+          "label": "Goal",
+          "value": "Net +"
+        }
+      ]
+    }
+  ],
+  "prices": [
+    {
+      "symbol": "SOL",
+      "pair": "SOL/USDC",
+      "price": 121.0,
+      "change24hPct": 1.05,
+      "volume24h": 1840000000
+    },
+    {
+      "symbol": "BONK",
+      "pair": "BONK/USDC",
+      "price": 2.14e-05,
+      "change24hPct": -1.82,
+      "volume24h": 92000000
+    },
+    {
+      "symbol": "JUP",
+      "pair": "JUP/USDC",
+      "price": 0.842,
+      "change24hPct": 4.55,
+      "volume24h": 71000000
+    },
+    {
+      "symbol": "WIF",
+      "pair": "WIF/USDC",
+      "price": 1.92,
+      "change24hPct": -0.67,
+      "volume24h": 54000000
+    },
+    {
+      "symbol": "RAY",
+      "pair": "RAY/USDC",
+      "price": 3.18,
+      "change24hPct": 1.21,
+      "volume24h": 28000000
+    }
+  ],
+  "positions": [],
+  "pnl": {
+    "realizedTodayUsd": 0,
+    "unrealizedUsd": 0,
+    "dayPnlUsd": 0,
+    "dayPnlPct": 0,
+    "openExposureUsd": 0,
+    "startingBookUsd": 42.35,
+    "goal": "net_positive",
+    "goalLabel": "Stay net-positive",
+    "goalStatus": "on_track",
+    "streakGreenSessions": 0
+  },
+  "watchlist": [
+    {
+      "symbol": "SOL",
+      "bias": "bullish",
+      "horizon": "15m\u20131h",
+      "note": "Primary momentum pair",
+      "scoutScore": 78
+    },
+    {
+      "symbol": "JUP",
+      "bias": "bullish",
+      "horizon": "1h",
+      "note": "Above VWAP \u00b7 volume rising",
+      "scoutScore": 71
+    },
+    {
+      "symbol": "BONK",
+      "bias": "neutral",
+      "horizon": "1h",
+      "note": "Waiting for reclaim",
+      "scoutScore": 44
+    },
+    {
+      "symbol": "WIF",
+      "bias": "bearish",
+      "horizon": "30m",
+      "note": "Below short MA \u00b7 skip",
+      "scoutScore": 28
+    },
+    {
+      "symbol": "RAY",
+      "bias": "bullish",
+      "horizon": "2h",
+      "note": "Quiet accumulation",
+      "scoutScore": 62
+    }
+  ],
+  "status": {
+    "tradingMode": "live",
+    "livePending": false,
+    "connections": {
+      "rpc": {
+        "label": "Solana RPC",
+        "state": "online",
+        "detail": "Public RPC \u00b7 read-only display"
+      },
+      "priceFeed": {
+        "label": "Price feed",
+        "state": "demo",
+        "detail": "Sample ticks until live feed writes"
+      },
+      "coordinator": {
+        "label": "Grok Bot",
+        "state": "online",
+        "detail": "Desk coordinator \u00b7 LIVE"
+      },
+      "scout": {
+        "label": "Solana Scout",
+        "state": "online",
+        "detail": "Watch + research"
+      },
+      "trader": {
+        "label": "Solana Trader",
+        "state": "online",
+        "detail": "LIVE \u00b7 caps armed"
+      },
+      "guard": {
+        "label": "Portfolio Guard",
+        "state": "online",
+        "detail": "Net-positive bias"
+      }
+    }
+  },
+  "events": [
+    {
+      "id": "evt-016",
+      "ts": "2026-10-06T22:47:00Z",
+      "bot": "grok-bot",
+      "level": "info",
+      "title": "LIVE mode on",
+      "message": "Desk switched to LIVE for Christian Sanchez. Wallet 3GfDwi\u2026Aeek \u00b7 0.35 SOL (~$42 @ ~$121). Caps $25/$75/$50. Goal: net-positive. UI is visualization \u2014 bots should append real events here.",
+      "tags": [
+        "live",
+        "mode",
+        "coordinator"
+      ]
+    },
+    {
+      "id": "evt-015",
+      "ts": "2026-10-06T22:47:00Z",
+      "bot": "portfolio-guard",
+      "level": "info",
+      "title": "LIVE book baseline",
+      "message": "Starting LIVE book ~$42.35 (0.35 SOL). Open exposure $0 / $75. Day PnL flat. Halt buffer full ($50). Goal: stay net-positive.",
+      "tags": [
+        "live",
+        "risk",
+        "pnl",
+        "goal"
+      ]
+    },
+    {
+      "id": "evt-014",
+      "ts": "2026-10-06T22:44:00Z",
+      "bot": "grok-bot",
+      "level": "info",
+      "title": "Caps broadcast",
+      "message": "Coordinator synced desk caps: $25/trade \u00b7 $75 max open \u00b7 $50 daily loss halt. Goal: stay net-positive.",
+      "tags": [
+        "caps",
+        "coordinator"
+      ]
+    },
+    {
+      "id": "evt-013b",
+      "ts": "2026-10-06T22:38:12Z",
+      "bot": "portfolio-guard",
+      "level": "info",
+      "title": "Sample feed disclaimer",
+      "message": "Older feed rows below may be sample/demo history. Until Scout/Trader/Guard write live events to data/activity.json, treat non-LIVE rows as visualization only.",
+      "tags": [
+        "disclaimer",
+        "sample"
+      ]
+    },
+    {
+      "id": "evt-012",
+      "ts": "2026-10-06T22:35:01Z",
+      "bot": "solana-scout",
+      "level": "signal",
+      "title": "SOL momentum pulse",
+      "message": "SOL/USDC short-horizon momentum score 78. Price holding above session VWAP; volume confirmation on last 3 bars.",
+      "tags": [
+        "SOL",
+        "momentum"
+      ]
+    },
+    {
+      "id": "evt-010",
+      "ts": "2026-10-06T21:58:20Z",
+      "bot": "portfolio-guard",
+      "level": "warn",
+      "title": "Cap headroom note",
+      "message": "After JUP fill, remaining open capacity $28.00 before $75 max. Trader limited to one more starter size.",
+      "tags": [
+        "caps",
+        "exposure"
+      ]
+    },
+    {
+      "id": "evt-008",
+      "ts": "2026-10-06T21:12:08Z",
+      "bot": "solana-scout",
+      "level": "research",
+      "title": "JUP watchlist upgrade",
+      "message": "JUP reclaimed short MA with rising relative volume. Bias \u2192 bullish on 1h horizon.",
+      "tags": [
+        "JUP",
+        "watchlist"
+      ]
+    },
+    {
+      "id": "evt-005",
+      "ts": "2026-10-06T20:38:15Z",
+      "bot": "solana-scout",
+      "level": "info",
+      "title": "Scout boot",
+      "message": "Solana Scout online. Tracking SOL/USDC momentum starter + secondary watchlist (JUP, BONK, WIF, RAY).",
+      "tags": [
+        "boot"
+      ]
+    },
+    {
+      "id": "evt-003",
+      "ts": "2026-10-06T18:30:41Z",
+      "bot": "solana-scout",
+      "level": "signal",
+      "title": "WIF skip",
+      "message": "WIF below short MA; score 28. Advising Trader to stand down.",
+      "tags": [
+        "WIF",
+        "skip"
+      ]
+    }
+  ]
+}

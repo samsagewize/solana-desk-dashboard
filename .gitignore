@@ -1,0 +1,39 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.idea/
+.vscode/
+*.code-workspace
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-error.log*
+package-lock.json
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Env / secrets — never commit keys
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+id_rsa*
+wallet*.json
+*-keypair.json
+.secrets/
+
+# Local overrides
+data/activity.local.json
+*.local.json
+
+# Logs
+*.log
+logs/
