@@ -518,14 +518,35 @@
     return [...el.querySelectorAll(".bot")];
   }
 
-  function botFigureHtml() {
+  function botFigureHtml(botId) {
+    const letter =
+      botId === "grok-bot"
+        ? "G"
+        : botId === "solana-scout"
+          ? "S"
+          : botId === "solana-trader"
+            ? "T"
+            : botId === "portfolio-guard"
+              ? "R"
+              : botId === "coach-bot"
+                ? "C"
+                : "?";
     return `
       <span class="bot-figure" aria-hidden="true">
         <span class="bot-glow"></span>
         <span class="bot-shadow"></span>
         <span class="bot-body-3d">
-          <span class="bot-head"><span class="bot-visor"></span></span>
-          <span class="bot-torso"></span>
+          <span class="bot-antenna"><span class="bot-antenna-tip"></span></span>
+          <span class="bot-ear l"></span>
+          <span class="bot-ear r"></span>
+          <span class="bot-head">
+            <span class="bot-visor"></span>
+            <span class="bot-cheek l"></span>
+            <span class="bot-cheek r"></span>
+          </span>
+          <span class="bot-arm l"></span>
+          <span class="bot-arm r"></span>
+          <span class="bot-torso"><span class="bot-badge">${letter}</span></span>
           <span class="bot-leg l"></span>
           <span class="bot-leg r"></span>
         </span>
@@ -546,8 +567,9 @@
           { id: "coach-bot", name: "Coach", status: "online", lastAction: "—" },
         ];
 
+    const FIGURE_VER = "art2";
     const existing = $$bots(el);
-    if (existing.length === list.length) {
+    if (existing.length === list.length && el.dataset.figureVer === FIGURE_VER) {
       list.forEach((b) => {
         const node = el.querySelector(`[data-bot="${CSS.escape(b.id)}"]`);
         if (!node) return;
@@ -556,10 +578,11 @@
         const nameEl = node.querySelector(".bot-name");
         if (nameEl) nameEl.textContent = shortName(b);
         node.classList.toggle("active", activeBotId === b.id);
-        node.classList.toggle("paused", pausedBotId === b.id);
+        node.classList.toggle("paused", deskPaused || pausedBotId === b.id);
       });
       return;
     }
+    el.dataset.figureVer = FIGURE_VER;
 
     el.innerHTML = list
       .map((b, i) => {
@@ -572,7 +595,7 @@
           data-last-action="${escapeHtml(b.lastAction || "")}"
           data-last-at="${escapeHtml(b.lastAt || "")}"
           aria-label="${escapeHtml(b.name)} — ${escapeHtml(oneLineStatus(b))}">
-          ${botFigureHtml()}
+          ${botFigureHtml(b.id)}
           <span class="bot-name">${escapeHtml(shortName(b))}</span>
           <span class="bot-status-line">${escapeHtml(oneLineStatus(b))}</span>
         </button>`;
