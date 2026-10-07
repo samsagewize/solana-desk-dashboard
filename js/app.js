@@ -1,7 +1,8 @@
 /**
  * Solana Desk — CSS 3D bots + full activity console + Phantom connect
  * Connect Wallet (window.solana). Admin address → Trading ON + LIVE.
- * Deposit $5 ≈ SOL transfer to admin wallet via Phantom. No private keys stored.
+ * Deposit $5 ≈ SOL transfer to AGENT bot wallet via Phantom (admin signs). No private keys stored.
+ * Bot book / Wallet / PnL track AGENT_WALLET. Admin Connect gate remains ADMIN_WALLET.
  * Activity: every event from data/activity.json rendered; live stream when bots work.
  */
 (function () {
@@ -10,6 +11,8 @@
   const DATA_URL = "data/activity.json";
   const REFRESH_MS = 15000;
   const ADMIN_WALLET = "3GfDwiEtei62mumu1J8XnaqkUFtbkVLQE2Btpr5yAeek";
+  /** Bot trading book — Wallet/PnL cards + RPC track this address */
+  const AGENT_WALLET = "99hEnCqL2Tp59pkymd3zfpenKQVWZXCKpCViGXaHw92j";
   const DEPOSIT_USD = 5;
   const RPC_URL = "https://api.mainnet-beta.solana.com";
   const SOL_PRICE_URLS = [
@@ -124,14 +127,14 @@
       { title: "Signal draft", message: "Bias update · waiting for bar close confirmation" },
     ],
     "solana-trader": [
-      { title: "Order book peek", message: "No fill · under cap · standing by Scout clear" },
-      { title: "Size check", message: "Starter size ≤ $25 · open room vs $75 max" },
-      { title: "Exec idle", message: "LIVE armed · zero open · waiting signal" },
+      { title: "SI book", message: "243.68 SI open · cost ~$6.66 · adds HALTED" },
+      { title: "Size check", message: "No new SI adds · Guard latch · under $75 max" },
+      { title: "Exec halted", message: "IDEA-001 fills done · waiting Guard clear" },
     ],
     "portfolio-guard": [
-      { title: "PnL mark", message: "Day PnL flat · halt buffer full" },
-      { title: "Exposure sweep", message: "Open $0 · max $75 · no breach" },
-      { title: "Goal check", message: "Net-positive bias · book healthy" },
+      { title: "PnL mark", message: "Day PnL ≈ −$0.28 · equity ~$8.02 · −20% stop" },
+      { title: "Exposure sweep", message: "Open ~$6.66 / $75 · SI adds HALTED" },
+      { title: "Stop check", message: "−20% stop armed on SI book · bot 99hEn…" },
     ],
   };
 
@@ -141,6 +144,7 @@
   let connectedPubkey = null;
   let isAdminConnected = false;
   let solPriceUsd = null;
+  let agentLive = null; // { solBalance, solUsd, lamports, source }
   let knownEventIds = new Set();
   let activeBotId = null;
   let streamTimer = null;
@@ -268,7 +272,76 @@
         if (p) return Number(p);
       }
     } catch (_) { /* fall through */ }
-    return 120;
+    return 140;
+  }
+
+  async function fetchAgentSolBalance() {
+    try {
+      const r = await fetch(RPC_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          id: 1,
+          method: "getBalance",
+          params: [AGENT_WALLET],
+        }),
+      });
+      if (!r.ok) throw new Error("RPC " + r.status);
+      const j = await r.json();
+      const lamports = j?.result?.value;
+      if (lamports == null) throw new Error("no balance");
+      const solBalance = lamports / 1e9;
+      const price = solPriceUsd || 140;
+      return {
+        lamports,
+        solBalance,
+        solUsd: solBalance * price,
+        source: "rpc",
+      };
+    } catch (err) {
+      console.warn("agent balance RPC failed", err);
+      return null;
+    }
+  }
+
+  function agentAddress() {
+    return (
+      state?.wallet?.address ||
+      state?.agentWallet?.address ||
+      AGENT_WALLET
+    );
+  }
+
+  function renderAgentTrack() {
+    const addr = agentAddress();
+    const shortEl = $("#agent-addr-short");
+    const fullEl = $("#agent-addr-full");
+    const solEl = $("#agent-bal-sol");
+    const usdEl = $("#agent-bal-usd");
+    const srcEl = $("#agent-bal-src");
+    if (shortEl) shortEl.textContent = shortAddr(addr);
+    if (fullEl) fullEl.textContent = addr;
+
+    const w = state?.wallet || {};
+    const live = agentLive;
+    const solBal =
+      live?.solBalance ?? w.solBalance ?? null;
+    const equity = w.totalUsd ?? state?.pnl?.equityUsd ?? null;
+    if (solEl) {
+      solEl.textContent =
+        solBal != null ? `${Number(solBal).toFixed(6)} SOL` : "— SOL";
+    }
+    if (usdEl) {
+      const si = w.siBalance ?? state?.pnl?.siQty;
+      const parts = [];
+      if (equity != null) parts.push(`equity ${fmtUsd(equity)}`);
+      if (si != null) parts.push(`${Number(si).toFixed(2)} SI`);
+      usdEl.textContent = parts.join(" · ") || "—";
+    }
+    if (srcEl) {
+      srcEl.textContent = live?.source === "rpc" ? "RPC live" : "activity.json";
+    }
   }
 
   function solForDeposit() {
@@ -338,7 +411,7 @@
         }
         setBanner(
           "ok",
-          `<strong>Admin</strong> · Trading ON · Caps $25 / $75 / $50 · Connected as <code>${escapeHtml(shortAddr(connectedPubkey))}</code>`
+          `<strong>Admin</strong> · Trading ON · Caps $25 / $75 / $50 · Bot book <code>${escapeHtml(shortAddr(AGENT_WALLET))}</code> · Connected <code>${escapeHtml(shortAddr(connectedPubkey))}</code>`
         );
         if (deposit) deposit.hidden = false;
         updateDepositHint();
@@ -377,7 +450,7 @@
       if (walletEl) walletEl.textContent = "not connected";
       setBanner(
         "info",
-        `Connect Phantom with admin wallet <code>${escapeHtml(shortAddr(ADMIN_WALLET))}</code> to go <strong>LIVE</strong> and enable Trading ON.`
+        `Connect Phantom admin <code>${escapeHtml(shortAddr(ADMIN_WALLET))}</code> for LIVE gate. Desk tracks bot book <code>${escapeHtml(shortAddr(AGENT_WALLET))}</code> for Wallet/PnL.`
       );
       if (deposit) deposit.hidden = true;
     }
@@ -390,7 +463,7 @@
     const sol = solForDeposit();
     if (hint) {
       hint.textContent =
-        `Sends ~${sol.toFixed(4)} SOL (≈ $${DEPOSIT_USD}) to ${shortAddr(ADMIN_WALLET)} via Phantom. No private keys are stored on this site.`;
+        `Sends ~${sol.toFixed(4)} SOL (≈ $${DEPOSIT_USD}) to bot AGENT ${shortAddr(AGENT_WALLET)} via Phantom (admin signs). No private keys are stored on this site.`;
     }
     updateJupiterLink();
   }
@@ -618,16 +691,27 @@
   function renderWallet(wallet) {
     const el = $("#wallet-body");
     if (!el) return;
-    if (!wallet) {
+    const addr = wallet?.address || AGENT_WALLET;
+    const liveSol = agentLive?.solBalance;
+    const solBal = liveSol ?? wallet?.solBalance ?? 0;
+    const equity = wallet?.totalUsd ?? wallet?.equityUsd;
+    const siQty = wallet?.siBalance ?? state?.pnl?.siQty;
+    const siCost = wallet?.siCostUsd ?? state?.pnl?.costBasisUsd;
+    const siMark = wallet?.siMark ?? state?.pnl?.siMark;
+    if (!wallet && !agentLive) {
       el.innerHTML = `<p class="muted">No wallet data</p>`;
       return;
     }
     el.innerHTML = `
-      ${isAdminConnected ? `<span class="admin-tag">Admin · Trading ON</span>` : `<span class="admin-tag" style="color:var(--text-mute);border-color:var(--border);background:var(--bg-soft)">Waiting for connect</span>`}
-      <div class="big">${fmtUsd(wallet.totalUsd)}</div>
-      <div class="sub">${(wallet.solBalance ?? 0).toFixed(2)} SOL · ${escapeHtml(wallet.label || "Wallet")}</div>
-      <div class="mono" title="${escapeHtml(wallet.address || ADMIN_WALLET)}">${escapeHtml(shortAddr(wallet.address || ADMIN_WALLET))}</div>
+      <span class="admin-tag">Bot book · AGENT</span>
+      <div class="big">${fmtUsd(equity)}</div>
+      <div class="sub">${Number(solBal).toFixed(6)} SOL${siQty != null ? ` · ${Number(siQty).toFixed(2)} SI` : ""}${siCost != null ? ` · cost ${fmtUsd(siCost)}` : ""}</div>
+      ${siMark != null ? `<div class="sub">SI mark ~$${Number(siMark).toFixed(5)}</div>` : ""}
+      <div class="mono" title="${escapeHtml(addr)}">${escapeHtml(shortAddr(addr))}</div>
+      <div class="wallet-full">${escapeHtml(addr)}</div>
+      <div class="sub" style="margin-top:0.45rem;color:var(--text-mute)">Funded ${wallet?.fundedSol ?? wallet?.baselineSol ?? 0.07} SOL baseline · admin gate ${escapeHtml(shortAddr(ADMIN_WALLET))}</div>
     `;
+    renderAgentTrack();
   }
 
   function renderPnL(pnl) {
@@ -635,12 +719,21 @@
     if (!el) return;
     const day = pnl?.dayPnlUsd ?? 0;
     const sign = day > 0 ? "+" : "";
+    const open = pnl?.openExposureUsd ?? 0;
+    const maxOpen = pnl?.maxOpenUsd ?? state?.riskCaps?.maxOpenUsd ?? 75;
+    const equity = pnl?.equityUsd ?? state?.wallet?.totalUsd;
+    const stop = pnl?.stopPct ?? state?.riskCaps?.stopPct ?? -20;
+    const halted = state?.status?.siAddsHalted || state?.riskCaps?.siAddsHalted;
     el.innerHTML = `
       <div class="big ${pnlClass(day)}">${sign}${fmtUsd(day)}</div>
-      <div class="sub">${escapeHtml(pnl?.goalLabel || "Net-positive goal")} · ${fmtPct(pnl?.dayPnlPct)}</div>
+      <div class="sub">Day · ${fmtPct(pnl?.dayPnlPct)} · equity ${fmtUsd(equity)}</div>
       <div class="sub" style="margin-top:0.55rem;color:var(--text-mute)">
-        Realized ${fmtUsd(pnl?.realizedTodayUsd)} · Open ${fmtUsd(pnl?.openExposureUsd)}
+        Open ${fmtUsd(open)} / ${fmtUsd(maxOpen, 0)} · SI ${pnl?.siQty != null ? Number(pnl.siQty).toFixed(2) : "—"}
       </div>
+      <div class="sub" style="margin-top:0.35rem;color:var(--text-mute)">
+        ${halted ? "SI adds HALTED · " : ""}Stop ${stop}% · bot ${escapeHtml(shortAddr(pnl?.walletAddress || AGENT_WALLET))}
+      </div>
+      <div class="sub" style="margin-top:0.35rem">${escapeHtml(pnl?.goalLabel || "Net-positive goal")}</div>
     `;
   }
 
@@ -897,11 +990,16 @@
     state = data;
     renderStatusLine(data);
     renderBots(data.bots || []);
+    // Always bind Wallet/PnL to AGENT bot book address
+    if (data.wallet) data.wallet.address = data.wallet.address || AGENT_WALLET;
+    if (data.pnl) data.pnl.walletAddress = data.pnl.walletAddress || AGENT_WALLET;
     renderWallet(data.wallet);
     renderPnL(data.pnl || {});
     renderCaps(data.riskCaps);
     renderFeed(state.events);
+    renderAgentTrack();
     updateConnectUi();
+    refreshAgentBalance();
     const upd = $("#data-updated");
     if (upd) {
       upd.textContent = data.meta?.updatedAt
@@ -910,6 +1008,21 @@
           ? "Sample activity seeded (file empty)"
           : "";
     }
+  }
+
+  async function refreshAgentBalance() {
+    const live = await fetchAgentSolBalance();
+    if (!live) {
+      renderAgentTrack();
+      return;
+    }
+    agentLive = live;
+    if (state?.wallet) {
+      state.wallet.solBalance = live.solBalance;
+      // Keep equity/SI from activity.json; only refresh residual SOL from chain
+    }
+    renderWallet(state?.wallet);
+    renderAgentTrack();
   }
 
   async function refresh() {
@@ -1007,15 +1120,15 @@
         window.solanaWeb3;
       const connection = new Connection(RPC_URL, "confirmed");
       const from = new PublicKey(connectedPubkey);
-      const to = new PublicKey(ADMIN_WALLET);
+      const to = new PublicKey(AGENT_WALLET);
 
       if (from.equals(to)) {
         const amt = solAmount.toFixed(4);
         try {
-          await navigator.clipboard.writeText(ADMIN_WALLET);
+          await navigator.clipboard.writeText(AGENT_WALLET);
         } catch (_) { /* ignore */ }
         setDepositStatus(
-          `Guided fund · ~${amt} SOL (≈ $${DEPOSIT_USD}) into agent ${shortAddr(ADMIN_WALLET)} (address copied). Opening Jupiter — swap/buy SOL into this wallet. No keys leave Phantom.`,
+          `Guided fund · ~${amt} SOL (≈ $${DEPOSIT_USD}) into bot AGENT ${shortAddr(AGENT_WALLET)} (address copied). Opening Jupiter — swap/buy SOL into this wallet. No keys leave Phantom.`,
           "ok"
         );
         const link = $("#link-jupiter");
@@ -1061,6 +1174,17 @@
     $("#btn-connect-main")?.addEventListener("click", connectWallet);
     $("#btn-disconnect")?.addEventListener("click", disconnectWallet);
     $("#btn-deposit")?.addEventListener("click", depositFiveDollars);
+    $("#btn-copy-agent")?.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(agentAddress());
+        const b = $("#btn-copy-agent");
+        if (b) {
+          const prev = b.textContent;
+          b.textContent = "Copied";
+          setTimeout(() => { b.textContent = prev || "Copy"; }, 1200);
+        }
+      } catch (_) { /* ignore */ }
+    });
 
     const provider = getProvider();
     if (provider) {

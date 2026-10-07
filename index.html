@@ -36,6 +36,23 @@
         <span id="status-pnl">PnL —</span>
       </p>
       <div id="wallet-banner" class="wallet-banner" hidden role="status"></div>
+      <div id="agent-track" class="agent-track glass-lift" aria-label="Agent trading wallet being tracked">
+        <div class="agent-track-label">
+          <span class="agent-pill">BOT BOOK</span>
+          <strong>Agent trading wallet</strong>
+          <span class="agent-desc">Tracked for Trader fills · admin Connect gate separate</span>
+        </div>
+        <div class="agent-track-addr">
+          <span id="agent-addr-short" class="agent-short">99hE…92j</span>
+          <code id="agent-addr-full" class="agent-full">99hEnCqL2Tp59pkymd3zfpenKQVWZXCKpCViGXaHw92j</code>
+          <button type="button" id="btn-copy-agent" class="btn btn-ghost btn-copy" title="Copy agent wallet">Copy</button>
+        </div>
+        <div class="agent-track-bal">
+          <span id="agent-bal-sol" class="agent-bal">— SOL</span>
+          <span id="agent-bal-usd" class="agent-bal-usd">—</span>
+          <span id="agent-bal-src" class="agent-bal-src">RPC</span>
+        </div>
+      </div>
     </header>
 
     <section id="connect-cta" class="connect-cta glass-lift" aria-label="Connect Phantom to trade">
@@ -104,13 +121,13 @@
 
     <section class="cards" aria-label="Desk summary">
       <article class="card glass-lift" id="card-wallet">
-        <h2>Wallet</h2>
+        <h2>Bot wallet</h2>
         <div class="card-body" id="wallet-body">
           <p class="muted">Loading…</p>
         </div>
       </article>
       <article class="card glass-lift" id="card-pnl">
-        <h2>PnL</h2>
+        <h2>Bot PnL</h2>
         <div class="card-body" id="pnl-body">
           <p class="muted">Loading…</p>
         </div>
@@ -125,7 +142,7 @@
 
     <footer class="footer">
       <span id="data-updated">—</span>
-      <span>Display + Phantom connect · no keys · full log from <code>data/activity.json</code></span>
+      <span>Bot book 99hEn… · admin Connect gate · no keys · <code>data/activity.json</code></span>
     </footer>
   </div>
   <script src="https://unpkg.com/@solana/web3.js@1.95.4/lib/index.iife.min.js"></script>

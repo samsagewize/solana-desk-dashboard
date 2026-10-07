@@ -1,8 +1,8 @@
 {
   "meta": {
     "mode": "live",
-    "label": "LIVE — visualization UI; feed may still show sample until bots write",
-    "updatedAt": "2026-10-06T23:40:00Z",
+    "label": "LIVE — bot 99hEn… · SI 243.68 · equity ~$8.02 · day −$0.28 · adds HALTED · −20% stop",
+    "updatedAt": "2026-10-07T04:24:31.952Z",
     "bots": [
       "grok-bot",
       "solana-scout",
@@ -10,26 +10,38 @@
       "portfolio-guard"
     ],
     "owner": "Christian Sanchez",
-    "notes": "Mode=LIVE. Full activity console shows every event. ADMIN trading wallet 3GfDwi…Aeek. Caps $25/$75/$50. Goal: net-positive. No secrets."
+    "notes": "Bot book AGENT 99hEnCqL2Tp59pkymd3zfpenKQVWZXCKpCViGXaHw92j. Baseline funded 0.07 SOL. Now 243.682305 SI (cost ~$6.66, mark ~$0.02712) + 0.011994688 SOL. Equity ~$8.02 · day PnL ≈ −$0.28. Open ~$6.66/$75. SI adds HALTED. −20% stop. Admin gate 3GfDwi…Aeek."
   },
   "riskCaps": {
     "perTradeUsd": 25,
     "maxOpenUsd": 75,
     "dailyLossHaltUsd": 50,
-    "strategy": "SOL/USDC short-horizon momentum"
+    "strategy": "SOL/USDC + IDEA-001 SI · adds halted",
+    "stopPct": -20,
+    "siAddsHalted": true
   },
   "wallet": {
-    "label": "ADMIN trading wallet",
-    "role": "admin",
-    "isAdmin": true,
-    "targetSolUsd": 40,
-    "solBalance": 0.35,
-    "solUsd": 42.35,
+    "label": "AGENT bot book",
+    "role": "agent",
+    "isAdmin": false,
+    "isAgent": true,
+    "address": "99hEnCqL2Tp59pkymd3zfpenKQVWZXCKpCViGXaHw92j",
+    "adminAddress": "3GfDwiEtei62mumu1J8XnaqkUFtbkVLQE2Btpr5yAeek",
+    "fundedSol": 0.07,
+    "baselineSol": 0.07,
+    "solBalance": 0.011994688,
+    "solUsd": 1.4113,
     "usdcBalance": 0,
-    "otherUsd": 0,
-    "totalUsd": 42.35,
-    "address": "3GfDwiEtei62mumu1J8XnaqkUFtbkVLQE2Btpr5yAeek",
-    "note": "ADMIN · 0.35 SOL · ~$42 @ ~$121/SOL · public address only · no keys in repo"
+    "siBalance": 243.682305,
+    "siCostUsd": 6.66,
+    "siMark": 0.02712,
+    "siMarkUsd": 6.6087,
+    "otherUsd": 6.6087,
+    "totalUsd": 8.02,
+    "openIdea": "IDEA-001 SI",
+    "halt": "SI_ADDS_HALTED",
+    "stopPct": -20,
+    "note": "Baseline 0.07 SOL · now 243.682305 SI + 0.011994688 SOL · equity ~$8.02 · day PnL ≈ $-0.28"
   },
   "bots": [
     {
@@ -38,9 +50,9 @@
       "role": "Coordinator",
       "status": "online",
       "tagline": "Routes Scout → Trader → Guard · keeps the desk organized",
-      "focus": "Orchestration · LIVE · ADMIN wallet · caps broadcast",
-      "lastAction": "ADMIN wallet marked · LIVE · caps $25 / $75 / $50 · goal net +",
-      "lastAt": "2026-10-06T22:53:00Z",
+      "focus": "Orchestration · AUTO ON · agent wallet · IDEA-001",
+      "lastAction": "Bot book 99hEn… · equity ~$8.02 · day $-0.28 · SI HALTED",
+      "lastAt": "2026-10-07T04:24:31.952Z",
       "metrics": [
         {
           "label": "Mode",
@@ -62,9 +74,9 @@
       "role": "Research",
       "status": "online",
       "tagline": "Price watch + research · feeds Trader with scored setups",
-      "focus": "SOL/USDC momentum · watchlist scoring",
-      "lastAction": "SOL watch @ ~$121 · score 78 · bias bullish 15m–1h",
-      "lastAt": "2026-10-06T22:35:01Z",
+      "focus": "IDEA-001 SI · short-horizon · ~$4.50 notional",
+      "lastAction": "No new SI clears while Guard halt latch is on",
+      "lastAt": "2026-10-07T04:24:31.952Z",
       "metrics": [
         {
           "label": "Watching",
@@ -84,23 +96,23 @@
       "id": "solana-trader",
       "name": "Solana Trader",
       "role": "Execution",
-      "status": "online",
+      "status": "halted",
       "tagline": "Buy/sell under small caps · LIVE mode armed",
-      "focus": "≤$25/trade · Scout follow-through only",
-      "lastAction": "LIVE armed under $25/$75/$50 · awaiting Scout clears",
-      "lastAt": "2026-10-06T22:40:00Z",
+      "focus": "IDEA-001 SI HALTED · AGENT 99hEn…",
+      "lastAction": "2 SI fills ~$6.66 · adds HALTED · −20% stop",
+      "lastAt": "2026-10-07T04:24:31.952Z",
       "metrics": [
         {
-          "label": "Open size",
-          "value": "$0.00"
+          "label": "Open SI",
+          "value": "243.682305"
         },
         {
-          "label": "Fills today",
-          "value": "0"
+          "label": "Cost",
+          "value": "$6.66"
         },
         {
-          "label": "Cap/trade",
-          "value": "$25"
+          "label": "Status",
+          "value": "HALTED"
         }
       ]
     },
@@ -110,21 +122,21 @@
       "role": "Risk / PnL",
       "status": "online",
       "tagline": "Keep the book healthy · push net-positive · halt on breach",
-      "focus": "Max open $75 · daily halt -$50 · green book bias",
-      "lastAction": "LIVE book · ADMIN wallet ~$42 SOL · caps intact · goal net +",
-      "lastAt": "2026-10-06T22:53:00Z",
+      "focus": "Open ~$6.66/$75 · halt latch on SI adds",
+      "lastAction": "Day PnL ≈ $-0.28 · equity ~$8.02 · −20% stop · adds HALTED",
+      "lastAt": "2026-10-07T04:24:31.952Z",
       "metrics": [
         {
           "label": "Day PnL",
-          "value": "+$0.00"
+          "value": "$-0.28"
         },
         {
-          "label": "Halt buffer",
-          "value": "$50"
+          "label": "Equity",
+          "value": "$8.02"
         },
         {
-          "label": "Goal",
-          "value": "Net +"
+          "label": "Stop",
+          "value": "-20%"
         }
       ]
     }
@@ -166,18 +178,57 @@
       "volume24h": 28000000
     }
   ],
-  "positions": [],
+  "positions": [
+    {
+      "id": "pos-si-001",
+      "symbol": "SI",
+      "side": "long",
+      "qty": 243.682305,
+      "costUsd": 6.66,
+      "markPrice": 0.02712,
+      "markUsd": 6.6087,
+      "unrealizedUsd": -0.0513,
+      "status": "open",
+      "haltAdds": true,
+      "stopPct": -20,
+      "note": "IDEA-001 · 2 fills · SI adds HALTED · −20% stop",
+      "fills": [
+        {
+          "usd": 4.5,
+          "qty": 164.5,
+          "tx": "2gmL7hhx…",
+          "ts": "2026-10-07T04:18:40Z"
+        },
+        {
+          "usd": 2.16,
+          "qty": 79.18,
+          "tx": "4cmQH2ij…",
+          "ts": "2026-10-07T04:22:10Z"
+        }
+      ]
+    }
+  ],
   "pnl": {
+    "walletAddress": "99hEnCqL2Tp59pkymd3zfpenKQVWZXCKpCViGXaHw92j",
     "realizedTodayUsd": 0,
-    "unrealizedUsd": 0,
-    "dayPnlUsd": 0,
-    "dayPnlPct": 0,
-    "openExposureUsd": 0,
-    "startingBookUsd": 42.35,
+    "unrealizedUsd": -0.0513,
+    "dayPnlUsd": -0.28,
+    "dayPnlPct": -3.37,
+    "openExposureUsd": 6.66,
+    "maxOpenUsd": 75,
+    "startingBookUsd": 8.3,
+    "baselineSol": 0.07,
+    "equityUsd": 8.02,
+    "costBasisUsd": 6.66,
+    "siQty": 243.682305,
+    "siMark": 0.02712,
+    "solBalance": 0.011994688,
     "goal": "net_positive",
-    "goalLabel": "Stay net-positive",
-    "goalStatus": "on_track",
-    "streakGreenSessions": 0
+    "goalLabel": "Net-positive · SI adds HALTED · −20% stop",
+    "goalStatus": "halted_pending_guard",
+    "streakGreenSessions": 0,
+    "stopPct": -20,
+    "note": "Bot PnL on 99hEn… · equity ~$8.02 · day ≈ $-0.28 · open ~$6.66/$75"
   },
   "watchlist": [
     {
@@ -218,41 +269,202 @@
   ],
   "status": {
     "tradingMode": "live",
+    "autoOn": true,
+    "siBuysHalted": true,
+    "siAddsHalted": true,
+    "stopPct": -20,
+    "agentWallet": "99hEnCqL2Tp59pkymd3zfpenKQVWZXCKpCViGXaHw92j",
+    "adminWallet": "3GfDwiEtei62mumu1J8XnaqkUFtbkVLQE2Btpr5yAeek",
     "livePending": false,
     "connections": {
       "rpc": {
         "label": "Solana RPC",
         "state": "online",
-        "detail": "Public RPC · read-only display"
+        "detail": "Public RPC · agent balance poll"
       },
       "priceFeed": {
         "label": "Price feed",
-        "state": "demo",
-        "detail": "Sample ticks until live feed writes"
+        "state": "live",
+        "detail": "SI mark ~$0.02712"
       },
       "coordinator": {
         "label": "Grok Bot",
         "state": "online",
-        "detail": "Desk coordinator · LIVE"
+        "detail": "AUTO · bot book 99hEn…"
       },
       "scout": {
         "label": "Solana Scout",
         "state": "online",
-        "detail": "Watch + research"
+        "detail": "IDEA-001 watch · no new SI clears"
       },
       "trader": {
         "label": "Solana Trader",
-        "state": "online",
-        "detail": "LIVE · caps armed"
+        "state": "halted",
+        "detail": "SI adds HALTED · 2 fills ~$6.66"
       },
       "guard": {
         "label": "Portfolio Guard",
+        "state": "review",
+        "detail": "−20% stop armed · reviewing SI book"
+      },
+      "agentWallet": {
+        "label": "Agent trading wallet",
         "state": "online",
-        "detail": "Net-positive bias"
+        "detail": "99hEn… · equity ~$8.02 · day $-0.28"
       }
     }
   },
   "events": [
+    {
+      "id": "evt-028",
+      "ts": "2026-10-07T04:25:00Z",
+      "bot": "portfolio-guard",
+      "level": "warn",
+      "title": "SI buys HALTED pending Guard",
+      "message": "Further SI buys HALTED pending Guard review. Open book: 243.68 SI · cost ~$6.66 on AGENT 99hEnCqL2Tp59pkymd3zfpenKQVWZXCKpCViGXaHw92j. Caps intact ($25/$75/$50).",
+      "tags": [
+        "halt",
+        "SI",
+        "guard",
+        "agent"
+      ]
+    },
+    {
+      "id": "evt-029",
+      "ts": "2026-10-07T04:24:31.952Z",
+      "bot": "portfolio-guard",
+      "level": "warn",
+      "title": "Bot PnL snapshot · day −$0.28",
+      "message": "AGENT 99hEnCqL2Tp59pkymd3zfpenKQVWZXCKpCViGXaHw92j: baseline 0.07 SOL → now 243.682305 SI (cost ~$6.66, mark ~$0.02712) + 0.011994688 SOL. Equity ~$8.02 · day PnL ≈ $-0.28. Open ~$6.66/$75. SI adds HALTED. −20% stop armed.",
+      "tags": [
+        "pnl",
+        "snapshot",
+        "SI",
+        "halt",
+        "agent"
+      ]
+    },
+    {
+      "id": "evt-025",
+      "ts": "2026-10-07T04:22:30Z",
+      "bot": "grok-bot",
+      "level": "info",
+      "title": "Combined SI open ~$6.66",
+      "message": "Two SI buys logged on bot wallet 99hEnCqL2Tp59pkymd3zfpenKQVWZXCKpCViGXaHw92j: $4.50 (164.50, 2gmL7hhx…) + $2.16 (79.18, 4cmQH2ij…) = ~$6.66 notional. Routing Guard review.",
+      "tags": [
+        "SI",
+        "combined",
+        "agent"
+      ]
+    },
+    {
+      "id": "evt-027",
+      "ts": "2026-10-07T04:22:10Z",
+      "bot": "solana-trader",
+      "level": "signal",
+      "title": "BUY SI ~$2.16 filled",
+      "message": "BUY SI ~$2.16 → 79.18 SI on AGENT 99hEn…Hw92j. Tx 4cmQH2ij…. Combined open ~$6.66 (243.68 SI).",
+      "tags": [
+        "SI",
+        "buy",
+        "fill",
+        "IDEA-001"
+      ]
+    },
+    {
+      "id": "evt-024",
+      "ts": "2026-10-07T04:20:00Z",
+      "bot": "grok-bot",
+      "level": "info",
+      "title": "AUTO ON · agent wallet tracked",
+      "message": "Desk AUTO ON. Tracking AGENT trading wallet 99hEnCqL2Tp59pkymd3zfpenKQVWZXCKpCViGXaHw92j for bot fills. Admin gate remains 3GfDwiEtei62mumu1J8XnaqkUFtbkVLQE2Btpr5yAeek (Phantom Connect → LIVE). Caps $25/$75/$50.",
+      "tags": [
+        "auto",
+        "agent",
+        "wallet",
+        "coordinator"
+      ]
+    },
+    {
+      "id": "evt-026",
+      "ts": "2026-10-07T04:18:40Z",
+      "bot": "solana-trader",
+      "level": "signal",
+      "title": "BUY SI ~$4.50 filled",
+      "message": "BUY SI ~$4.50 → 164.50 SI on AGENT 99hEn…Hw92j. Tx 2gmL7hhx…. IDEA-001 starter fill.",
+      "tags": [
+        "SI",
+        "buy",
+        "fill",
+        "IDEA-001"
+      ]
+    },
+    {
+      "id": "evt-023",
+      "ts": "2026-10-07T04:18:30Z",
+      "bot": "solana-trader",
+      "level": "signal",
+      "title": "Executing IDEA-001 SI ~$4.50",
+      "message": "Trader executing IDEA-001 (SI) notional ~$4.50 on AGENT wallet 99hEn…Hw92j. Under $25/trade cap · Scout clear honored · Guard latch open.",
+      "tags": [
+        "IDEA-001",
+        "SI",
+        "exec",
+        "agent"
+      ]
+    },
+    {
+      "id": "evt-022",
+      "ts": "2026-10-07T04:15:00Z",
+      "bot": "portfolio-guard",
+      "level": "info",
+      "title": "Agent book armed",
+      "message": "AGENT funded 0.07 SOL. Open exposure ~$4.50 / $75 max. Day PnL flat. Halt buffer $50. Goal: net-positive on bot book.",
+      "tags": [
+        "agent",
+        "risk",
+        "funded"
+      ]
+    },
+    {
+      "id": "evt-021",
+      "ts": "2026-10-07T04:12:00Z",
+      "bot": "solana-scout",
+      "level": "signal",
+      "title": "IDEA-001 SI cleared",
+      "message": "Scout cleared IDEA-001 SI for starter size ~$4.50. Bias short-horizon; score pass → Trader. Pair context SOL/USDC desk strategy.",
+      "tags": [
+        "IDEA-001",
+        "SI",
+        "scout"
+      ]
+    },
+    {
+      "id": "evt-020",
+      "ts": "2026-10-07T04:05:00Z",
+      "bot": "grok-bot",
+      "level": "info",
+      "title": "Agent wallet funded 0.07 SOL",
+      "message": "Funded AGENT trading wallet 99hEnCqL2Tp59pkymd3zfpenKQVWZXCKpCViGXaHw92j with 0.07 SOL for live bot trading. Public address only · no keys on site. Desk will RPC-poll balance.",
+      "tags": [
+        "funded",
+        "agent",
+        "0.07SOL"
+      ]
+    },
+    {
+      "id": "evt-019",
+      "ts": "2026-10-07T03:58:00Z",
+      "bot": "solana-trader",
+      "level": "info",
+      "title": "Trader bound to AGENT wallet",
+      "message": "Execution path pointed at 99hEn…Hw92j. Fills/size checks use agent book, not admin UI gate wallet.",
+      "tags": [
+        "agent",
+        "exec",
+        "bind"
+      ]
+    },
     {
       "id": "evt-017",
       "ts": "2026-10-06T22:53:00Z",
@@ -415,5 +627,19 @@
         "skip"
       ]
     }
-  ]
+  ],
+  "agentWallet": {
+    "address": "99hEnCqL2Tp59pkymd3zfpenKQVWZXCKpCViGXaHw92j",
+    "label": "AGENT trading wallet",
+    "role": "agent",
+    "fundedSol": 0.07,
+    "solBalance": 0.011994688,
+    "siBalance": 243.682305,
+    "siCostUsd": 6.66,
+    "siMark": 0.02712,
+    "equityUsd": 8.02,
+    "dayPnlUsd": -0.28,
+    "halt": "SI_ADDS_HALTED",
+    "stopPct": -20
+  }
 }
