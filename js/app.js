@@ -1,6 +1,6 @@
 /**
  * Solana Desk — CSS 3D bots + full activity console + Phantom connect
- * Connect Wallet (window.solana). Admin address → Trading ON + LIVE.
+ * Trading always ON (tradingEnabled=true). Pause defaults OFF. Admin Connect optional.
  * Deposit $5 ≈ SOL transfer to AGENT bot wallet via Phantom (admin signs). No private keys stored.
  * Bot book / Wallet / PnL track AGENT_WALLET. Admin Connect gate remains ADMIN_WALLET.
  * Activity: every event from data/activity.json rendered; live stream when bots work.
@@ -153,6 +153,8 @@
   let state = null;
   let pausedBotId = null;
   let deskPaused = false;
+  /** Desk trading always enabled — not gated on admin Connect */
+  let tradingEnabled = true;
   let connectedPubkey = null;
   let isAdminConnected = false;
   let solPriceUsd = null;
@@ -400,23 +402,38 @@
     headerBtn.classList.toggle("wrong", !!wrong);
   }
 
-  function updateConnectUi() {
-    const disc = $("#btn-disconnect");
+  function syncTradingStatusLine() {
     const modeEl = $("#status-mode");
     const tradingEl = $("#status-trading");
+    // Trading is always enabled; Pause only freezes desk motion/stream UI
+    if (deskPaused) {
+      if (modeEl) {
+        modeEl.textContent = "PAUSED";
+        modeEl.className = "status-mode off";
+      }
+      if (tradingEl) tradingEl.textContent = tradingEnabled ? "Trading ON · paused" : "Trading off";
+    } else {
+      if (modeEl) {
+        modeEl.textContent = "LIVE";
+        modeEl.className = "status-mode live";
+      }
+      if (tradingEl) tradingEl.textContent = tradingEnabled ? "Trading ON" : "Trading off";
+    }
+  }
+
+  function updateConnectUi() {
+    const disc = $("#btn-disconnect");
     const walletEl = $("#status-wallet");
     const deposit = $("#deposit-panel");
+
+    tradingEnabled = true;
+    syncTradingStatusLine();
 
     if (connectedPubkey) {
       if (disc) disc.hidden = false;
 
       if (isAdminConnected) {
         syncConnectButtons("Admin connected", true, false);
-        if (modeEl) {
-          modeEl.textContent = "LIVE";
-          modeEl.className = "status-mode live";
-        }
-        if (tradingEl) tradingEl.textContent = "Trading ON";
         if (walletEl) {
           walletEl.innerHTML = `Admin <span class="status-wallet-short" title="${escapeHtml(connectedPubkey)}">${escapeHtml(shortAddr(connectedPubkey))}</span>`;
         }
@@ -427,34 +444,26 @@
         if (deposit) deposit.hidden = false;
         updateDepositHint();
       } else {
-        syncConnectButtons("Wrong wallet", true, true);
-        if (modeEl) {
-          modeEl.textContent = "OFF";
-          modeEl.className = "status-mode off";
-        }
-        if (tradingEl) tradingEl.textContent = "Trading off";
+        syncConnectButtons("Wrong wallet", false, true);
         if (walletEl) {
           walletEl.innerHTML = `<span class="status-wallet-short" title="${escapeHtml(connectedPubkey)}">${escapeHtml(shortAddr(connectedPubkey))}</span>`;
         }
         setBanner(
           "warn",
-          `<strong>Wrong wallet</strong> — connect the admin wallet <code>${escapeHtml(shortAddr(ADMIN_WALLET))}</code> to enable Trading ON. Connected: <code>${escapeHtml(shortAddr(connectedPubkey))}</code>`
+          `<strong>Non-admin wallet</strong> — trading stays ON via bot book <code>${escapeHtml(shortAddr(AGENT_WALLET))}</code>. Admin <code>${escapeHtml(shortAddr(ADMIN_WALLET))}</code> is optional for deposit. Connected: <code>${escapeHtml(shortAddr(connectedPubkey))}</code>`
         );
         if (deposit) deposit.hidden = true;
       }
     } else {
       syncConnectButtons("Connect Wallet", false, false);
       if (disc) disc.hidden = true;
-      if (modeEl) {
-        modeEl.textContent = "OFF";
-        modeEl.className = "status-mode off";
+      if (walletEl) walletEl.textContent = "agent book";
+      // Keep banner subtle — trading already ON without connect
+      const banner = $("#wallet-banner");
+      if (banner) {
+        banner.hidden = true;
+        banner.innerHTML = "";
       }
-      if (tradingEl) tradingEl.textContent = "Trading off";
-      if (walletEl) walletEl.textContent = "not connected";
-      setBanner(
-        "info",
-        `Tracking bot book <code>${escapeHtml(shortAddr(AGENT_WALLET))}</code> for Wallet/PnL. Header Connect is optional (admin LIVE gate).`
-      );
       if (deposit) deposit.hidden = true;
     }
 
@@ -1183,6 +1192,7 @@
   }
 
   function syncPauseUi() {
+    syncTradingStatusLine();
     const btn = $("#btn-pause");
     const floor = $("#desk-floor");
     const consoleEl = $(".activity-console");

@@ -37,7 +37,7 @@ npm start          # http://127.0.0.1:8765
 
 ## Connect Wallet (Phantom)
 
-Header **Connect Wallet** uses `window.solana` (Phantom) for an optional admin LIVE gate; the homepage tracks the agent bot book without requiring connect:
+Trading is **always ON** (Pause defaults off). Header **Connect Wallet** is optional (admin deposit / LIVE badge). Homepage tracks agent bot book without requiring connect:
 
 1. Install [Phantom](https://phantom.app/) and unlock it in the browser.
 2. Click **Connect Wallet** and approve the connection.
