@@ -394,15 +394,10 @@
 
   function syncConnectButtons(label, disabled, wrong) {
     const headerBtn = $("#btn-connect");
-    const mainBtn = $("#btn-connect-main");
-    for (const btn of [headerBtn, mainBtn]) {
-      if (!btn) continue;
-      btn.textContent = label;
-      btn.disabled = !!disabled;
-      if (btn === mainBtn) {
-        btn.classList.toggle("wrong", !!wrong);
-      }
-    }
+    if (!headerBtn) return;
+    headerBtn.textContent = label;
+    headerBtn.disabled = !!disabled;
+    headerBtn.classList.toggle("wrong", !!wrong);
   }
 
   function updateConnectUi() {
@@ -411,15 +406,12 @@
     const tradingEl = $("#status-trading");
     const walletEl = $("#status-wallet");
     const deposit = $("#deposit-panel");
-    const cta = $("#connect-cta");
-    const ctaCopy = cta?.querySelector(".connect-cta-copy");
 
     if (connectedPubkey) {
       if (disc) disc.hidden = false;
 
       if (isAdminConnected) {
         syncConnectButtons("Admin connected", true, false);
-        if (cta) cta.hidden = true;
         if (modeEl) {
           modeEl.textContent = "LIVE";
           modeEl.className = "status-mode live";
@@ -436,10 +428,6 @@
         updateDepositHint();
       } else {
         syncConnectButtons("Wrong wallet", true, true);
-        if (cta) cta.hidden = false;
-        if (ctaCopy) {
-          ctaCopy.textContent = "Connect Phantom (admin) to start trading";
-        }
         if (modeEl) {
           modeEl.textContent = "OFF";
           modeEl.className = "status-mode off";
@@ -456,10 +444,6 @@
       }
     } else {
       syncConnectButtons("Connect Wallet", false, false);
-      if (cta) cta.hidden = false;
-      if (ctaCopy) {
-        ctaCopy.textContent = "Connect Phantom (admin) to start trading";
-      }
       if (disc) disc.hidden = true;
       if (modeEl) {
         modeEl.textContent = "OFF";
@@ -469,7 +453,7 @@
       if (walletEl) walletEl.textContent = "not connected";
       setBanner(
         "info",
-        `Connect Phantom admin <code>${escapeHtml(shortAddr(ADMIN_WALLET))}</code> for LIVE gate. Desk tracks bot book <code>${escapeHtml(shortAddr(AGENT_WALLET))}</code> for Wallet/PnL.`
+        `Tracking bot book <code>${escapeHtml(shortAddr(AGENT_WALLET))}</code> for Wallet/PnL. Header Connect is optional (admin LIVE gate).`
       );
       if (deposit) deposit.hidden = true;
     }
@@ -1467,7 +1451,6 @@
       if (!soundMuted) ensureAudio()?.resume?.();
     });
     $("#btn-connect")?.addEventListener("click", connectWallet);
-    $("#btn-connect-main")?.addEventListener("click", connectWallet);
     $("#btn-disconnect")?.addEventListener("click", disconnectWallet);
     $("#btn-deposit")?.addEventListener("click", depositFiveDollars);
     $("#btn-copy-agent")?.addEventListener("click", async () => {
