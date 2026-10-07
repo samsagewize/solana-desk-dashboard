@@ -200,8 +200,14 @@
   let chartTf = "5m";
   const CHART_TF_KEY = "solana-desk-chart-tf";
   const TF_MS = { "1m": 60_000, "5m": 300_000, "1h": 3_600_000 };
+  /** Axis tick spacing per timeframe (CT wall clock) */
+  const TF_TICK_MS = { "1m": 15_000, "5m": 60_000, "1h": 600_000 };
   const SOUND_KEY = "solana-desk-sound-muted";
-  const EQUITY_STORE_KEY = "solana-desk-equity-99hEn";
+  /** v2 store: real RPC marks only (no heartbeat / fake drift points) */
+  const EQUITY_STORE_KEY = "solana-desk-equity-v2-99hEn";
+  const EQUITY_EPS = 0.01; // $0.01 — ignore noise; never invent cents of growth
+  let lastLiveEquityUsd = null; // last equity from live SOL/token RPC
+  let liveEquityReady = false; // after first successful live holdings mark
   const TX_STORE_KEY = "solana-desk-txsigs-99hEn";
 
   const $ = (sel, el = document) => el.querySelector(sel);
@@ -265,6 +271,20 @@
       });
     } catch {
       return iso || "";
+    }
+  }
+
+  /** Compact CT clock for chart axis — seconds on 1m, HH:MM otherwise */
+  function fmtAxisTime(isoOrMs, tf) {
+    try {
+      const d = new Date(isoOrMs);
+      const opts =
+        tf === "1m"
+          ? { timeZone: "America/Chicago", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false }
+          : { timeZone: "America/Chicago", hour: "2-digit", minute: "2-digit", hour12: false };
+      return d.toLocaleString("en-US", opts);
+    } catch {
+      return "";
     }
   }
 
@@ -1472,6 +1492,21 @@
     data.wallet.adminAddress = ADMIN_WALLET;
     if (!data.pnl) data.pnl = {};
     data.pnl.walletAddress = AGENT_WALLET;
+    // Once live RPC equity is known, never overwrite total/PnL with static file values
+    // (file refresh must not invent upward ticks).
+    if (liveEquityReady && lastLiveEquityUsd != null) {
+      data.wallet.totalUsd = lastLiveEquityUsd;
+      data.pnl.equityUsd = lastLiveEquityUsd;
+      const start =
+        Number(data.pnl.startingBookUsd) ||
+        Number(state?.pnl?.startingBookUsd) ||
+        null;
+      if (start != null && start > 0) {
+        data.pnl.dayPnlUsd = lastLiveEquityUsd - start;
+        data.pnl.dayPnlPct = (data.pnl.dayPnlUsd / start) * 100;
+      }
+    }
+    seedEquityFromFile(data);
     renderWallet(data.wallet);
     renderPnL(data.pnl || {});
     renderCaps(data.riskCaps);
@@ -1481,13 +1516,7 @@
     renderFeed(state.events);
     renderAgentTrack();
     updateConnectUi();
-    if (data?.pnl?.equityUsd != null || data?.wallet?.totalUsd != null) {
-      pushEquityMark(
-        Number(data?.pnl?.equityUsd ?? data.wallet.totalUsd),
-        "file mark",
-        false
-      );
-    }
+    // Chart uses stored RPC marks + historical file series — never push file as a live tick
     renderEquityChart(data);
     refreshAgentBalance();
     const upd = $("#data-updated");
@@ -1529,23 +1558,59 @@
 
   function pushEquityMark(equityUsd, label, force) {
     if (equityUsd == null || Number.isNaN(Number(equityUsd))) return;
+    const val = Number(equityUsd);
+    if (Number.isNaN(val)) return;
     const pts = readStoredEquity();
-    const now = Date.now();
     const last = pts[pts.length - 1];
+    const changed =
+      !last || Math.abs(Number(last.equityUsd) - val) >= EQUITY_EPS;
+    // Realtime marks only: skip identical equity (no heartbeat / synthetic drift).
+    // force=true still records on fills/boot even if flat (documents the event).
+    if (!force && !changed) return;
+    // Avoid duplicate fill marks at same value within 1.5s
     if (
-      !force &&
+      force &&
       last &&
-      Math.abs(Number(last.equityUsd) - Number(equityUsd)) < 0.0005 &&
-      now - new Date(last.ts).getTime() < 4000
+      Math.abs(Number(last.equityUsd) - val) < EQUITY_EPS &&
+      Date.now() - new Date(last.ts).getTime() < 1500
     ) {
       return;
     }
     pts.push({
-      ts: new Date(now).toISOString(),
-      equityUsd: Number(equityUsd),
-      label: label || "mark",
+      ts: new Date().toISOString(),
+      equityUsd: val,
+      label: label || (changed ? "rpc mark" : "mark"),
+      source: "rpc",
     });
     writeStoredEquity(pts);
+  }
+
+  function applyLiveEquity(equity, holdingsChanged, forceMark, fillLabel) {
+    if (equity == null || Number.isNaN(Number(equity))) return false;
+    const val = Number(equity);
+    const prev = lastLiveEquityUsd;
+    const meaningful =
+      prev == null || Math.abs(prev - val) >= EQUITY_EPS;
+    // Holdings qty change or forced fill/boot always records a mark (even if flat $)
+    const shouldMark = meaningful || holdingsChanged || forceMark;
+    if (!shouldMark) return false;
+    lastLiveEquityUsd = val;
+    liveEquityReady = true;
+    if (!state.wallet) state.wallet = {};
+    if (!state.pnl) state.pnl = {};
+    state.wallet.totalUsd = val;
+    state.pnl.equityUsd = val;
+    const start = Number(state.pnl.startingBookUsd);
+    if (start > 0) {
+      state.pnl.dayPnlUsd = val - start;
+      state.pnl.dayPnlPct = (state.pnl.dayPnlUsd / start) * 100;
+    }
+    pushEquityMark(
+      val,
+      holdingsChanged || forceMark ? fillLabel || "rpc mark" : "rpc mark",
+      !!(forceMark || holdingsChanged)
+    );
+    return true;
   }
 
   function injectChainEvents(events) {
@@ -1661,10 +1726,7 @@
       state.wallet.solUsd = solRow.valueUsd;
       const equity = estimateEquityFromHoldings(holdings, solRow.qty);
       if (equity != null) {
-        state.wallet.totalUsd = equity;
-        if (!state.pnl) state.pnl = {};
-        state.pnl.equityUsd = equity;
-        pushEquityMark(equity, changed || forceMark ? fillLabel : "mark", changed || forceMark);
+        applyLiveEquity(equity, changed, forceMark, fillLabel);
       }
 
       // Sync known symbol balances for cards
@@ -1765,9 +1827,9 @@
       });
     } catch (err) {
       console.warn("chain poll failed", err);
-      // Still try a holdings mark so chart keeps ticking
+      // Holdings refresh still OK on soft failure; marks only if equity actually changes
       try {
-        await refreshLiveHoldings({ fillLabel: "mark" });
+        await refreshLiveHoldings({ fillLabel: "rpc mark" });
       } catch (_) { /* ignore */ }
     } finally {
       chainPollBusy = false;
@@ -2243,41 +2305,51 @@
     } catch (_) { /* ignore */ }
   }
 
+  /** One-time seed: file equitySeries → local store (historical only, never re-stamped). */
+  function seedEquityFromFile(data) {
+    const fromFile = Array.isArray(data?.equitySeries) ? data.equitySeries : [];
+    if (!fromFile.length) return;
+    const stored = readStoredEquity();
+    if (stored.some((p) => p.source === "rpc")) return; // already have live marks
+    if (stored.length >= fromFile.length) return;
+    const seeded = fromFile
+      .map((p) => ({
+        ts: p.ts,
+        equityUsd: Number(p.equityUsd),
+        label: p.label || "file",
+        source: "file",
+      }))
+      .filter((p) => p.ts && !Number.isNaN(p.equityUsd));
+    if (!seeded.length) return;
+    const map = new Map();
+    for (const p of [...stored, ...seeded]) {
+      const key = `${p.ts}|${Number(p.equityUsd).toFixed(4)}`;
+      map.set(key, p);
+    }
+    writeStoredEquity(
+      [...map.values()].sort((a, b) => new Date(a.ts) - new Date(b.ts))
+    );
+  }
+
+  /** Merge historical file series + stored RPC marks. Never invent timestamps. */
   function mergeEquitySeries(data) {
     const fromFile = Array.isArray(data?.equitySeries)
       ? data.equitySeries.map((p) => ({
           ts: p.ts,
           equityUsd: Number(p.equityUsd),
-          label: p.label || "",
+          label: p.label || "file",
+          source: "file",
         }))
       : [];
     const stored = readStoredEquity();
-    const liveEq =
-      data?.pnl?.equityUsd ?? data?.wallet?.totalUsd ?? null;
-    const live =
-      liveEq != null
-        ? [
-            {
-              ts: new Date().toISOString(),
-              equityUsd: Number(liveEq),
-              label: "live",
-            },
-          ]
-        : [];
     const map = new Map();
-    for (const p of [...fromFile, ...stored, ...live]) {
-      if (p?.ts == null || Number.isNaN(p.equityUsd)) continue;
-      // Bucket identical second timestamps lightly by label preference
+    for (const p of [...fromFile, ...stored]) {
+      if (p?.ts == null || Number.isNaN(Number(p.equityUsd))) continue;
       const key = `${p.ts}|${Number(p.equityUsd).toFixed(4)}`;
-      map.set(key, p);
+      const prev = map.get(key);
+      if (!prev || (p.source === "rpc" && prev.source !== "rpc")) map.set(key, p);
     }
-    const merged = [...map.values()].sort(
-      (a, b) => new Date(a.ts) - new Date(b.ts)
-    );
-    writeStoredEquity(merged);
-    // Keep chart moving with latest mark
-    if (liveEq != null) pushEquityMark(Number(liveEq), "live", false);
-    return merged;
+    return [...map.values()].sort((a, b) => new Date(a.ts) - new Date(b.ts));
   }
 
   function loadChartTf() {
@@ -2315,15 +2387,53 @@
       const t = new Date(p.ts).getTime();
       return !Number.isNaN(t) && t >= cut && t <= now + 1000;
     });
-    // If window is empty, show last point extended so chart isn't blank
+    // Carry last known mark into empty window as a FLAT step (same equity — not growth)
     if (!pts.length && allPoints?.length) {
       const last = allPoints[allPoints.length - 1];
       pts = [
-        { ts: new Date(cut).toISOString(), equityUsd: last.equityUsd, label: "carry" },
-        { ...last, ts: new Date(now).toISOString(), label: last.label || "live" },
+        { ts: new Date(cut).toISOString(), equityUsd: last.equityUsd, label: "carry", source: last.source },
+        { ...last, ts: new Date(Math.max(new Date(last.ts).getTime(), cut)).toISOString() },
       ];
     }
+    // Visual flat hold to "now" when last mark is older — same $ value, no invent
+    if (pts.length) {
+      const last = pts[pts.length - 1];
+      const lastT = new Date(last.ts).getTime();
+      if (!Number.isNaN(lastT) && now - lastT > 2500) {
+        pts = [
+          ...pts,
+          {
+            ts: new Date(now).toISOString(),
+            equityUsd: last.equityUsd,
+            label: "hold",
+            source: last.source || "rpc",
+            _visual: true,
+          },
+        ];
+      }
+    }
     return { pts, windowMs, now, cut };
+  }
+
+  /** Step-after path (candle-ish): horizontal then vertical — discrete RPC marks */
+  function stepLinePath(xs, ys) {
+    if (!xs.length) return "";
+    let d = `M ${xs[0].toFixed(1)} ${ys[0].toFixed(1)}`;
+    for (let i = 1; i < xs.length; i++) {
+      d += ` H ${xs[i].toFixed(1)} V ${ys[i].toFixed(1)}`;
+    }
+    return d;
+  }
+
+  function timeAxisTicks(cut, now, tf) {
+    const step = TF_TICK_MS[tf] || TF_TICK_MS["5m"];
+    const ticks = [];
+    let t = Math.ceil(cut / step) * step;
+    for (; t < now - step * 0.15; t += step) {
+      ticks.push(t);
+      if (ticks.length > 12) break;
+    }
+    return ticks;
   }
 
   function renderEquityChart(data) {
@@ -2333,17 +2443,20 @@
     if (!svg) return;
     const all = mergeEquitySeries(data);
     const { pts: points, windowMs, now, cut } = pointsForTimeframe(all);
-    if (points.length < 2) {
+    if (points.length < 1) {
       svg.innerHTML =
-        '<text x="24" y="96" class="axis-label">Waiting for live equity marks…</text>';
-      if (deltaEl) deltaEl.textContent = "—";
-      if (lastEl) lastEl.textContent = "—";
+        '<text x="24" y="96" class="axis-label">Waiting for live RPC equity marks…</text>';
+      if (deltaEl) {
+        deltaEl.textContent = "—";
+        deltaEl.className = "pnl-chart-delta";
+      }
+      if (lastEl) lastEl.textContent = "no marks yet · polling wallet";
       return;
     }
 
     const W = 640;
     const H = 180;
-    const pad = { l: 44, r: 16, t: 16, b: 28 };
+    const pad = { l: 48, r: 16, t: 16, b: 30 };
     const vals = points.map((p) => p.equityUsd);
     let minV = Math.min(...vals);
     let maxV = Math.max(...vals);
@@ -2360,34 +2473,40 @@
     const ys = vals.map(
       (v) => pad.t + (1 - (v - minV) / span) * (H - pad.t - pad.b)
     );
-    const line = points
-      .map((_, i) => `${i === 0 ? "M" : "L"} ${xs[i].toFixed(1)} ${ys[i].toFixed(1)}`)
-      .join(" ");
+    const line = stepLinePath(xs, ys);
     const area =
       line +
-      ` L ${xs[xs.length - 1].toFixed(1)} ${(H - pad.b).toFixed(1)} L ${xs[0].toFixed(1)} ${(H - pad.b).toFixed(1)} Z`;
-    const first = vals[0];
-    const last = vals[vals.length - 1];
+      ` H ${xs[xs.length - 1].toFixed(1)} L ${xs[xs.length - 1].toFixed(1)} ${(H - pad.b).toFixed(1)} L ${xs[0].toFixed(1)} ${(H - pad.b).toFixed(1)} Z`;
+    // Delta from first real mark in window → last (ignore visual hold for direction)
+    const realPts = points.filter((p) => !p._visual);
+    const first = (realPts[0] || points[0]).equityUsd;
+    const last = (realPts[realPts.length - 1] || points[points.length - 1]).equityUsd;
     const dlt = last - first;
-    const neg = dlt < 0;
+    const flat = Math.abs(dlt) < EQUITY_EPS;
+    const neg = dlt < -EQUITY_EPS;
+    const pos = dlt > EQUITY_EPS;
     const gridYs = [0, 0.5, 1].map(
       (t) => pad.t + t * (H - pad.t - pad.b)
     );
     const gridVals = [maxV, (maxV + minV) / 2, minV];
-    const fillMarks = points
-      .map((p, i) => ({ p, i }))
-      .filter(({ p }) => /fill|tx|swap|buy|sell/i.test(p.label || ""));
+    const fillMarks = realPts
+      .map((p, i) => ({ p, i: points.indexOf(p) }))
+      .filter(({ p }) => /fill|tx|swap|buy|sell|boot/i.test(p.label || ""));
+    const axisTicks = timeAxisTicks(cut, now, chartTf);
 
     svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
     const dark = currentTheme() === "dark";
     const strokePos = dark ? "#22d3ee" : "#10b981";
     const strokeNeg = dark ? "#f472b6" : "#f59e0b";
-    const fill = neg ? strokeNeg : strokePos;
+    const strokeFlat = dark ? "#94a3b8" : "#64748b";
+    const fill = neg ? strokeNeg : pos ? strokePos : strokeFlat;
+    const lineClass = neg ? " is-neg" : flat ? " is-flat" : "";
     const tfLabel = chartTf;
+    const rpcCount = realPts.filter((p) => p.source === "rpc").length;
     svg.innerHTML = `
       <defs>
         <linearGradient id="eqFill" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="${fill}" stop-opacity="${dark ? 0.32 : 0.28}"/>
+          <stop offset="0%" stop-color="${fill}" stop-opacity="${dark ? 0.28 : 0.24}"/>
           <stop offset="100%" stop-color="${fill}" stop-opacity="0.02"/>
         </linearGradient>
       </defs>
@@ -2397,28 +2516,41 @@
             `<line class="grid-line" x1="${pad.l}" y1="${y.toFixed(1)}" x2="${W - pad.r}" y2="${y.toFixed(1)}"/><text class="axis-label" x="4" y="${(y + 3).toFixed(1)}">$${gridVals[i].toFixed(2)}</text>`
         )
         .join("")}
+      ${axisTicks
+        .map((t) => {
+          const x = pad.l + ((t - cut) / tSpan) * (W - pad.l - pad.r);
+          return `<line class="grid-line axis-tick" x1="${x.toFixed(1)}" y1="${pad.t}" x2="${x.toFixed(1)}" y2="${(H - pad.b).toFixed(1)}"/><text class="axis-label" x="${x.toFixed(1)}" y="${H - 8}" text-anchor="middle">${escapeHtml(fmtAxisTime(t, chartTf))}</text>`;
+        })
+        .join("")}
       <path class="eq-area" d="${area}"></path>
-      <path class="eq-line${neg ? " is-neg" : ""}" d="${line}"></path>
-      ${points
-        .map((p, i) => {
-          const latest = i === points.length - 1 ? " is-latest" : "";
-          return `<circle class="eq-dot${neg ? " is-neg" : ""}${latest}" cx="${xs[i].toFixed(1)}" cy="${ys[i].toFixed(1)}" r="${i === points.length - 1 ? 4 : 2.2}"><title>${escapeHtml(p.label || "")} · $${p.equityUsd.toFixed(2)} · ${escapeHtml(fmtTimeCompact(p.ts))}</title></circle>`;
+      <path class="eq-line${lineClass}" d="${line}" style="stroke:${fill}"></path>
+      ${realPts
+        .map((p, ri) => {
+          const i = points.indexOf(p);
+          if (i < 0) return "";
+          const latest = ri === realPts.length - 1 ? " is-latest" : "";
+          const ncls = Number(p.equityUsd) < first - EQUITY_EPS ? " is-neg" : "";
+          return `<circle class="eq-dot${ncls}${latest}" cx="${xs[i].toFixed(1)}" cy="${ys[i].toFixed(1)}" r="${latest ? 4.2 : 2.4}"><title>${escapeHtml(p.label || "")} · $${Number(p.equityUsd).toFixed(2)} · ${escapeHtml(fmtTimeCompact(p.ts))}</title></circle>`;
         })
         .join("")}
       ${fillMarks
         .map(({ i }) => `<circle class="fill-mark" cx="${xs[i].toFixed(1)}" cy="${ys[i].toFixed(1)}" r="3.2"></circle>`)
         .join("")}
-      <text class="axis-label" x="${pad.l}" y="${H - 8}">${escapeHtml(fmtTimeCompact(new Date(cut).toISOString()))}</text>
-      <text class="axis-label" x="${W - pad.r}" y="${H - 8}" text-anchor="end">${escapeHtml(fmtTimeCompact(new Date(now).toISOString()))} · ${tfLabel}</text>
+      <text class="axis-label" x="${pad.l}" y="${H - 8}">${escapeHtml(fmtAxisTime(cut, chartTf))}</text>
+      <text class="axis-label" x="${W - pad.r}" y="${H - 8}" text-anchor="end">${escapeHtml(fmtAxisTime(now, chartTf))} · ${tfLabel}</text>
     `;
 
     if (deltaEl) {
       const sign = dlt > 0 ? "+" : "";
-      deltaEl.textContent = `${sign}${fmtUsd(dlt)} ${tfLabel}`;
-      deltaEl.className = "pnl-chart-delta " + (dlt < 0 ? "neg" : dlt > 0 ? "pos" : "");
+      deltaEl.textContent = flat
+        ? `flat ${fmtUsd(0)} ${tfLabel}`
+        : `${sign}${fmtUsd(dlt)} ${tfLabel}`;
+      deltaEl.className =
+        "pnl-chart-delta " + (neg ? "neg" : pos ? "pos" : "flat");
     }
     if (lastEl) {
-      lastEl.textContent = `equity ${fmtUsd(last)} · ${points.length} pts · ${tfLabel}`;
+      const src = liveEquityReady ? "live RPC" : "seed";
+      lastEl.innerHTML = `<span class="eq-live-pill${liveEquityReady ? " is-live" : ""}">${src}</span> equity <strong>${fmtUsd(last)}</strong> · ${realPts.length} marks · ${tfLabel}${rpcCount ? ` · ${rpcCount} rpc` : ""}`;
     }
   }
 

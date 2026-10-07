@@ -554,6 +554,27 @@ html[data-theme="dark"] .pnl-chart .eq-dot.is-latest {
 
 html[data-theme="dark"] .pnl-chart-delta.pos { color: var(--neon-lime); }
 html[data-theme="dark"] .pnl-chart-delta.neg { color: var(--neon-magenta); }
+html[data-theme="dark"] .pnl-chart-delta.flat { color: #94a3b8; }
+html[data-theme="dark"] .pnl-chart-last strong { color: #e2e8f0; }
+html[data-theme="dark"] .eq-live-pill.is-live {
+  border-color: rgba(34, 211, 238, 0.45);
+  background: rgba(34, 211, 238, 0.12);
+  color: #67e8f9;
+}
+html[data-theme="dark"] .eq-live-pill.is-live::before {
+  background: #22d3ee;
+  box-shadow: 0 0 0 0 rgba(34, 211, 238, 0.55);
+  animation: eq-live-pulse-neon 1.6s ease-out infinite;
+}
+@keyframes eq-live-pulse-neon {
+  0% { box-shadow: 0 0 0 0 rgba(34, 211, 238, 0.55); }
+  70% { box-shadow: 0 0 0 6px rgba(34, 211, 238, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(34, 211, 238, 0); }
+}
+html[data-theme="dark"] .pnl-chart .eq-line.is-flat {
+  stroke: #94a3b8;
+  filter: none;
+}
 
 html[data-theme="dark"] .holding-row {
   background: rgba(10, 14, 22, 0.75);
