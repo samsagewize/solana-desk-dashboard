@@ -532,23 +532,21 @@
                 ? "C"
                 : "?";
     return `
-      <span class="bot-figure" aria-hidden="true">
+      <span class="bot-figure bot-ghost" aria-hidden="true">
         <span class="bot-glow"></span>
         <span class="bot-shadow"></span>
         <span class="bot-body-3d">
-          <span class="bot-antenna"><span class="bot-antenna-tip"></span></span>
-          <span class="bot-ear l"></span>
-          <span class="bot-ear r"></span>
-          <span class="bot-head">
-            <span class="bot-visor"></span>
-            <span class="bot-cheek l"></span>
-            <span class="bot-cheek r"></span>
+          <span class="ghost-sheet">
+            <span class="bot-head">
+              <span class="ghost-eye l"></span>
+              <span class="ghost-eye r"></span>
+              <span class="ghost-mouth"></span>
+            </span>
+            <span class="bot-arm l"></span>
+            <span class="bot-arm r"></span>
+            <span class="bot-badge">${letter}</span>
+            <span class="ghost-hem" aria-hidden="true"></span>
           </span>
-          <span class="bot-arm l"></span>
-          <span class="bot-arm r"></span>
-          <span class="bot-torso"><span class="bot-badge">${letter}</span></span>
-          <span class="bot-leg l"></span>
-          <span class="bot-leg r"></span>
         </span>
       </span>`;
   }
@@ -567,7 +565,7 @@
           { id: "coach-bot", name: "Coach", status: "online", lastAction: "—" },
         ];
 
-    const FIGURE_VER = "art2";
+    const FIGURE_VER = "ghost1";
     const existing = $$bots(el);
     if (existing.length === list.length && el.dataset.figureVer === FIGURE_VER) {
       list.forEach((b) => {

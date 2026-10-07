@@ -1,0 +1,228 @@
+/* Ghost bot sprites — translucent neon sheets, keep accent colors + motion hooks */
+.bot-figure.bot-ghost {
+  width: 76px;
+  height: 96px;
+  filter: drop-shadow(0 0 12px color-mix(in srgb, var(--bot-accent) 45%, transparent));
+}
+
+.bot-ghost .bot-body-3d {
+  width: 52px;
+  height: 78px;
+  margin-left: -26px;
+  bottom: 8px;
+  filter: none;
+}
+
+.bot-ghost .ghost-sheet {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 46px;
+  height: 72px;
+  margin-left: -23px;
+  border-radius: 23px 23px 10px 10px;
+  background:
+    radial-gradient(ellipse at 50% 18%, color-mix(in srgb, var(--bot-accent) 55%, #fff) 0%, transparent 42%),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--bot-accent) 42%, rgba(255, 255, 255, 0.55)) 0%,
+      color-mix(in srgb, var(--bot-accent) 28%, rgba(255, 255, 255, 0.18)) 48%,
+      color-mix(in srgb, var(--bot-accent) 18%, transparent) 100%
+    );
+  border: 1px solid color-mix(in srgb, var(--bot-accent) 55%, transparent);
+  box-shadow:
+    0 0 18px color-mix(in srgb, var(--bot-accent) 35%, transparent),
+    0 0 36px color-mix(in srgb, var(--bot-accent) 18%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -8px 16px color-mix(in srgb, var(--bot-accent) 12%, transparent);
+  opacity: 0.88;
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  overflow: visible;
+  transform: translateZ(4px);
+  animation: ghost-shimmer 3.6s ease-in-out infinite;
+}
+
+.bot-ghost .ghost-hem {
+  position: absolute;
+  left: -1px;
+  right: -1px;
+  bottom: -10px;
+  height: 18px;
+  background:
+    radial-gradient(circle at 12% 0%, color-mix(in srgb, var(--bot-accent) 22%, rgba(255,255,255,0.2)) 0 55%, transparent 56%),
+    radial-gradient(circle at 37% 0%, color-mix(in srgb, var(--bot-accent) 22%, rgba(255,255,255,0.2)) 0 55%, transparent 56%),
+    radial-gradient(circle at 62% 0%, color-mix(in srgb, var(--bot-accent) 22%, rgba(255,255,255,0.2)) 0 55%, transparent 56%),
+    radial-gradient(circle at 87% 0%, color-mix(in srgb, var(--bot-accent) 22%, rgba(255,255,255,0.2)) 0 55%, transparent 56%);
+  background-size: 28% 100%;
+  background-repeat: no-repeat;
+  background-position: 0 0, 33% 0, 66% 0, 100% 0;
+  opacity: 0.95;
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--bot-accent) 30%, transparent));
+  pointer-events: none;
+}
+
+.bot-ghost .bot-head {
+  left: 7px;
+  top: 6px;
+  width: 32px;
+  height: 30px;
+  border-radius: 50% 50% 42% 42%;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  transform: none;
+}
+
+.bot-ghost .bot-head::before,
+.bot-ghost .bot-head::after {
+  display: none;
+}
+
+.bot-ghost .ghost-eye {
+  position: absolute;
+  top: 10px;
+  width: 7px;
+  height: 9px;
+  border-radius: 50%;
+  background: #0a0a12;
+  box-shadow:
+    0 0 6px color-mix(in srgb, var(--bot-accent) 70%, transparent),
+    inset 0 -2px 0 rgba(255, 255, 255, 0.15);
+}
+.bot-ghost .ghost-eye.l { left: 6px; }
+.bot-ghost .ghost-eye.r { right: 6px; }
+
+.bot.active .bot-ghost .ghost-eye {
+  animation: ghost-blink 2.8s ease-in-out infinite;
+}
+
+.bot-ghost .ghost-mouth {
+  position: absolute;
+  left: 50%;
+  bottom: 5px;
+  width: 10px;
+  height: 6px;
+  margin-left: -5px;
+  border-radius: 0 0 10px 10px;
+  background: rgba(10, 10, 18, 0.55);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--bot-accent) 35%, transparent);
+}
+
+.bot-ghost .bot-arm {
+  top: 34px;
+  width: 11px;
+  height: 22px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--bot-accent) 32%, rgba(255, 255, 255, 0.25));
+  border: 1px solid color-mix(in srgb, var(--bot-accent) 45%, transparent);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--bot-accent) 25%, transparent);
+  opacity: 0.85;
+}
+.bot-ghost .bot-arm.l { left: -6px; transform: rotateZ(22deg); }
+.bot-ghost .bot-arm.r { right: -6px; transform: rotateZ(-22deg); }
+
+.bot-ghost .bot-badge {
+  position: absolute;
+  left: 50%;
+  top: 38px;
+  width: 18px;
+  height: 18px;
+  margin-left: -9px;
+  border-radius: 50%;
+  font-size: 0.62rem;
+  color: #061018;
+  background: color-mix(in srgb, var(--bot-accent) 85%, #fff);
+  box-shadow:
+    0 0 14px color-mix(in srgb, var(--bot-accent) 65%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  transform: none;
+  z-index: 2;
+}
+
+.bot-ghost .bot-glow {
+  inset: -14px;
+  opacity: 0.38;
+  background: radial-gradient(circle, color-mix(in srgb, var(--bot-accent) 55%, transparent), transparent 68%);
+  animation: glow-breathe 2.4s ease-in-out infinite;
+}
+
+.bot.active .bot-ghost .bot-glow {
+  opacity: 0.62;
+}
+
+.bot-ghost .bot-shadow {
+  width: 40px;
+  height: 10px;
+  margin-left: -20px;
+  bottom: 2px;
+  background: radial-gradient(ellipse, color-mix(in srgb, var(--bot-accent) 28%, transparent), transparent 70%);
+  opacity: 0.7;
+}
+
+.bot-ghost .bot-antenna,
+.bot-ghost .bot-ear,
+.bot-ghost .bot-visor,
+.bot-ghost .bot-cheek,
+.bot-ghost .bot-torso,
+.bot-ghost .bot-leg {
+  display: none !important;
+}
+
+.bot .bot-name {
+  border-color: color-mix(in srgb, var(--bot-accent) 40%, transparent);
+}
+
+html[data-theme="dark"] .bot-ghost .ghost-sheet {
+  opacity: 0.82;
+  background:
+    radial-gradient(ellipse at 50% 16%, color-mix(in srgb, var(--bot-accent) 65%, #fff) 0%, transparent 40%),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--bot-accent) 48%, rgba(255, 255, 255, 0.35)) 0%,
+      color-mix(in srgb, var(--bot-accent) 22%, rgba(8, 10, 18, 0.35)) 55%,
+      color-mix(in srgb, var(--bot-accent) 12%, transparent) 100%
+    );
+  box-shadow:
+    0 0 22px color-mix(in srgb, var(--bot-accent) 45%, transparent),
+    0 0 44px color-mix(in srgb, var(--bot-accent) 22%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+
+html[data-theme="dark"] .bot-ghost .ghost-eye {
+  background: #030308;
+  box-shadow:
+    0 0 8px color-mix(in srgb, var(--bot-accent) 80%, transparent),
+    0 0 2px #fff;
+}
+
+html[data-theme="dark"] .bot .bot-name {
+  background: rgba(8, 10, 16, 0.88);
+  color: var(--text);
+  border: 1px solid color-mix(in srgb, var(--bot-accent) 45%, transparent);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--bot-accent) 22%, transparent);
+}
+
+@keyframes ghost-shimmer {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.12); }
+}
+
+@keyframes ghost-blink {
+  0%, 42%, 48%, 100% { transform: scaleY(1); }
+  45% { transform: scaleY(0.15); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bot-ghost .ghost-sheet,
+  .bot.active .bot-ghost .ghost-eye,
+  .bot-ghost .bot-glow {
+    animation: none !important;
+  }
+}
+
+.desk-floor.is-desk-paused .bot-ghost .ghost-sheet,
+.desk-floor.is-desk-paused .bot-ghost .bot-glow,
+.desk-floor.is-desk-paused .bot.active .bot-ghost .ghost-eye {
+  animation-play-state: paused !important;
+}
