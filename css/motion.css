@@ -582,3 +582,150 @@ html[data-theme="light"] .btn-tf.is-active {
   stroke-width: 1.2;
   filter: drop-shadow(0 0 4px rgba(232, 121, 249, 0.65));
 }
+
+
+/* —— Transparent holdings mint + Solscan + tx panel —— */
+.holding-row .sym {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.live-pill {
+  display: inline-block;
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.12rem 0.38rem;
+  border-radius: 999px;
+  border: 1px solid #86efac;
+  background: #ecfdf5;
+  color: #047857;
+  vertical-align: middle;
+}
+.mint-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.45rem;
+  margin-top: 0.28rem;
+}
+.mint-short {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  color: var(--text-mute);
+  background: transparent;
+  padding: 0;
+}
+.btn-copy-mini {
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0.12rem 0.4rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: rgba(248, 250, 252, 0.9);
+  color: var(--text-dim);
+  cursor: pointer;
+  line-height: 1.2;
+}
+.btn-copy-mini:hover {
+  border-color: #94a3b8;
+  color: var(--text);
+}
+.ext-link,
+.solscan-link,
+a.solscan-inline {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #0369a1;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(3, 105, 161, 0.35);
+}
+.ext-link:hover,
+.solscan-link:hover,
+a.solscan-inline:hover {
+  color: #0ea5e9;
+  border-bottom-color: #0ea5e9;
+}
+.line-msg .solscan-inline {
+  margin-left: 0.35rem;
+  white-space: nowrap;
+}
+
+.tx-block {
+  margin-top: 0.95rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+}
+.tx-table {
+  display: grid;
+  gap: 0.35rem;
+  max-height: 320px;
+  overflow-y: auto;
+  padding-right: 0.15rem;
+}
+.tx-row {
+  display: grid;
+  grid-template-columns: minmax(7.5rem, 0.9fr) auto minmax(0, 1.2fr) auto;
+  gap: 0.45rem 0.65rem;
+  align-items: center;
+  padding: 0.45rem 0.6rem;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: rgba(248, 250, 252, 0.75);
+  font-variant-numeric: tabular-nums;
+}
+.tx-row.is-fail {
+  border-color: #fecaca;
+  background: rgba(254, 242, 242, 0.7);
+}
+.tx-time {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  color: var(--text-mute);
+}
+.tx-status {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.15rem 0.4rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+}
+.tx-status.ok {
+  border-color: #bbf7d0;
+  background: #ecfdf5;
+  color: #047857;
+}
+.tx-status.fail {
+  border-color: #fecaca;
+  background: #fef2f2;
+  color: #b91c1c;
+}
+.tx-sig {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+}
+.tx-sig code {
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tx-links {
+  justify-self: end;
+}
+@media (max-width: 720px) {
+  .tx-row {
+    grid-template-columns: 1fr 1fr;
+  }
+  .tx-links { justify-self: start; }
+}

@@ -680,3 +680,60 @@ html[data-theme="light"] .admin-tag.tag-coach {
   border-color: #fbcfe8;
   background: #fdf2f8;
 }
+
+
+/* —— Transparent holdings + tx (neon) —— */
+html[data-theme="dark"] .live-pill {
+  border-color: rgba(163, 230, 53, 0.55);
+  background: rgba(163, 230, 53, 0.12);
+  color: #bef264;
+  box-shadow: 0 0 8px rgba(163, 230, 53, 0.2);
+}
+html[data-theme="dark"] .btn-copy-mini {
+  background: rgba(10, 14, 22, 0.85);
+  border-color: rgba(34, 211, 238, 0.22);
+  color: #94a3b8;
+}
+html[data-theme="dark"] .btn-copy-mini:hover {
+  border-color: rgba(34, 211, 238, 0.5);
+  color: #e2e8f0;
+  box-shadow: 0 0 10px rgba(34, 211, 238, 0.15);
+}
+html[data-theme="dark"] .ext-link,
+html[data-theme="dark"] .solscan-link,
+html[data-theme="dark"] a.solscan-inline {
+  color: #67e8f9;
+  border-bottom-color: rgba(103, 232, 249, 0.4);
+}
+html[data-theme="dark"] .ext-link:hover,
+html[data-theme="dark"] .solscan-link:hover,
+html[data-theme="dark"] a.solscan-inline:hover {
+  color: #a5f3fc;
+  border-bottom-color: #a5f3fc;
+  text-shadow: 0 0 8px rgba(34, 211, 238, 0.45);
+}
+html[data-theme="dark"] .tx-row {
+  background: rgba(10, 14, 22, 0.75);
+  border: 1px solid rgba(34, 211, 238, 0.12);
+}
+html[data-theme="dark"] .tx-row:hover {
+  border-color: rgba(34, 211, 238, 0.3);
+  box-shadow: 0 0 14px rgba(34, 211, 238, 0.08);
+}
+html[data-theme="dark"] .tx-row.is-fail {
+  border-color: rgba(244, 114, 182, 0.35);
+  background: rgba(76, 5, 25, 0.35);
+}
+html[data-theme="dark"] .tx-status.ok {
+  border-color: rgba(163, 230, 53, 0.4);
+  background: rgba(163, 230, 53, 0.1);
+  color: #bef264;
+}
+html[data-theme="dark"] .tx-status.fail {
+  border-color: rgba(244, 114, 182, 0.45);
+  background: rgba(244, 114, 182, 0.12);
+  color: #f9a8d4;
+}
+html[data-theme="dark"] .tx-block {
+  border-top-color: rgba(34, 211, 238, 0.14);
+}

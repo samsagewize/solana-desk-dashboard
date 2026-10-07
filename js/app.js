@@ -30,7 +30,12 @@
     DEW9dSN6QpWyNthphCpMmAbZP1Q4cEKR9xQXAri98WDP: "SI",
     "13YLkUncbg2gjEFxcnz4iAyLHJXyLqdLvghWjEgNpump": "NTDA",
     Hg5Ja55T5wESq4vyFoiVCMeHXtGyVA69X2UHq8hgpump: "baton",
+    "9XKzy4KahcZaGJPJtz1PtqGPB3CiseoBrx7TcQhEpump": "GOMO",
+    ADPN2aqzY5RhkBC7bNQWFhTFFEYKY4drHUQG887Cpump: "CATCRAFT",
   };
+  const SOLSCAN_TX = "https://solscan.io/tx/";
+  const SOLSCAN_TOKEN = "https://solscan.io/token/";
+  const SOLSCAN_ACCOUNT = "https://solscan.io/account/";
   const SOL_PRICE_URLS = [
     "https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd",
     "https://price.jup.ag/v6/price?ids=SOL",
@@ -189,6 +194,7 @@
   let audioCtx = null;
   let audioUnlocked = false;
   let knownTxSigs = null; // Set | null until first chain poll seeds
+  let lastChainSigs = []; // last ~25 getSignaturesForAddress rows
   let chainPollBusy = false;
   let lastHoldingsSnap = "";
   let chartTf = "5m";
@@ -332,6 +338,36 @@
   function shortSig(sig) {
     if (!sig || sig.length < 12) return String(sig || "—");
     return sig.slice(0, 6) + "…" + sig.slice(-4);
+  }
+
+  function shortMint(mint) {
+    if (!mint || mint.length < 12) return String(mint || "—");
+    return mint.slice(0, 4) + "…" + mint.slice(-4);
+  }
+
+  function solscanTxUrl(sig) {
+    return SOLSCAN_TX + encodeURIComponent(sig || "");
+  }
+
+  function solscanTokenUrl(mint) {
+    return SOLSCAN_TOKEN + encodeURIComponent(mint || "");
+  }
+
+  function solscanAccountUrl(addr) {
+    return SOLSCAN_ACCOUNT + encodeURIComponent(addr || "");
+  }
+
+  function extLink(href, label, cls) {
+    const safeHref = escapeHtml(href);
+    const safeLabel = escapeHtml(label);
+    const c = cls ? ` ${escapeHtml(cls)}` : "";
+    return `<a class="ext-link${c}" href="${safeHref}" target="_blank" rel="noopener noreferrer">${safeLabel}</a>`;
+  }
+
+  function copyBtn(value, title) {
+    const v = escapeHtml(value || "");
+    const t = escapeHtml(title || "Copy");
+    return `<button type="button" class="btn-copy-mini" data-copy="${v}" title="${t}" aria-label="${t}">Copy</button>`;
   }
 
   function mintSymbol(mint) {
@@ -810,6 +846,7 @@
     if (solBal != null) {
       rows.push({
         symbol: "SOL",
+        mint: "So11111111111111111111111111111111111111112",
         label: "Free SOL cash",
         kind: "native",
         qty: Number(solBal),
@@ -820,6 +857,7 @@
     if (w.siBalance != null || p.siQty != null) {
       rows.push({
         symbol: "SI",
+        mint: "DEW9dSN6QpWyNthphCpMmAbZP1Q4cEKR9xQXAri98WDP",
         name: "Super Inu",
         label: "SI · Token-2022",
         kind: "token2022",
@@ -832,6 +870,7 @@
     if (w.ntdaBalance != null || p.ntdaQty != null) {
       rows.push({
         symbol: "NTDA",
+        mint: "13YLkUncbg2gjEFxcnz4iAyLHJXyLqdLvghWjEgNpump",
         label: "NTDA · Token-2022",
         kind: "token2022",
         qty: Number(w.ntdaBalance ?? p.ntdaQty),
@@ -843,6 +882,7 @@
     if (w.batonBalance != null || p.batonQty != null) {
       rows.push({
         symbol: "baton",
+        mint: "Hg5Ja55T5wESq4vyFoiVCMeHXtGyVA69X2UHq8hgpump",
         label: "baton · Token-2022",
         kind: "token2022",
         qty: Number(w.batonBalance ?? p.batonQty),
@@ -1022,13 +1062,17 @@
             ? qty.toFixed(6)
             : qty.toLocaleString(undefined, {
                 minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
+                maximumFractionDigits: 6,
               }));
         const qtyLab = h.displayLabel || (h.symbol === "SOL" ? "Free SOL" : `${h.symbol} held`);
         const L = levels[h.symbol] || {};
         const upnl =
           h.costUsd != null && value != null ? Number(value) - Number(h.costUsd) : null;
         const upnlCls = upnl == null ? "" : upnl < 0 ? "neg" : upnl > 0 ? "pos" : "";
+        const isLive = h.label?.includes("live") || h.kind === "spl" || h.kind === "token2022" || h.kind === "native";
+        const livePill = isLive
+          ? `<span class="live-pill" title="On-chain via RPC">LIVE</span>`
+          : "";
         const tpPill =
           h.symbol === "SOL"
             ? `<span class="tp-pill">cash</span>`
@@ -1039,10 +1083,19 @@
             : "";
         const costBit =
           h.costUsd != null ? ` · cost ${fmtUsd(h.costUsd)}` : "";
+        const mint = h.mint || (h.symbol === "SOL" ? "So11111111111111111111111111111111111111112" : "");
+        const mintRow = mint
+          ? `<div class="mint-row">
+              <code class="mint-short" title="${escapeHtml(mint)}">${escapeHtml(shortMint(mint))}</code>
+              ${copyBtn(mint, "Copy mint")}
+              ${extLink(solscanTokenUrl(mint), "Solscan", "solscan-link")}
+            </div>`
+          : "";
         return `<div class="holding-row${h.symbol === "SOL" ? " is-sol" : ""}">
           <div>
-            <span class="sym">${escapeHtml(h.symbol)}</span>
+            <span class="sym">${escapeHtml(h.symbol)}</span>${livePill}
             <span class="sym-sub">${escapeHtml(h.label || h.name || h.kind || "token")}</span>
+            ${mintRow}
           </div>
           <div class="qty"><span class="qty-lab">${escapeHtml(qtyLab)}</span><span class="holding-qty-big">${escapeHtml(qtyStr)}</span></div>
           <div>
@@ -1061,6 +1114,67 @@
     if (totalEl) {
       totalEl.textContent = `book ${fmtUsd(sum)} · ${holdings.length} lines`;
     }
+    bindCopyButtons(el);
+  }
+
+  function bindCopyButtons(root) {
+    if (!root) return;
+    root.querySelectorAll("[data-copy]").forEach((btn) => {
+      if (btn.dataset.boundCopy === "1") return;
+      btn.dataset.boundCopy = "1";
+      btn.addEventListener("click", async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const val = btn.getAttribute("data-copy") || "";
+        try {
+          await navigator.clipboard.writeText(val);
+          const prev = btn.textContent;
+          btn.textContent = "✓";
+          setTimeout(() => { btn.textContent = prev || "Copy"; }, 900);
+        } catch (_) { /* ignore */ }
+      });
+    });
+  }
+
+  function renderTxPanel(sigs) {
+    const el = $("#tx-table");
+    const countEl = $("#tx-count");
+    if (!el) return;
+    const list = Array.isArray(sigs) ? sigs.slice(0, 25) : [];
+    if (countEl) {
+      countEl.textContent = list.length
+        ? `${list.length} recent · RPC live`
+        : "waiting for chain…";
+    }
+    if (!list.length) {
+      el.innerHTML = `<p class="muted">No recent signatures yet — polling ${escapeHtml(shortAddr(AGENT_WALLET))}</p>`;
+      return;
+    }
+    el.innerHTML = list
+      .map((s) => {
+        const sig = s?.signature || "";
+        const err = s?.err;
+        const ok = !err;
+        const ts = s?.blockTime
+          ? new Date(s.blockTime * 1000).toISOString()
+          : null;
+        const status = ok
+          ? `<span class="tx-status ok">OK</span>`
+          : `<span class="tx-status fail">FAIL</span>`;
+        return `<div class="tx-row${ok ? "" : " is-fail"}">
+          <div class="tx-time">${escapeHtml(ts ? fmtTimeCompact(ts) : "—")}</div>
+          <div class="tx-status-cell">${status}</div>
+          <div class="tx-sig">
+            <code title="${escapeHtml(sig)}">${escapeHtml(shortSig(sig))}</code>
+            ${copyBtn(sig, "Copy signature")}
+          </div>
+          <div class="tx-links">
+            ${extLink(solscanTxUrl(sig), "Solscan ↗", "solscan-link")}
+          </div>
+        </div>`;
+      })
+      .join("");
+    bindCopyButtons(el);
   }
 
   function eventKey(e) {
@@ -1089,9 +1203,15 @@
     const botClass = escapeHtml(e.bot || "");
     const kind = classifyEvent(e);
     const kindClass = kind.isTrade ? " is-trade" : kind.isLearn ? " is-learn" : "";
+    const solscanBit =
+      e.signature
+        ? ` ${extLink(solscanTxUrl(e.signature), "Solscan ↗", "solscan-inline")}`
+        : "";
     const msg = e.message
-      ? `<span class="line-msg">${escapeHtml(e.message)}</span>`
-      : "";
+      ? `<span class="line-msg">${escapeHtml(e.message)}${solscanBit}</span>`
+      : solscanBit
+        ? `<span class="line-msg">${solscanBit}</span>`
+        : "";
     const learnBadge = kind.isLearn
       ? `<span class="line-level learn-tag">LEARN</span>`
       : "";
@@ -1357,6 +1477,7 @@
     renderCaps(data.riskCaps);
     renderGoal(data);
     renderHoldingsTable(data.wallet);
+    renderTxPanel(lastChainSigs);
     renderFeed(state.events);
     renderAgentTrack();
     updateConnectUi();
@@ -1581,9 +1702,11 @@
     try {
       const sigs = await rpcCall("getSignaturesForAddress", [
         AGENT_WALLET,
-        { limit: 20 },
+        { limit: 25 },
       ]);
       const list = Array.isArray(sigs) ? sigs : [];
+      lastChainSigs = list;
+      renderTxPanel(lastChainSigs);
       if (!knownTxSigs) {
         knownTxSigs = loadKnownTxSigs();
         // Seed without notifying so we don't chime historical txs on first load
@@ -1622,7 +1745,7 @@
             level: err ? "warn" : "signal",
             title: err ? "On-chain tx failed" : "On-chain fill",
             message: err
-              ? `Tx ${shortSig(sig)} errored on AGENT book`
+              ? `Tx ${shortSig(sig)} errored on AGENT book · open Solscan`
               : `Live tx ${shortSig(sig)} on 99hEn… · refreshing holdings/PnL`,
             tags: ["fill", "tx", "chain"],
             source: "chain",
