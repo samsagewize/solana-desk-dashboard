@@ -1,0 +1,682 @@
+/* Dark neon theme — default. Light mode = original CSS when html[data-theme="light"] */
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #07070b;
+  --bg-soft: #0e0e14;
+  --bg-card: rgba(14, 16, 24, 0.72);
+  --border: rgba(56, 189, 248, 0.14);
+  --border-strong: rgba(232, 121, 249, 0.28);
+  --text: #e8edf7;
+  --text-dim: #9aa3b5;
+  --text-mute: #6b7385;
+  --accent: #22d3ee;
+  --ok: #a3e635;
+  --warn: #f472b6;
+  --neg: #fb7185;
+  --c-grok: #c084fc;
+  --c-scout: #22d3ee;
+  --c-trader: #a3e635;
+  --c-guard: #f472b6;
+  --c-coach: #e879f9;
+  --neon-cyan: #22d3ee;
+  --neon-magenta: #f472b6;
+  --neon-lime: #a3e635;
+  --neon-purple: #c084fc;
+  --neon-pink: #e879f9;
+  --glow-cyan: 0 0 18px rgba(34, 211, 238, 0.28);
+  --glow-magenta: 0 0 18px rgba(244, 114, 182, 0.25);
+  --glow-lime: 0 0 18px rgba(163, 230, 53, 0.25);
+  --glow-purple: 0 0 18px rgba(192, 132, 252, 0.28);
+  --lift-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.04) inset,
+    0 0 0 1px rgba(34, 211, 238, 0.08),
+    0 18px 40px rgba(0, 0, 0, 0.45),
+    0 0 24px rgba(34, 211, 238, 0.06);
+}
+
+html[data-theme="dark"] body {
+  background:
+    radial-gradient(ellipse 90% 55% at 50% -18%, rgba(34, 211, 238, 0.1), transparent 55%),
+    radial-gradient(ellipse 50% 40% at 100% 10%, rgba(232, 121, 249, 0.08), transparent 45%),
+    radial-gradient(ellipse 45% 35% at 0% 70%, rgba(163, 230, 53, 0.05), transparent 50%),
+    radial-gradient(ellipse 40% 30% at 80% 80%, rgba(192, 132, 252, 0.06), transparent 45%),
+    linear-gradient(180deg, #050508 0%, #0a0a10 50%, #07070b 100%);
+  color: var(--text);
+}
+
+html[data-theme="dark"] .glass-lift {
+  background: linear-gradient(165deg, rgba(18, 22, 34, 0.88), rgba(10, 12, 20, 0.72));
+  backdrop-filter: blur(18px) saturate(1.35);
+  -webkit-backdrop-filter: blur(18px) saturate(1.35);
+  border: 1px solid rgba(34, 211, 238, 0.14);
+  box-shadow: var(--lift-shadow);
+}
+
+html[data-theme="dark"] .header-title h1 {
+  background: linear-gradient(120deg, #ecfeff 20%, #22d3ee 45%, #e879f9 85%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 12px rgba(34, 211, 238, 0.35));
+}
+
+html[data-theme="dark"] .btn {
+  background: rgba(14, 16, 24, 0.85);
+  border-color: rgba(34, 211, 238, 0.28);
+  color: var(--text);
+  box-shadow: 0 0 12px rgba(34, 211, 238, 0.08);
+}
+
+html[data-theme="dark"] .btn:hover:not(:disabled) {
+  background: rgba(22, 28, 42, 0.95);
+  border-color: rgba(34, 211, 238, 0.5);
+  box-shadow: var(--glow-cyan);
+}
+
+html[data-theme="dark"] .btn-primary {
+  background: linear-gradient(135deg, #0891b2, #22d3ee 50%, #67e8f9);
+  color: #041016;
+  border-color: #22d3ee;
+  box-shadow: 0 0 20px rgba(34, 211, 238, 0.35), 0 6px 16px rgba(0, 0, 0, 0.35);
+  font-weight: 600;
+}
+
+html[data-theme="dark"] .btn-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #06b6d4, #67e8f9);
+  border-color: #67e8f9;
+  color: #041016;
+  box-shadow: 0 0 28px rgba(34, 211, 238, 0.5);
+}
+
+html[data-theme="dark"] .btn-ghost {
+  background: transparent;
+  color: var(--text-dim);
+  border-color: rgba(148, 163, 184, 0.22);
+}
+
+html[data-theme="dark"] .btn-ghost:hover:not(:disabled) {
+  color: var(--neon-cyan);
+  border-color: rgba(34, 211, 238, 0.4);
+}
+
+html[data-theme="dark"] #btn-pause.is-paused {
+  background: rgba(244, 114, 182, 0.12);
+  border-color: rgba(244, 114, 182, 0.45);
+  color: #f9a8d4;
+  box-shadow: var(--glow-magenta);
+}
+
+html[data-theme="dark"] #btn-mute.is-muted {
+  background: rgba(14, 16, 24, 0.6);
+  color: var(--text-mute);
+  border-color: rgba(148, 163, 184, 0.2);
+}
+
+html[data-theme="dark"] #btn-theme {
+  min-width: 2.6rem;
+  padding-left: 0.7rem;
+  padding-right: 0.7rem;
+}
+
+html[data-theme="dark"] .status-mode.live {
+  color: var(--neon-lime);
+  border-color: rgba(163, 230, 53, 0.45);
+  background: rgba(163, 230, 53, 0.1);
+  box-shadow: 0 0 12px rgba(163, 230, 53, 0.2);
+}
+
+html[data-theme="dark"] .status-mode.off {
+  color: var(--text-mute);
+  background: rgba(14, 16, 24, 0.8);
+  border-color: rgba(148, 163, 184, 0.2);
+}
+
+html[data-theme="dark"] .wallet-banner.ok {
+  background: rgba(163, 230, 53, 0.08);
+  border-color: rgba(163, 230, 53, 0.35);
+  color: #bef264;
+}
+
+html[data-theme="dark"] .wallet-banner.warn {
+  background: rgba(244, 114, 182, 0.08);
+  border-color: rgba(244, 114, 182, 0.35);
+  color: #f9a8d4;
+}
+
+html[data-theme="dark"] .wallet-banner.info {
+  background: rgba(14, 16, 24, 0.8);
+  color: var(--text-dim);
+  border-color: var(--border);
+}
+
+html[data-theme="dark"] .connect-cta {
+  border: 1px solid rgba(34, 211, 238, 0.35);
+  box-shadow: var(--lift-shadow), 0 0 30px rgba(34, 211, 238, 0.1);
+}
+
+html[data-theme="dark"] .connect-cta-copy {
+  color: var(--text);
+}
+
+html[data-theme="dark"] .btn-connect-lg {
+  background: linear-gradient(135deg, #0891b2, #22d3ee);
+  color: #041016;
+  border: 1px solid #22d3ee;
+  box-shadow: 0 0 24px rgba(34, 211, 238, 0.35);
+}
+
+html[data-theme="dark"] .btn-connect-lg:hover:not(:disabled) {
+  background: linear-gradient(135deg, #06b6d4, #67e8f9);
+  color: #041016;
+  border-color: #67e8f9;
+}
+
+html[data-theme="dark"] .btn-connect-lg:disabled {
+  background: linear-gradient(135deg, #0e7490, #155e75);
+  color: #a5f3fc;
+  border-color: #0e7490;
+  opacity: 0.9;
+}
+
+html[data-theme="dark"] .btn-connect-lg.wrong {
+  background: rgba(244, 114, 182, 0.12);
+  color: #f9a8d4;
+  border-color: rgba(244, 114, 182, 0.5);
+}
+
+html[data-theme="dark"] .btn-connect-lg.wrong:hover:not(:disabled) {
+  background: rgba(244, 114, 182, 0.18);
+  color: #f9a8d4;
+  border-color: #f472b6;
+}
+
+/* —— Desk —— */
+html[data-theme="dark"] .desk-floor {
+  background:
+    linear-gradient(185deg, #0c1018 0%, #0a0c12 35%, #080a10 70%, #06070c 100%);
+  border: 1px solid rgba(34, 211, 238, 0.2);
+  box-shadow:
+    0 28px 60px rgba(0, 0, 0, 0.55),
+    0 0 40px rgba(34, 211, 238, 0.08),
+    inset 0 1px 0 rgba(34, 211, 238, 0.12),
+    inset 0 -20px 40px rgba(0, 0, 0, 0.35);
+}
+
+html[data-theme="dark"] .desk-ambient {
+  background:
+    radial-gradient(circle at 22% 18%, rgba(192, 132, 252, 0.22), transparent 32%),
+    radial-gradient(circle at 78% 22%, rgba(34, 211, 238, 0.2), transparent 30%),
+    radial-gradient(circle at 55% 70%, rgba(163, 230, 53, 0.12), transparent 36%),
+    radial-gradient(circle at 30% 75%, rgba(244, 114, 182, 0.1), transparent 28%);
+}
+
+html[data-theme="dark"] .desk-rim {
+  border: 1px solid rgba(34, 211, 238, 0.12);
+  box-shadow: inset 0 0 0 1px rgba(232, 121, 249, 0.06);
+}
+
+html[data-theme="dark"] .floor-plane {
+  background:
+    linear-gradient(180deg, rgba(20, 28, 42, 0.85), rgba(8, 10, 16, 0.95));
+  box-shadow:
+    0 0 0 1px rgba(34, 211, 238, 0.1),
+    0 40px 80px rgba(0, 0, 0, 0.5),
+    inset 0 8px 24px rgba(34, 211, 238, 0.04);
+}
+
+html[data-theme="dark"] .floor-grid {
+  background-image:
+    linear-gradient(rgba(34, 211, 238, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(34, 211, 238, 0.08) 1px, transparent 1px);
+  opacity: 0.9;
+}
+
+html[data-theme="dark"] .floor-shine {
+  background:
+    radial-gradient(ellipse at 40% 30%, rgba(34, 211, 238, 0.12), transparent 45%),
+    linear-gradient(120deg, rgba(232, 121, 249, 0.06), transparent 50%);
+}
+
+html[data-theme="dark"] .floor-edge {
+  background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.45));
+}
+
+html[data-theme="dark"] .monitor-screen {
+  box-shadow:
+    inset 0 0 18px rgba(34, 211, 238, 0.25),
+    0 0 14px rgba(34, 211, 238, 0.15);
+}
+
+html[data-theme="dark"] .monitor-scan::after {
+  background: rgba(163, 230, 53, 0.75);
+  box-shadow:
+    0 7px 0 rgba(34, 211, 238, 0.55),
+    0 14px 0 rgba(244, 114, 182, 0.4),
+    0 0 14px rgba(163, 230, 53, 0.5);
+}
+
+html[data-theme="dark"] .desk-mug {
+  background: linear-gradient(160deg, #1e293b, #0f172a);
+  border-color: rgba(34, 211, 238, 0.2);
+  box-shadow: 4px 8px 12px rgba(0, 0, 0, 0.4), 0 0 10px rgba(34, 211, 238, 0.1);
+}
+
+html[data-theme="dark"] .desk-mug::after {
+  border-color: #475569;
+}
+
+html[data-theme="dark"] .desk-pad {
+  background: radial-gradient(ellipse, rgba(34, 211, 238, 0.12), transparent 70%);
+}
+
+/* —— Bots —— */
+html[data-theme="dark"] .bot-head {
+  background: linear-gradient(155deg, #1e293b 0%, #0f172a 40%, #020617 100%);
+  border-color: rgba(34, 211, 238, 0.2);
+  box-shadow:
+    inset 2px 2px 0 rgba(255, 255, 255, 0.08),
+    inset -3px -4px 0 rgba(0, 0, 0, 0.35),
+    0 0 12px color-mix(in srgb, var(--bot-accent) 25%, transparent);
+}
+
+html[data-theme="dark"] .bot-head::before,
+html[data-theme="dark"] .bot-head::after {
+  background: var(--bot-accent, #22d3ee);
+  box-shadow: 0 0 6px var(--bot-accent, #22d3ee);
+}
+
+html[data-theme="dark"] .bot-ear {
+  background: linear-gradient(160deg, #1e293b, #0f172a);
+  border-color: rgba(148, 163, 184, 0.25);
+}
+
+html[data-theme="dark"] .bot-torso {
+  background: linear-gradient(150deg, #1a2233 0%, #0f1520 45%, #080c14 100%);
+  border-color: rgba(34, 211, 238, 0.15);
+  box-shadow:
+    inset 2px 2px 0 rgba(255, 255, 255, 0.06),
+    inset -3px -4px 0 rgba(0, 0, 0, 0.4),
+    0 0 14px color-mix(in srgb, var(--bot-accent) 20%, transparent);
+}
+
+html[data-theme="dark"] .bot-arm,
+html[data-theme="dark"] .bot-leg {
+  background: linear-gradient(180deg, #334155, #1e293b);
+  border-color: rgba(148, 163, 184, 0.2);
+}
+
+html[data-theme="dark"] .bot-antenna {
+  background: #64748b;
+}
+
+html[data-theme="dark"] .bot-visor {
+  opacity: 0.95;
+  box-shadow: 0 0 12px color-mix(in srgb, var(--bot-accent) 70%, transparent);
+}
+
+html[data-theme="dark"] .bot-name {
+  background: rgba(8, 10, 16, 0.9);
+  border: 1px solid color-mix(in srgb, var(--bot-accent) 45%, transparent);
+  color: var(--text);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--bot-accent) 22%, transparent);
+}
+
+html[data-theme="dark"] .bot.active .bot-name {
+  border-color: var(--bot-accent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--bot-accent) 40%, transparent),
+    0 0 16px color-mix(in srgb, var(--bot-accent) 35%, transparent);
+}
+
+html[data-theme="dark"] .bot.active .bot-glow {
+  opacity: 0.55;
+}
+
+html[data-theme="dark"] .bot-shadow {
+  background: radial-gradient(ellipse, rgba(0, 0, 0, 0.55), transparent 70%);
+}
+
+html[data-theme="dark"] .bot-tooltip {
+  background: rgba(10, 12, 20, 0.92);
+  border-color: rgba(34, 211, 238, 0.25);
+  color: var(--text-dim);
+  box-shadow: var(--lift-shadow);
+}
+
+/* —— Agent track —— */
+html[data-theme="dark"] .agent-track {
+  background: linear-gradient(135deg, rgba(14, 18, 28, 0.95), rgba(10, 12, 20, 0.85));
+  border: 1px solid rgba(163, 230, 53, 0.22);
+  box-shadow: var(--lift-shadow), 0 0 20px rgba(163, 230, 53, 0.06);
+}
+
+html[data-theme="dark"] .agent-track::before {
+  background: linear-gradient(180deg, var(--neon-lime), var(--neon-cyan));
+  box-shadow: 0 0 10px rgba(163, 230, 53, 0.5);
+}
+
+html[data-theme="dark"] .agent-pill {
+  color: #bef264;
+  background: rgba(163, 230, 53, 0.1);
+  border-color: rgba(163, 230, 53, 0.4);
+  box-shadow: 0 0 10px rgba(163, 230, 53, 0.15);
+}
+
+html[data-theme="dark"] .agent-full {
+  background: rgba(8, 10, 16, 0.9);
+  border-color: rgba(34, 211, 238, 0.2);
+  color: var(--text-dim);
+}
+
+/* —— Cards —— */
+html[data-theme="dark"] .card {
+  background: linear-gradient(165deg, rgba(16, 20, 32, 0.92), rgba(10, 12, 20, 0.82));
+  border: 1px solid rgba(34, 211, 238, 0.14);
+  box-shadow: var(--lift-shadow);
+}
+
+html[data-theme="dark"] .card:hover {
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.05) inset,
+    0 22px 44px rgba(0, 0, 0, 0.4),
+    0 0 28px rgba(34, 211, 238, 0.12);
+  border-color: rgba(34, 211, 238, 0.28);
+}
+
+html[data-theme="dark"] .card::after {
+  background: linear-gradient(90deg, transparent, rgba(34, 211, 238, 0.25), transparent);
+}
+
+html[data-theme="dark"] #card-wallet::after {
+  background: linear-gradient(90deg, var(--neon-lime), transparent);
+  box-shadow: 0 0 8px rgba(163, 230, 53, 0.4);
+}
+html[data-theme="dark"] #card-pnl::after {
+  background: linear-gradient(90deg, var(--neon-cyan), transparent);
+}
+html[data-theme="dark"] #card-caps::after {
+  background: linear-gradient(90deg, var(--neon-pink), transparent);
+}
+html[data-theme="dark"] #card-goal::after {
+  background: linear-gradient(90deg, var(--neon-purple), var(--neon-cyan), transparent);
+}
+
+html[data-theme="dark"] .card-body .admin-tag,
+html[data-theme="dark"] .admin-tag {
+  color: var(--neon-lime);
+  border-color: rgba(163, 230, 53, 0.4);
+  background: rgba(163, 230, 53, 0.1);
+}
+
+html[data-theme="dark"] .admin-tag.tag-tp {
+  color: var(--neon-lime);
+  border-color: rgba(163, 230, 53, 0.45);
+  background: rgba(163, 230, 53, 0.12);
+}
+
+html[data-theme="dark"] .admin-tag.tag-coach {
+  color: var(--neon-pink);
+  border-color: rgba(232, 121, 249, 0.45);
+  background: rgba(232, 121, 249, 0.12);
+}
+
+html[data-theme="dark"] .pos { color: var(--neon-lime); }
+html[data-theme="dark"] .neg { color: var(--neon-magenta); }
+html[data-theme="dark"] .flat { color: var(--text-dim); }
+
+html[data-theme="dark"] .vital-card.is-warn {
+  background: linear-gradient(165deg, rgba(244, 114, 182, 0.12), rgba(10, 12, 20, 0.85));
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.04) inset,
+    0 18px 40px rgba(0, 0, 0, 0.35),
+    0 0 0 1px rgba(244, 114, 182, 0.35),
+    0 0 24px rgba(244, 114, 182, 0.12);
+}
+
+html[data-theme="dark"] #card-pnl.is-warn .big { color: #f9a8d4; }
+
+html[data-theme="dark"] .vital-card.is-healthy::before {
+  box-shadow: inset 0 0 0 1px rgba(163, 230, 53, 0.25);
+}
+
+html[data-theme="dark"] .deposit-panel {
+  border-color: rgba(34, 211, 238, 0.18);
+}
+
+/* —— Console neon accents —— */
+html[data-theme="dark"] .activity-console {
+  border: 1px solid rgba(34, 211, 238, 0.22);
+  background: linear-gradient(180deg, #0c0e16 0%, #06070c 100%);
+  box-shadow:
+    0 24px 50px rgba(0, 0, 0, 0.45),
+    0 0 30px rgba(34, 211, 238, 0.08),
+    inset 0 1px 0 rgba(34, 211, 238, 0.08);
+}
+
+html[data-theme="dark"] .tag-chip.grok-bot {
+  color: #e9d5ff;
+  border-color: rgba(192, 132, 252, 0.5);
+  box-shadow: 0 0 8px rgba(192, 132, 252, 0.15);
+}
+html[data-theme="dark"] .tag-chip.solana-scout {
+  color: #a5f3fc;
+  border-color: rgba(34, 211, 238, 0.5);
+  box-shadow: 0 0 8px rgba(34, 211, 238, 0.15);
+}
+html[data-theme="dark"] .tag-chip.solana-trader {
+  color: #d9f99d;
+  border-color: rgba(163, 230, 53, 0.5);
+  box-shadow: 0 0 8px rgba(163, 230, 53, 0.15);
+}
+html[data-theme="dark"] .tag-chip.portfolio-guard {
+  color: #fbcfe8;
+  border-color: rgba(244, 114, 182, 0.5);
+  box-shadow: 0 0 8px rgba(244, 114, 182, 0.15);
+}
+html[data-theme="dark"] .tag-chip.coach-bot {
+  color: #f5d0fe;
+  border-color: rgba(232, 121, 249, 0.5);
+  box-shadow: 0 0 8px rgba(232, 121, 249, 0.15);
+}
+
+html[data-theme="dark"] .console-feed .bot-tag.grok-bot { color: #e9d5ff; }
+html[data-theme="dark"] .console-feed .bot-tag.solana-scout { color: #67e8f9; }
+html[data-theme="dark"] .console-feed .bot-tag.solana-trader { color: #bef264; }
+html[data-theme="dark"] .console-feed .bot-tag.portfolio-guard { color: #f9a8d4; }
+html[data-theme="dark"] .console-feed .bot-tag.coach-bot { color: #f0abfc; }
+
+html[data-theme="dark"] .console-feed li.fresh {
+  background: rgba(163, 230, 53, 0.08);
+  box-shadow: inset 2px 0 0 #a3e635;
+}
+
+html[data-theme="dark"] .console-feed li.is-trade {
+  box-shadow: inset 2px 0 0 #22d3ee;
+}
+
+html[data-theme="dark"] .console-feed li.is-learn {
+  box-shadow: inset 2px 0 0 #e879f9;
+  background: rgba(232, 121, 249, 0.07);
+}
+
+html[data-theme="dark"] .console-feed .cursor-line {
+  color: var(--neon-lime);
+}
+
+html[data-theme="dark"] .activity-console.is-streaming .console-dot {
+  background: #a3e635;
+  box-shadow: 0 0 10px #a3e635;
+}
+
+html[data-theme="dark"] .activity-console.is-streaming .console-live {
+  color: #a3e635;
+}
+
+/* —— PnL chart + holdings —— */
+html[data-theme="dark"] .pnl-chart-panel {
+  border: 1px solid rgba(34, 211, 238, 0.18);
+  background: linear-gradient(165deg, rgba(14, 18, 28, 0.9), rgba(8, 10, 16, 0.85));
+  box-shadow: var(--lift-shadow);
+}
+
+html[data-theme="dark"] .pnl-chart-wrap {
+  background: linear-gradient(180deg, rgba(8, 12, 20, 0.95), rgba(6, 8, 14, 0.9));
+  border: 1px solid rgba(34, 211, 238, 0.14);
+}
+
+html[data-theme="dark"] .pnl-chart .grid-line {
+  stroke: rgba(34, 211, 238, 0.1);
+}
+
+html[data-theme="dark"] .pnl-chart .axis-label {
+  fill: #6b7385;
+}
+
+html[data-theme="dark"] .pnl-chart .eq-line {
+  stroke: #22d3ee;
+  filter: drop-shadow(0 0 4px rgba(34, 211, 238, 0.55));
+}
+
+html[data-theme="dark"] .pnl-chart .eq-line.is-neg {
+  stroke: #f472b6;
+  filter: drop-shadow(0 0 4px rgba(244, 114, 182, 0.5));
+}
+
+html[data-theme="dark"] .pnl-chart .eq-dot {
+  fill: #22d3ee;
+  stroke: #0a0c12;
+}
+
+html[data-theme="dark"] .pnl-chart .eq-dot.is-neg { fill: #f472b6; }
+
+html[data-theme="dark"] .pnl-chart .eq-dot.is-latest {
+  filter: drop-shadow(0 0 6px rgba(34, 211, 238, 0.7));
+}
+
+html[data-theme="dark"] .pnl-chart-delta.pos { color: var(--neon-lime); }
+html[data-theme="dark"] .pnl-chart-delta.neg { color: var(--neon-magenta); }
+
+html[data-theme="dark"] .holding-row {
+  background: rgba(10, 14, 22, 0.75);
+  border: 1px solid rgba(34, 211, 238, 0.12);
+}
+
+html[data-theme="dark"] .holding-row:hover {
+  border-color: rgba(34, 211, 238, 0.3);
+  box-shadow: 0 0 14px rgba(34, 211, 238, 0.08);
+}
+
+html[data-theme="dark"] .holding-row .tp-pill {
+  border-color: rgba(163, 230, 53, 0.4);
+  background: rgba(163, 230, 53, 0.1);
+  color: #bef264;
+}
+
+html[data-theme="dark"] .holding-row.is-sol .tp-pill {
+  border-color: rgba(148, 163, 184, 0.3);
+  background: rgba(30, 41, 59, 0.6);
+  color: #94a3b8;
+}
+
+html[data-theme="dark"] .holding-row .upnl.pos { color: var(--neon-lime); }
+html[data-theme="dark"] .holding-row .upnl.neg { color: var(--neon-magenta); }
+
+/* —— Goal meter —— */
+html[data-theme="dark"] .goal-meter-track {
+  background: rgba(8, 10, 16, 0.9);
+  border: 1px solid rgba(34, 211, 238, 0.18);
+  box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.4);
+}
+
+html[data-theme="dark"] .goal-meter-fill {
+  background: linear-gradient(90deg, #22d3ee, #a3e635 55%, #e879f9);
+  box-shadow: 0 0 14px rgba(34, 211, 238, 0.45);
+}
+
+html[data-theme="dark"] .goal-chip {
+  background: rgba(10, 14, 22, 0.8);
+  border-color: rgba(34, 211, 238, 0.18);
+  color: var(--text-mute);
+}
+
+html[data-theme="dark"] .goal-chip.strong {
+  border-color: rgba(163, 230, 53, 0.4);
+  background: rgba(163, 230, 53, 0.1);
+  color: #bef264;
+  box-shadow: 0 0 10px rgba(163, 230, 53, 0.12);
+}
+
+html[data-theme="dark"] .footer {
+  border-top-color: rgba(34, 211, 238, 0.12);
+}
+
+html[data-theme="dark"] .footer code {
+  color: var(--neon-cyan);
+}
+
+/* Motion overrides for dark */
+html[data-theme="dark"] .vital-card.is-healthy {
+  animation: vital-heartbeat-neon 2.8s ease-in-out infinite;
+}
+
+@keyframes vital-heartbeat-neon {
+  0%, 100% {
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.04) inset,
+      0 18px 40px rgba(0, 0, 0, 0.4),
+      0 0 0 1px rgba(34, 211, 238, 0.08);
+  }
+  40% {
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.04) inset,
+      0 18px 40px rgba(163, 230, 53, 0.12),
+      0 0 0 1px rgba(163, 230, 53, 0.28),
+      0 0 22px rgba(163, 230, 53, 0.12);
+  }
+  55% {
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.04) inset,
+      0 18px 40px rgba(0, 0, 0, 0.4),
+      0 0 0 1px rgba(34, 211, 238, 0.08);
+  }
+  70% {
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.04) inset,
+      0 18px 40px rgba(34, 211, 238, 0.1),
+      0 0 0 1px rgba(34, 211, 238, 0.22);
+  }
+}
+
+html[data-theme="dark"] .activity-console.is-trade-flash {
+  box-shadow:
+    0 24px 50px rgba(0, 0, 0, 0.45),
+    0 0 0 1px rgba(34, 211, 238, 0.5),
+    0 0 32px rgba(34, 211, 238, 0.25);
+}
+
+html[data-theme="dark"] .desk-floor.is-trade-flash .monitor-screen {
+  box-shadow:
+    inset 0 0 22px rgba(34, 211, 238, 0.55),
+    0 0 18px rgba(163, 230, 53, 0.35);
+}
+
+html[data-theme="dark"] .bot[data-bot="portfolio-guard"] .bot-name {
+  border-color: #f472b6;
+  box-shadow: 0 0 0 1px rgba(244, 114, 182, 0.3), 0 0 14px rgba(244, 114, 182, 0.2);
+}
+
+html[data-theme="dark"] .bot.coach-glow .bot-name {
+  border-color: #e879f9;
+  box-shadow: 0 0 0 2px rgba(232, 121, 249, 0.3), 0 0 16px rgba(232, 121, 249, 0.25);
+}
+
+/* Light-theme class tags */
+html[data-theme="light"] .admin-tag.tag-tp {
+  color: #047857;
+  border-color: #bbf7d0;
+  background: #ecfdf5;
+}
+html[data-theme="light"] .admin-tag.tag-coach {
+  color: #be185d;
+  border-color: #fbcfe8;
+  background: #fdf2f8;
+}

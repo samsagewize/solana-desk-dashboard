@@ -872,8 +872,8 @@
     const learn = c.learnFromMistakes ?? state?.status?.learnFromMistakes;
     const profitUsdc = c.profitUsdc ?? tp.profitUsdc ?? 0;
     el.innerHTML = `
-      <span class="admin-tag" style="color:#047857;border-color:#bbf7d0;background:#ecfdf5">TP ${tp.active === false ? "off" : "ARMED"}</span>
-      <span class="admin-tag" style="color:#be185d;border-color:#fbcfe8;background:#fdf2f8;margin-left:0.35rem">Coach ${coachOn ? "online" : "—"}</span>
+      <span class="admin-tag tag-tp">TP ${tp.active === false ? "off" : "ARMED"}</span>
+      <span class="admin-tag tag-coach" style="margin-left:0.35rem">Coach ${coachOn ? "online" : "—"}</span>
       <div class="big" style="font-size:1.05rem;letter-spacing:-0.015em">${escapeHtml(modeLabel)}</div>
       <ul class="caps-list" style="margin-top:0.65rem">
         <li><span class="label">Size / trade</span><span class="val">≤10–15% free SOL</span></li>
@@ -1636,6 +1636,41 @@
   }
 
 
+
+  const THEME_KEY = "solana-desk-theme";
+
+  function currentTheme() {
+    return document.documentElement.getAttribute("data-theme") === "light"
+      ? "light"
+      : "dark";
+  }
+
+  function applyTheme(theme) {
+    const t = theme === "light" ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", t);
+    try {
+      localStorage.setItem(THEME_KEY, t);
+    } catch (_) { /* ignore */ }
+    syncThemeUi();
+    // Re-paint chart so SVG stop-colors match theme
+    if (state) renderEquityChart(state);
+  }
+
+  function syncThemeUi() {
+    const btn = $("#btn-theme");
+    if (!btn) return;
+    const dark = currentTheme() === "dark";
+    btn.textContent = dark ? "Neon" : "Light";
+    btn.setAttribute("aria-pressed", dark ? "true" : "false");
+    btn.title = dark
+      ? "Switch to light theme"
+      : "Switch to dark neon theme";
+  }
+
+  function toggleTheme() {
+    applyTheme(currentTheme() === "dark" ? "light" : "dark");
+  }
+
   function loadSoundPref() {
     try {
       soundMuted = localStorage.getItem(SOUND_KEY) === "1";
@@ -1802,11 +1837,15 @@
     const gridVals = [maxV, (maxV + minV) / 2, minV];
 
     svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+    const dark = currentTheme() === "dark";
+    const strokePos = dark ? "#22d3ee" : "#10b981";
+    const strokeNeg = dark ? "#f472b6" : "#f59e0b";
+    const fill = neg ? strokeNeg : strokePos;
     svg.innerHTML = `
       <defs>
         <linearGradient id="eqFill" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="${neg ? "#f59e0b" : "#10b981"}" stop-opacity="0.28"/>
-          <stop offset="100%" stop-color="${neg ? "#f59e0b" : "#10b981"}" stop-opacity="0.02"/>
+          <stop offset="0%" stop-color="${fill}" stop-opacity="${dark ? 0.32 : 0.28}"/>
+          <stop offset="100%" stop-color="${fill}" stop-opacity="0.02"/>
         </linearGradient>
       </defs>
       ${gridYs
@@ -1932,6 +1971,8 @@
     if (reduceMotion && localStorage.getItem(SOUND_KEY) == null) {
       soundMuted = true;
     }
+    syncThemeUi();
+    $("#btn-theme")?.addEventListener("click", toggleTheme);
     bindWalletUi();
     updateConnectUi();
     syncPauseUi();
