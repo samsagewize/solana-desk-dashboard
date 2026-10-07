@@ -650,6 +650,43 @@
   },
   "events": [
     {
+      "id": "tx-2Cg4ob2h-baton-sell",
+      "ts": "2026-10-07T05:20:00Z",
+      "bot": "solana-trader",
+      "level": "signal",
+      "title": "Baton \u2192 sold (sale-funded)",
+      "message": "Sig 2Cg4ob2hYwakchqYia3upmme8FbycYdjgoiykSoTWe9Zwm8kkEYLyDn2HxFPC8PeQ4VMXWo2DDR1xipJ59e8ds92 \u00b7 funded CATCRAFT rotate",
+      "tags": [
+        "fill",
+        "sell",
+        "tx",
+        "chain",
+        "baton"
+      ],
+      "source": "chain",
+      "signature": "2Cg4ob2hYwakchqYia3upmme8FbycYdjgoiykSoTWe9Zwm8kkEYLyDn2HxFPC8PeQ4VMXWo2DDR1xipJ59e8ds92"
+    },
+    {
+      "id": "tx-2tutLSfx-catcraft-buy",
+      "ts": "2026-10-07T05:20:30Z",
+      "bot": "solana-trader",
+      "level": "signal",
+      "title": "CATCRAFT filled IDEA-007",
+      "message": "Buy 303.02109 CATCRAFT @ ~0.005 SOL \u00b7 mint ADPN2aqzY5RhkBC7bNQWFhTFFEYKY4drHUQG887Cpump \u00b7 sig 2tutLSfxDc7ndcKYgeTtcpkihLAJbfsVf4w3AXe9hd1YPCng3dT6QKiuWd85mRSVsd2HULXhY6eCaP6UQXjCPk86 \u00b7 free SOL 0.069434",
+      "tags": [
+        "fill",
+        "buy",
+        "tx",
+        "chain",
+        "CATCRAFT"
+      ],
+      "source": "chain",
+      "signature": "2tutLSfxDc7ndcKYgeTtcpkihLAJbfsVf4w3AXe9hd1YPCng3dT6QKiuWd85mRSVsd2HULXhY6eCaP6UQXjCPk86",
+      "mint": "ADPN2aqzY5RhkBC7bNQWFhTFFEYKY4drHUQG887Cpump",
+      "qty": 303.02109,
+      "solSpent": 0.005
+    },
+    {
       "id": "evt-043",
       "ts": "2026-10-07T04:48:53.968Z",
       "bot": "coach-bot",
@@ -1338,5 +1375,6 @@
     "compoundRest": true,
     "compoundLabel": "50% win skim \u2192 USDC pocket \u00b7 compound rest",
     "profitUsdc": 0.0
-  }
+  },
+  "updatedAt": "2026-10-07T05:22:39.545999+00:00"
 }
