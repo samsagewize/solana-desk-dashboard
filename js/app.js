@@ -45,6 +45,12 @@
       statusHint: "Watching book",
       accent: "portfolio-guard",
     },
+    "coach-bot": {
+      short: "COACH",
+      label: "Coach",
+      statusHint: "Coaching",
+      accent: "coach-bot",
+    },
   };
 
   const BOT_ORDER = [
@@ -52,6 +58,7 @@
     "solana-scout",
     "solana-trader",
     "portfolio-guard",
+    "coach-bot",
   ];
 
   /** Seed events if activity.json has none — realistic ops lines, CT times via fmtTime */
@@ -62,7 +69,7 @@
       bot: "grok-bot",
       level: "info",
       title: "Desk boot",
-      message: "Coordinator online · routing Scout → Trader → Guard · caps $25/$75/$50",
+      message: "Coordinator online · Scout → Trader → Guard → Coach · positive-PnL",
     },
     {
       id: "seed-002",
@@ -86,7 +93,7 @@
       bot: "solana-trader",
       level: "info",
       title: "Caps armed",
-      message: "LIVE under $25/trade · $75 max open · awaiting Scout clears",
+      message: "Positive-PnL · no hard size caps · awaiting Scout / Coach clears",
     },
     {
       id: "seed-005",
@@ -94,7 +101,7 @@
       bot: "portfolio-guard",
       level: "info",
       title: "Book baseline",
-      message: "Open $0 / $75 · day PnL flat · halt buffer $50 · goal net+",
+      message: "Open flat · positive-PnL · Coach online · soft risk",
     },
     {
       id: "seed-006",
@@ -118,7 +125,7 @@
   const WORK_LINES = {
     "grok-bot": [
       { title: "Route tick", message: "Syncing Scout scores → Trader queue · Guard risk latch" },
-      { title: "Caps broadcast", message: "Re-assert $25 / $75 / $50 · goal net-positive" },
+      { title: "Policy broadcast", message: "Positive-PnL mode · no hard caps · Coach online" },
       { title: "Desk heartbeat", message: "All agents ack · orchestration OK" },
     ],
     "solana-scout": [
@@ -128,13 +135,18 @@
     ],
     "solana-trader": [
       { title: "SI book", message: "243.68 SI open · cost ~$6.66 · adds HALTED" },
-      { title: "Size check", message: "No new SI adds · Guard latch · under $75 max" },
+      { title: "Size check", message: "No new SI adds · Coach/Guard review · soft sizing" },
       { title: "Exec halted", message: "IDEA-001 fills done · waiting Guard clear" },
     ],
     "portfolio-guard": [
-      { title: "PnL mark", message: "Day PnL ≈ −$0.28 · equity ~$8.02 · −20% stop" },
-      { title: "Exposure sweep", message: "Open ~$6.66 / $75 · SI adds HALTED" },
-      { title: "Stop check", message: "−20% stop armed on SI book · bot 99hEn…" },
+      { title: "PnL mark", message: "Day PnL ≈ −$0.28 · equity ~$8.02 · soft −20% stop" },
+      { title: "Exposure sweep", message: "Open ~$6.66 · no hard $ cap · SI held" },
+      { title: "Cash check", message: "Residual SOL ~0.012 · cash thin · Coach aware" },
+    ],
+    "coach-bot": [
+      { title: "Lesson tick", message: "Reviewing −$0.28 day · refine SI timing next clear" },
+      { title: "Pos-PnL check", message: "Priority: net-positive · no hard dollar caps" },
+      { title: "Coach note", message: "SI held · cash thin · size with edge not caps" },
     ],
   };
 
@@ -411,7 +423,7 @@
         }
         setBanner(
           "ok",
-          `<strong>Admin</strong> · Trading ON · Caps $25 / $75 / $50 · Bot book <code>${escapeHtml(shortAddr(AGENT_WALLET))}</code> · Connected <code>${escapeHtml(shortAddr(connectedPubkey))}</code>`
+          `<strong>Admin</strong> · Trading ON · Positive-PnL · Coach online · Bot book <code>${escapeHtml(shortAddr(AGENT_WALLET))}</code> · Connected <code>${escapeHtml(shortAddr(connectedPubkey))}</code>`
         );
         if (deposit) deposit.hidden = false;
         updateDepositHint();
@@ -497,6 +509,7 @@
       "solana-scout": "Scout",
       "solana-trader": "Trader",
       "portfolio-guard": "Guard",
+      "coach-bot": "Coach",
     };
     return map[b.id] || b.name || "Bot";
   }
@@ -530,6 +543,7 @@
           { id: "solana-scout", name: "Solana Scout", status: "online", lastAction: "—" },
           { id: "solana-trader", name: "Solana Trader", status: "online", lastAction: "—" },
           { id: "portfolio-guard", name: "Portfolio Guard", status: "online", lastAction: "—" },
+          { id: "coach-bot", name: "Coach", status: "online", lastAction: "—" },
         ];
 
     const existing = $$bots(el);
@@ -554,7 +568,7 @@
         return `
         <button type="button" class="bot${active}${paused}"
           data-bot="${escapeHtml(b.id)}"
-          data-path="${i % 4}"
+          data-path="${i % 5}"
           data-last-action="${escapeHtml(b.lastAction || "")}"
           data-last-at="${escapeHtml(b.lastAt || "")}"
           aria-label="${escapeHtml(b.name)} — ${escapeHtml(oneLineStatus(b))}">
@@ -720,33 +734,40 @@
     const day = pnl?.dayPnlUsd ?? 0;
     const sign = day > 0 ? "+" : "";
     const open = pnl?.openExposureUsd ?? 0;
-    const maxOpen = pnl?.maxOpenUsd ?? state?.riskCaps?.maxOpenUsd ?? 75;
     const equity = pnl?.equityUsd ?? state?.wallet?.totalUsd;
-    const stop = pnl?.stopPct ?? state?.riskCaps?.stopPct ?? -20;
+    const stop = pnl?.stopPct ?? state?.riskCaps?.stopPct;
     const halted = state?.status?.siAddsHalted || state?.riskCaps?.siAddsHalted;
+    const softStop =
+      stop != null ? `Soft stop ${stop}%` : "Soft risk · Coach";
     el.innerHTML = `
       <div class="big ${pnlClass(day)}">${sign}${fmtUsd(day)}</div>
       <div class="sub">Day · ${fmtPct(pnl?.dayPnlPct)} · equity ${fmtUsd(equity)}</div>
       <div class="sub" style="margin-top:0.55rem;color:var(--text-mute)">
-        Open ${fmtUsd(open)} / ${fmtUsd(maxOpen, 0)} · SI ${pnl?.siQty != null ? Number(pnl.siQty).toFixed(2) : "—"}
+        Open ${fmtUsd(open)} · SI ${pnl?.siQty != null ? Number(pnl.siQty).toFixed(2) : "—"} · no hard caps
       </div>
       <div class="sub" style="margin-top:0.35rem;color:var(--text-mute)">
-        ${halted ? "SI adds HALTED · " : ""}Stop ${stop}% · bot ${escapeHtml(shortAddr(pnl?.walletAddress || AGENT_WALLET))}
+        ${halted ? "SI held / adds reviewed · " : ""}${escapeHtml(softStop)} · bot ${escapeHtml(shortAddr(pnl?.walletAddress || AGENT_WALLET))}
       </div>
-      <div class="sub" style="margin-top:0.35rem">${escapeHtml(pnl?.goalLabel || "Net-positive goal")}</div>
+      <div class="sub" style="margin-top:0.35rem">${escapeHtml(pnl?.goalLabel || "Positive-PnL mode")}</div>
     `;
   }
 
   function renderCaps(caps) {
     const el = $("#caps-body");
     if (!el) return;
-    const c = caps || { perTradeUsd: 25, maxOpenUsd: 75, dailyLossHaltUsd: 50 };
+    const c = caps || {};
+    const modeLabel = c.label || (c.hardCaps === false ? "Positive-PnL mode · no hard caps" : "Positive-PnL mode");
+    const coachOn = c.coachOnline !== false && (state?.status?.coachOnline !== false);
+    const learn = c.learnFromMistakes ?? state?.status?.learnFromMistakes;
     el.innerHTML = `
-      <ul class="caps-list">
-        <li><span class="label">Per trade</span><span class="val">${fmtUsd(c.perTradeUsd, 0)}</span></li>
-        <li><span class="label">Max open</span><span class="val">${fmtUsd(c.maxOpenUsd, 0)}</span></li>
-        <li><span class="label">Daily halt</span><span class="val">${fmtUsd(c.dailyLossHaltUsd, 0)}</span></li>
+      <span class="admin-tag" style="color:#be185d;border-color:#fbcfe8;background:#fdf2f8">Coach ${coachOn ? "online" : "—"}</span>
+      <div class="big" style="font-size:1.05rem;letter-spacing:-0.015em">${escapeHtml(modeLabel)}</div>
+      <ul class="caps-list" style="margin-top:0.65rem">
+        <li><span class="label">Hard caps</span><span class="val">Off</span></li>
+        <li><span class="label">Priority</span><span class="val">Pos-PnL</span></li>
+        <li><span class="label">Learn</span><span class="val">${learn === false ? "Off" : "ON"}</span></li>
       </ul>
+      <div class="sub" style="margin-top:0.55rem;color:var(--text-mute)">${escapeHtml(c.strategy || "Coach review · no hard dollar caps")}</div>
     `;
   }
 

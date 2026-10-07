@@ -30,6 +30,7 @@
   --c-scout: #0ea5e9;
   --c-trader: #10b981;
   --c-guard: #f59e0b;
+  --c-coach: #ec4899;
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -283,7 +284,7 @@ body {
 
 .desk-floor {
   position: relative;
-  height: 400px;
+  height: 420px;
   border-radius: calc(var(--radius) + 6px);
   overflow: hidden;
   background: linear-gradient(180deg, #e8e8ec 0%, #fafafa 38%, #ffffff 100%);
@@ -580,6 +581,7 @@ body {
 .bot[data-bot="solana-scout"] { --bot-accent: var(--c-scout); }
 .bot[data-bot="solana-trader"] { --bot-accent: var(--c-trader); }
 .bot[data-bot="portfolio-guard"] { --bot-accent: var(--c-guard); }
+.bot[data-bot="coach-bot"] { --bot-accent: var(--c-coach); }
 
 .bot-name {
   font-size: 0.72rem;
@@ -624,6 +626,12 @@ body {
   top: 46%;
   animation-name: wander-d;
   animation-duration: 15.5s;
+}
+.bot[data-path="4"] {
+  left: 36%;
+  top: 30%;
+  animation-name: wander-e;
+  animation-duration: 17s;
 }
 
 @keyframes wander-a {
@@ -835,6 +843,7 @@ body {
 .tag-chip.solana-scout { color: #7dd3fc; border-color: #0369a1; }
 .tag-chip.solana-trader { color: #6ee7b7; border-color: #047857; }
 .tag-chip.portfolio-guard { color: #fcd34d; border-color: #b45309; }
+.tag-chip.coach-bot { color: #f9a8d4; border-color: #be185d; }
 
 .tag-chip.is-hot {
   background: #27272a;
@@ -915,6 +924,7 @@ body {
 .console-feed .bot-tag.solana-scout { color: #7dd3fc; }
 .console-feed .bot-tag.solana-trader { color: #6ee7b7; }
 .console-feed .bot-tag.portfolio-guard { color: #fcd34d; }
+.console-feed .bot-tag.coach-bot { color: #f9a8d4; }
 
 .console-feed .line-body {
   min-width: 0;

@@ -1,24 +1,30 @@
 {
   "meta": {
     "mode": "live",
-    "label": "LIVE — bot 99hEn… · SI 243.68 · equity ~$8.02 · day −$0.28 · adds HALTED · −20% stop",
-    "updatedAt": "2026-10-07T04:24:31.952Z",
+    "label": "LIVE — positive-PnL mode · no hard caps · Coach online · bot 99hEn…",
+    "updatedAt": "2026-10-07T04:27:33.773Z",
     "bots": [
       "grok-bot",
       "solana-scout",
       "solana-trader",
-      "portfolio-guard"
+      "portfolio-guard",
+      "coach-bot"
     ],
     "owner": "Christian Sanchez",
-    "notes": "Bot book AGENT 99hEnCqL2Tp59pkymd3zfpenKQVWZXCKpCViGXaHw92j. Baseline funded 0.07 SOL. Now 243.682305 SI (cost ~$6.66, mark ~$0.02712) + 0.011994688 SOL. Equity ~$8.02 · day PnL ≈ −$0.28. Open ~$6.66/$75. SI adds HALTED. −20% stop. Admin gate 3GfDwi…Aeek."
+    "notes": "Positive-PnL mode · no binding $25/$75/$50 caps. Coach online · learn-from-mistakes. Bot book 99hEn… · SI held · cash thin (~0.012 SOL). Admin gate 3GfD… for Connect LIVE only."
   },
   "riskCaps": {
-    "perTradeUsd": 25,
-    "maxOpenUsd": 75,
-    "dailyLossHaltUsd": 50,
-    "strategy": "SOL/USDC + IDEA-001 SI · adds halted",
+    "mode": "positive_pnl",
+    "hardCaps": false,
+    "perTradeUsd": null,
+    "maxOpenUsd": null,
+    "dailyLossHaltUsd": null,
     "stopPct": -20,
-    "siAddsHalted": true
+    "siAddsHalted": true,
+    "learnFromMistakes": true,
+    "coachOnline": true,
+    "strategy": "Positive-PnL priority · Coach review · no hard dollar caps",
+    "label": "Positive-PnL mode · no hard caps"
   },
   "wallet": {
     "label": "AGENT bot book",
@@ -41,7 +47,8 @@
     "openIdea": "IDEA-001 SI",
     "halt": "SI_ADDS_HALTED",
     "stopPct": -20,
-    "note": "Baseline 0.07 SOL · now 243.682305 SI + 0.011994688 SOL · equity ~$8.02 · day PnL ≈ $-0.28"
+    "note": "Baseline 0.07 SOL · SI held 243.68 · cash thin ~0.012 SOL · equity ~$8.02 · positive-PnL mode",
+    "cashThin": true
   },
   "bots": [
     {
@@ -50,9 +57,9 @@
       "role": "Coordinator",
       "status": "online",
       "tagline": "Routes Scout → Trader → Guard · keeps the desk organized",
-      "focus": "Orchestration · AUTO ON · agent wallet · IDEA-001",
-      "lastAction": "Bot book 99hEn… · equity ~$8.02 · day $-0.28 · SI HALTED",
-      "lastAt": "2026-10-07T04:24:31.952Z",
+      "focus": "Orchestration · Coach · AUTO · agent wallet",
+      "lastAction": "Positive-PnL mode · Coach joined · no hard caps · bot 99hEn…",
+      "lastAt": "2026-10-07T04:27:33.773Z",
       "metrics": [
         {
           "label": "Mode",
@@ -99,8 +106,8 @@
       "status": "halted",
       "tagline": "Buy/sell under small caps · LIVE mode armed",
       "focus": "IDEA-001 SI HALTED · AGENT 99hEn…",
-      "lastAction": "2 SI fills ~$6.66 · adds HALTED · −20% stop",
-      "lastAt": "2026-10-07T04:24:31.952Z",
+      "lastAction": "SI held · no hard size caps · Coach reviewing adds",
+      "lastAt": "2026-10-07T04:27:33.773Z",
       "metrics": [
         {
           "label": "Open SI",
@@ -122,9 +129,9 @@
       "role": "Risk / PnL",
       "status": "online",
       "tagline": "Keep the book healthy · push net-positive · halt on breach",
-      "focus": "Open ~$6.66/$75 · halt latch on SI adds",
-      "lastAction": "Day PnL ≈ $-0.28 · equity ~$8.02 · −20% stop · adds HALTED",
-      "lastAt": "2026-10-07T04:24:31.952Z",
+      "focus": "Soft risk · −20% stop optional · positive-PnL",
+      "lastAction": "Hard caps lifted · Coach latch · SI held · cash thin ~0.012 SOL",
+      "lastAt": "2026-10-07T04:27:33.773Z",
       "metrics": [
         {
           "label": "Day PnL",
@@ -137,6 +144,30 @@
         {
           "label": "Stop",
           "value": "-20%"
+        }
+      ]
+    },
+    {
+      "id": "coach-bot",
+      "name": "Coach",
+      "role": "Coach",
+      "status": "online",
+      "tagline": "Positive-PnL coach · learn from mistakes · no hard caps",
+      "focus": "Review SI book · teach Trader · keep net+",
+      "lastAction": "Online · hard caps removed · positive-PnL priority · learn-from-mistakes ON",
+      "lastAt": "2026-10-07T04:27:33.773Z",
+      "metrics": [
+        {
+          "label": "Mode",
+          "value": "Pos-PnL"
+        },
+        {
+          "label": "Hard caps",
+          "value": "Off"
+        },
+        {
+          "label": "Learn",
+          "value": "ON"
         }
       ]
     }
@@ -215,7 +246,7 @@
     "dayPnlUsd": -0.28,
     "dayPnlPct": -3.37,
     "openExposureUsd": 6.66,
-    "maxOpenUsd": 75,
+    "maxOpenUsd": null,
     "startingBookUsd": 8.3,
     "baselineSol": 0.07,
     "equityUsd": 8.02,
@@ -224,11 +255,12 @@
     "siMark": 0.02712,
     "solBalance": 0.011994688,
     "goal": "net_positive",
-    "goalLabel": "Net-positive · SI adds HALTED · −20% stop",
-    "goalStatus": "halted_pending_guard",
+    "goalLabel": "Positive-PnL mode · Coach online · SI held",
+    "goalStatus": "positive_pnl_no_hard_caps",
     "streakGreenSessions": 0,
     "stopPct": -20,
-    "note": "Bot PnL on 99hEn… · equity ~$8.02 · day ≈ $-0.28 · open ~$6.66/$75"
+    "note": "Bot PnL on 99hEn… · equity ~$8.02 · day ≈ $-0.28 · open ~$6.66 · no hard caps · Coach online",
+    "mode": "positive_pnl"
   },
   "watchlist": [
     {
@@ -299,22 +331,95 @@
       },
       "trader": {
         "label": "Solana Trader",
-        "state": "halted",
-        "detail": "SI adds HALTED · 2 fills ~$6.66"
+        "state": "online",
+        "detail": "SI held · soft sizing · Coach present"
       },
       "guard": {
         "label": "Portfolio Guard",
-        "state": "review",
-        "detail": "−20% stop armed · reviewing SI book"
+        "state": "online",
+        "detail": "No hard $ caps · Coach + soft stop −20%"
       },
       "agentWallet": {
         "label": "Agent trading wallet",
         "state": "online",
         "detail": "99hEn… · equity ~$8.02 · day $-0.28"
+      },
+      "coach": {
+        "label": "Coach",
+        "state": "online",
+        "detail": "Positive-PnL · learn-from-mistakes · no hard caps"
       }
-    }
+    },
+    "positivePnlMode": true,
+    "hardCaps": false,
+    "coachOnline": true,
+    "learnFromMistakes": true
   },
   "events": [
+    {
+      "id": "evt-034",
+      "ts": "2026-10-07T04:27:33.773Z",
+      "bot": "coach-bot",
+      "level": "info",
+      "title": "Coach online",
+      "message": "Coach joined the desk. Mandate: positive-PnL priority, learn-from-mistakes, no binding hard dollar caps. Reviewing SI book on AGENT 99hEn…Hw92j (cash thin ~0.012 SOL).",
+      "tags": [
+        "coach",
+        "online",
+        "positive-pnl"
+      ]
+    },
+    {
+      "id": "evt-033",
+      "ts": "2026-10-07T04:26:33.774Z",
+      "bot": "grok-bot",
+      "level": "info",
+      "title": "Hard caps removed",
+      "message": "Desk policy update: $25 / $75 / $50 hard caps removed as binding limits. Operating in positive-PnL mode with Coach oversight.",
+      "tags": [
+        "policy",
+        "caps",
+        "coordinator"
+      ]
+    },
+    {
+      "id": "evt-032",
+      "ts": "2026-10-07T04:26:03.774Z",
+      "bot": "coach-bot",
+      "level": "info",
+      "title": "Positive-PnL priority",
+      "message": "Coach set desk priority to stay net-positive over rigid size caps. SI position still held; adds reviewed case-by-case.",
+      "tags": [
+        "coach",
+        "positive-pnl"
+      ]
+    },
+    {
+      "id": "evt-031",
+      "ts": "2026-10-07T04:25:33.774Z",
+      "bot": "coach-bot",
+      "level": "info",
+      "title": "Learn-from-mistakes enabled",
+      "message": "Post-trade review loop ON. Day PnL ≈ −$0.28 logged as lesson input — refine SI timing/size next clears.",
+      "tags": [
+        "coach",
+        "learn",
+        "review"
+      ]
+    },
+    {
+      "id": "evt-030",
+      "ts": "2026-10-07T04:25:03.774Z",
+      "bot": "portfolio-guard",
+      "level": "info",
+      "title": "SI held · cash thin",
+      "message": "SI ~243.68 still held on bot wallet 99hEn…. Residual SOL ~0.012 (cash thin). Soft −20% stop remains advisory; no hard $75 open cap.",
+      "tags": [
+        "SI",
+        "cash",
+        "guard"
+      ]
+    },
     {
       "id": "evt-028",
       "ts": "2026-10-07T04:25:00Z",
