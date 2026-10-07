@@ -475,7 +475,7 @@
     const pEl = $("#status-pnl");
     if (pEl) {
       pEl.className = pnlClass(day);
-      pEl.textContent = `PnL ${sign}${fmtUsd(day)}`;
+      pEl.textContent = `Trade PnL ${sign}${fmtUsd(day)}`;
     }
   }
 
@@ -703,7 +703,7 @@
       return;
     }
     el.innerHTML = `
-      <span class="admin-tag">Bot book · AGENT</span>
+      <span class="admin-tag">Trading wallet · AGENT</span>
       <div class="big">${fmtUsd(equity)}</div>
       <div class="sub">${Number(solBal).toFixed(6)} SOL${siQty != null ? ` · ${Number(siQty).toFixed(2)} SI` : ""}${siCost != null ? ` · cost ${fmtUsd(siCost)}` : ""}</div>
       ${siMark != null ? `<div class="sub">SI mark ~$${Number(siMark).toFixed(5)}</div>` : ""}
@@ -990,9 +990,15 @@
     state = data;
     renderStatusLine(data);
     renderBots(data.bots || []);
-    // Always bind Wallet/PnL to AGENT bot book address
-    if (data.wallet) data.wallet.address = data.wallet.address || AGENT_WALLET;
-    if (data.pnl) data.pnl.walletAddress = data.pnl.walletAddress || AGENT_WALLET;
+    // ALWAYS bind Wallet/PnL to AGENT trading book — never the admin Connect pubkey
+    if (!data.wallet) data.wallet = {};
+    data.wallet.address = AGENT_WALLET;
+    data.wallet.role = "agent";
+    data.wallet.isAgent = true;
+    data.wallet.isAdmin = false;
+    data.wallet.adminAddress = ADMIN_WALLET;
+    if (!data.pnl) data.pnl = {};
+    data.pnl.walletAddress = AGENT_WALLET;
     renderWallet(data.wallet);
     renderPnL(data.pnl || {});
     renderCaps(data.riskCaps);
