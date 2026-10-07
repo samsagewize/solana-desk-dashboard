@@ -24,6 +24,7 @@
         </div>
         <div class="header-actions">
           <button type="button" id="btn-pause" class="btn btn-ghost" aria-pressed="false" title="Pause all bot motion and activity streaming">Pause</button>
+          <button type="button" id="btn-mute" class="btn btn-ghost" aria-pressed="false" title="Mute trade chimes">Sound</button>
           <button type="button" id="btn-connect" class="btn btn-primary">Connect Wallet</button>
           <button type="button" id="btn-disconnect" class="btn btn-ghost" hidden>Disconnect</button>
         </div>
@@ -149,6 +150,22 @@
           <p class="muted">Loading…</p>
         </div>
       </article>
+    </section>
+
+    <section class="pnl-chart-panel glass-lift" aria-label="Bot wallet day equity chart">
+      <div class="pnl-chart-head">
+        <div>
+          <h2>Day equity · bot book</h2>
+          <p class="pnl-chart-sub">99hEn…Hw92j · from activity + stored marks</p>
+        </div>
+        <div class="pnl-chart-meta">
+          <span id="pnl-chart-delta" class="pnl-chart-delta">—</span>
+          <span id="pnl-chart-last" class="pnl-chart-last">—</span>
+        </div>
+      </div>
+      <div class="pnl-chart-wrap">
+        <svg id="pnl-chart" class="pnl-chart" viewBox="0 0 640 180" role="img" aria-label="Equity over time"></svg>
+      </div>
     </section>
 
     <footer class="footer">

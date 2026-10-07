@@ -1,8 +1,8 @@
 {
   "meta": {
     "mode": "live",
-    "label": "LIVE — positive-PnL mode · no hard caps · Coach online · bot 99hEn…",
-    "updatedAt": "2026-10-07T04:27:33.773Z",
+    "label": "LIVE — IDEA-002 NTDA fill · SI+NTDA open · positive-PnL · Coach · bot 99hEn…",
+    "updatedAt": "2026-10-07T04:43:26.897Z",
     "bots": [
       "grok-bot",
       "solana-scout",
@@ -43,12 +43,14 @@
     "siMark": 0.02712,
     "siMarkUsd": 6.6087,
     "otherUsd": 6.6087,
-    "totalUsd": 8.02,
-    "openIdea": "IDEA-001 SI",
+    "totalUsd": 7.95,
+    "openIdea": "IDEA-001 SI · IDEA-002 NTDA",
     "halt": "SI_ADDS_HALTED",
     "stopPct": -20,
-    "note": "Baseline 0.07 SOL · SI held 243.68 · cash thin ~0.012 SOL · equity ~$8.02 · positive-PnL mode",
-    "cashThin": true
+    "note": "Baseline 0.07 SOL · SI held · NTDA 368.17 @ ~$4.50 · cash thin · equity ~$7.95",
+    "cashThin": true,
+    "ntdaBalance": 368.17,
+    "ntdaCostUsd": 4.5
   },
   "bots": [
     {
@@ -58,8 +60,8 @@
       "status": "online",
       "tagline": "Routes Scout → Trader → Guard · keeps the desk organized",
       "focus": "Orchestration · Coach · AUTO · agent wallet",
-      "lastAction": "Positive-PnL mode · Coach joined · no hard caps · bot 99hEn…",
-      "lastAt": "2026-10-07T04:27:33.773Z",
+      "lastAction": "IDEA-002 routed · NTDA fill on 99hEn… · Coach watching",
+      "lastAt": "2026-10-07T04:43:26.897Z",
       "metrics": [
         {
           "label": "Mode",
@@ -103,11 +105,11 @@
       "id": "solana-trader",
       "name": "Solana Trader",
       "role": "Execution",
-      "status": "halted",
+      "status": "online",
       "tagline": "Buy/sell under small caps · LIVE mode armed",
       "focus": "IDEA-001 SI HALTED · AGENT 99hEn…",
-      "lastAction": "SI held · no hard size caps · Coach reviewing adds",
-      "lastAt": "2026-10-07T04:27:33.773Z",
+      "lastAction": "IDEA-002 NTDA $4.50 / 368.17 filled · sig 3CznrY5m…",
+      "lastAt": "2026-10-07T04:43:26.897Z",
       "metrics": [
         {
           "label": "Open SI",
@@ -237,30 +239,52 @@
           "ts": "2026-10-07T04:22:10Z"
         }
       ]
+    },
+    {
+      "id": "pos-ntda-002",
+      "symbol": "NTDA",
+      "side": "long",
+      "qty": 368.17,
+      "costUsd": 4.5,
+      "markUsd": 4.5,
+      "unrealizedUsd": 0,
+      "status": "open",
+      "idea": "IDEA-002",
+      "note": "IDEA-002 · BUY $4.50 / 368.17 · sig 3CznrY5m…",
+      "fills": [
+        {
+          "usd": 4.5,
+          "qty": 368.17,
+          "tx": "3CznrY5m…",
+          "ts": "2026-10-07T04:43:26.897Z"
+        }
+      ]
     }
   ],
   "pnl": {
     "walletAddress": "99hEnCqL2Tp59pkymd3zfpenKQVWZXCKpCViGXaHw92j",
     "realizedTodayUsd": 0,
     "unrealizedUsd": -0.0513,
-    "dayPnlUsd": -0.28,
-    "dayPnlPct": -3.37,
-    "openExposureUsd": 6.66,
+    "dayPnlUsd": -0.35,
+    "dayPnlPct": -4.22,
+    "openExposureUsd": 11.16,
     "maxOpenUsd": null,
     "startingBookUsd": 8.3,
     "baselineSol": 0.07,
-    "equityUsd": 8.02,
+    "equityUsd": 7.95,
     "costBasisUsd": 6.66,
     "siQty": 243.682305,
     "siMark": 0.02712,
     "solBalance": 0.011994688,
     "goal": "net_positive",
-    "goalLabel": "Positive-PnL mode · Coach online · SI held",
+    "goalLabel": "Positive-PnL · Coach · SI+NTDA open",
     "goalStatus": "positive_pnl_no_hard_caps",
     "streakGreenSessions": 0,
     "stopPct": -20,
-    "note": "Bot PnL on 99hEn… · equity ~$8.02 · day ≈ $-0.28 · open ~$6.66 · no hard caps · Coach online",
-    "mode": "positive_pnl"
+    "note": "Bot PnL on 99hEn… · equity ~$7.95 · day ≈ $-0.35 · SI+NTDA · IDEA-002 filled",
+    "mode": "positive_pnl",
+    "ntdaQty": 368.17,
+    "ntdaCostUsd": 4.5
   },
   "watchlist": [
     {
@@ -356,6 +380,47 @@
     "learnFromMistakes": true
   },
   "events": [
+    {
+      "id": "evt-035",
+      "ts": "2026-10-07T04:43:26.897Z",
+      "bot": "solana-trader",
+      "level": "signal",
+      "title": "BUY NTDA ~$4.50 filled · IDEA-002",
+      "message": "BUY NTDA ~$4.50 → 368.17 tokens on AGENT 99hEn…Hw92j (IDEA-002). Sig 3CznrY5m…. Under soft sizing · Coach aware · positive-PnL mode.",
+      "tags": [
+        "NTDA",
+        "buy",
+        "fill",
+        "IDEA-002",
+        "trade"
+      ]
+    },
+    {
+      "id": "evt-037",
+      "ts": "2026-10-07T04:43:16.898Z",
+      "bot": "portfolio-guard",
+      "level": "info",
+      "title": "Open book after NTDA fill",
+      "message": "SI ~243.68 + NTDA 368.17 on AGENT book. Cash still thin. Soft −20% stop advisory · no hard caps · Coach online.",
+      "tags": [
+        "NTDA",
+        "SI",
+        "guard"
+      ]
+    },
+    {
+      "id": "evt-036",
+      "ts": "2026-10-07T04:43:06.898Z",
+      "bot": "solana-scout",
+      "level": "signal",
+      "title": "IDEA-002 NTDA cleared",
+      "message": "Scout cleared IDEA-002 NTDA starter ~$4.50 / 368.17 tokens for Trader on bot wallet 99hEn….",
+      "tags": [
+        "NTDA",
+        "IDEA-002",
+        "scout"
+      ]
+    },
     {
       "id": "evt-034",
       "ts": "2026-10-07T04:27:33.773Z",
@@ -746,5 +811,37 @@
     "dayPnlUsd": -0.28,
     "halt": "SI_ADDS_HALTED",
     "stopPct": -20
-  }
+  },
+  "equitySeries": [
+    {
+      "ts": "2026-10-07T03:50:00Z",
+      "equityUsd": 8.3,
+      "label": "baseline funded"
+    },
+    {
+      "ts": "2026-10-07T04:05:00Z",
+      "equityUsd": 8.25,
+      "label": "pre-SI"
+    },
+    {
+      "ts": "2026-10-07T04:18:40Z",
+      "equityUsd": 8.18,
+      "label": "SI buy $4.50"
+    },
+    {
+      "ts": "2026-10-07T04:22:10Z",
+      "equityUsd": 8.1,
+      "label": "SI buy $2.16"
+    },
+    {
+      "ts": "2026-10-07T04:25:00Z",
+      "equityUsd": 8.02,
+      "label": "SI mark ~$0.02712"
+    },
+    {
+      "ts": "2026-10-07T04:43:26.897Z",
+      "equityUsd": 7.95,
+      "label": "NTDA IDEA-002 $4.50"
+    }
+  ]
 }

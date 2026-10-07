@@ -167,6 +167,10 @@
   let idleStudyTimer = null;
   let learnFxTimer = null;
   let motionBooted = false;
+  let soundMuted = false;
+  let audioCtx = null;
+  const SOUND_KEY = "solana-desk-sound-muted";
+  const EQUITY_STORE_KEY = "solana-desk-equity-99hEn";
 
   const $ = (sel, el = document) => el.querySelector(sel);
 
@@ -1087,6 +1091,7 @@
     renderWallet(data.wallet);
     renderPnL(data.pnl || {});
     renderCaps(data.riskCaps);
+    renderEquityChart(data);
     renderFeed(state.events);
     renderAgentTrack();
     updateConnectUi();
@@ -1261,6 +1266,11 @@
 
   function bindWalletUi() {
     $("#btn-pause")?.addEventListener("click", toggleDeskPause);
+    $("#btn-mute")?.addEventListener("click", () => {
+      toggleMute();
+      // Unlock audio on gesture
+      if (!soundMuted) ensureAudio()?.resume?.();
+    });
     $("#btn-connect")?.addEventListener("click", connectWallet);
     $("#btn-connect-main")?.addEventListener("click", connectWallet);
     $("#btn-disconnect")?.addEventListener("click", disconnectWallet);
@@ -1430,8 +1440,210 @@
     learnFxTimer = setTimeout(clearLearnFx, soft ? 1600 : 2800);
   }
 
+
+  function loadSoundPref() {
+    try {
+      soundMuted = localStorage.getItem(SOUND_KEY) === "1";
+    } catch (_) {
+      soundMuted = false;
+    }
+  }
+
+  function syncMuteUi() {
+    const btn = $("#btn-mute");
+    if (!btn) return;
+    btn.textContent = soundMuted ? "Muted" : "Sound";
+    btn.classList.toggle("is-muted", soundMuted);
+    btn.setAttribute("aria-pressed", soundMuted ? "true" : "false");
+    btn.title = soundMuted
+      ? "Unmute trade chimes"
+      : "Mute trade chimes";
+  }
+
+  function toggleMute() {
+    soundMuted = !soundMuted;
+    try {
+      localStorage.setItem(SOUND_KEY, soundMuted ? "1" : "0");
+    } catch (_) { /* ignore */ }
+    syncMuteUi();
+  }
+
+  function ensureAudio() {
+    if (audioCtx) return audioCtx;
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return null;
+    audioCtx = new AC();
+    return audioCtx;
+  }
+
+  /** Short pleasant ping for trade fills — no external assets */
+  function playTradeChime() {
+    if (soundMuted || deskPaused || reduceMotion) return;
+    try {
+      const ctx = ensureAudio();
+      if (!ctx) return;
+      if (ctx.state === "suspended") ctx.resume();
+      const now = ctx.currentTime;
+      const master = ctx.createGain();
+      master.gain.setValueAtTime(0.0001, now);
+      master.gain.exponentialRampToValueAtTime(0.12, now + 0.02);
+      master.gain.exponentialRampToValueAtTime(0.0001, now + 0.28);
+      master.connect(ctx.destination);
+
+      const freqs = [880, 1174.7];
+      freqs.forEach((f, i) => {
+        const osc = ctx.createOscillator();
+        const g = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(f, now);
+        g.gain.setValueAtTime(0.0001, now);
+        g.gain.exponentialRampToValueAtTime(0.5 / (i + 1), now + 0.015 + i * 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, now + 0.22 + i * 0.04);
+        osc.connect(g);
+        g.connect(master);
+        osc.start(now + i * 0.03);
+        osc.stop(now + 0.32 + i * 0.04);
+      });
+    } catch (err) {
+      console.warn("chime failed", err);
+    }
+  }
+
+  function readStoredEquity() {
+    try {
+      const raw = localStorage.getItem(EQUITY_STORE_KEY);
+      if (!raw) return [];
+      const arr = JSON.parse(raw);
+      return Array.isArray(arr) ? arr : [];
+    } catch (_) {
+      return [];
+    }
+  }
+
+  function writeStoredEquity(points) {
+    try {
+      localStorage.setItem(
+        EQUITY_STORE_KEY,
+        JSON.stringify((points || []).slice(-48))
+      );
+    } catch (_) { /* ignore */ }
+  }
+
+  function mergeEquitySeries(data) {
+    const fromFile = Array.isArray(data?.equitySeries)
+      ? data.equitySeries.map((p) => ({
+          ts: p.ts,
+          equityUsd: Number(p.equityUsd),
+          label: p.label || "",
+        }))
+      : [];
+    const stored = readStoredEquity();
+    const live =
+      data?.pnl?.equityUsd != null
+        ? [
+            {
+              ts: data?.meta?.updatedAt || new Date().toISOString(),
+              equityUsd: Number(data.pnl.equityUsd),
+              label: "live",
+            },
+          ]
+        : [];
+    const map = new Map();
+    for (const p of [...fromFile, ...stored, ...live]) {
+      if (p?.ts == null || Number.isNaN(p.equityUsd)) continue;
+      map.set(p.ts, p);
+    }
+    const merged = [...map.values()].sort(
+      (a, b) => new Date(a.ts) - new Date(b.ts)
+    );
+    writeStoredEquity(merged);
+    return merged;
+  }
+
+  function renderEquityChart(data) {
+    const svg = $("#pnl-chart");
+    const deltaEl = $("#pnl-chart-delta");
+    const lastEl = $("#pnl-chart-last");
+    if (!svg) return;
+    const points = mergeEquitySeries(data);
+    if (points.length < 2) {
+      svg.innerHTML =
+        '<text x="24" y="96" class="axis-label">Waiting for equity points…</text>';
+      if (deltaEl) deltaEl.textContent = "—";
+      if (lastEl) lastEl.textContent = "—";
+      return;
+    }
+
+    const W = 640;
+    const H = 180;
+    const pad = { l: 40, r: 16, t: 16, b: 28 };
+    const vals = points.map((p) => p.equityUsd);
+    let minV = Math.min(...vals);
+    let maxV = Math.max(...vals);
+    if (minV === maxV) {
+      minV -= 0.25;
+      maxV += 0.25;
+    }
+    const span = maxV - minV || 1;
+    const xs = points.map((_, i) =>
+      pad.l + (i / (points.length - 1)) * (W - pad.l - pad.r)
+    );
+    const ys = vals.map(
+      (v) => pad.t + (1 - (v - minV) / span) * (H - pad.t - pad.b)
+    );
+    const line = points
+      .map((_, i) => `${i === 0 ? "M" : "L"} ${xs[i].toFixed(1)} ${ys[i].toFixed(1)}`)
+      .join(" ");
+    const area =
+      line +
+      ` L ${xs[xs.length - 1].toFixed(1)} ${(H - pad.b).toFixed(1)} L ${xs[0].toFixed(1)} ${(H - pad.b).toFixed(1)} Z`;
+    const first = vals[0];
+    const last = vals[vals.length - 1];
+    const dlt = last - first;
+    const neg = dlt < 0;
+    const gridYs = [0, 0.5, 1].map(
+      (t) => pad.t + t * (H - pad.t - pad.b)
+    );
+    const gridVals = [maxV, (maxV + minV) / 2, minV];
+
+    svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+    svg.innerHTML = `
+      <defs>
+        <linearGradient id="eqFill" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="${neg ? "#f59e0b" : "#10b981"}" stop-opacity="0.28"/>
+          <stop offset="100%" stop-color="${neg ? "#f59e0b" : "#10b981"}" stop-opacity="0.02"/>
+        </linearGradient>
+      </defs>
+      ${gridYs
+        .map(
+          (y, i) =>
+            `<line class="grid-line" x1="${pad.l}" y1="${y.toFixed(1)}" x2="${W - pad.r}" y2="${y.toFixed(1)}"/><text class="axis-label" x="6" y="${(y + 3).toFixed(1)}">$${gridVals[i].toFixed(2)}</text>`
+        )
+        .join("")}
+      <path class="eq-area" d="${area}"></path>
+      <path class="eq-line${neg ? " is-neg" : ""}" d="${line}"></path>
+      ${points
+        .map((p, i) => {
+          const latest = i === points.length - 1 ? " is-latest" : "";
+          return `<circle class="eq-dot${neg ? " is-neg" : ""}${latest}" cx="${xs[i].toFixed(1)}" cy="${ys[i].toFixed(1)}" r="${i === points.length - 1 ? 4 : 2.5}"><title>${escapeHtml(p.label || "")} · $${p.equityUsd.toFixed(2)} · ${escapeHtml(fmtTimeCompact(p.ts))}</title></circle>`;
+        })
+        .join("")}
+      <text class="axis-label" x="${pad.l}" y="${H - 8}">${escapeHtml(fmtTimeCompact(points[0].ts))}</text>
+      <text class="axis-label" x="${W - pad.r}" y="${H - 8}" text-anchor="end">${escapeHtml(fmtTimeCompact(points[points.length - 1].ts))}</text>
+    `;
+
+    if (deltaEl) {
+      const sign = dlt > 0 ? "+" : "";
+      deltaEl.textContent = `${sign}${fmtUsd(dlt)} day`;
+      deltaEl.className = "pnl-chart-delta " + (dlt < 0 ? "neg" : dlt > 0 ? "pos" : "");
+    }
+    if (lastEl) {
+      lastEl.textContent = `equity ${fmtUsd(last)} · ${points.length} pts`;
+    }
+  }
+
   function reactToEvents(events, opts) {
-    if (!events?.length || deskPaused || reduceMotion) return;
+    if (!events?.length || deskPaused) return;
     const soft = !!(opts && opts.soft);
     let trade = false;
     let learn = false;
@@ -1440,8 +1652,11 @@
       if (k.isTrade) trade = true;
       if (k.isLearn) learn = true;
     }
-    if (trade) playTradeFx(soft);
-    if (learn) playLearnFx(soft);
+    if (trade) {
+      if (!reduceMotion) playTradeFx(soft);
+      if (!soft) playTradeChime();
+    }
+    if (learn && !reduceMotion) playLearnFx(soft);
   }
 
   function syncVitalCards(pnl) {
@@ -1517,9 +1732,15 @@
     reduceMotion = window.matchMedia?.(
       "(prefers-reduced-motion: reduce)"
     )?.matches;
+    loadSoundPref();
+    // Treat reduced-motion as default-muted unless user explicitly unmuted
+    if (reduceMotion && localStorage.getItem(SOUND_KEY) == null) {
+      soundMuted = true;
+    }
     bindWalletUi();
     updateConnectUi();
     syncPauseUi();
+    syncMuteUi();
     bindParallax();
     fetchSolPrice().then((p) => {
       solPriceUsd = p;

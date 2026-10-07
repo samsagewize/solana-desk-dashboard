@@ -251,3 +251,113 @@ body.is-desk-paused .vital-card.is-healthy {
     animation: none !important;
   }
 }
+
+
+/* Mute + PnL chart */
+#btn-mute.is-muted {
+  background: #f4f4f5;
+  color: var(--text-mute);
+  border-color: var(--border-strong);
+}
+
+.pnl-chart-panel {
+  margin-bottom: var(--section-gap);
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,0.95);
+  padding: 1rem 1.15rem 1.1rem;
+}
+
+.pnl-chart-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.65rem;
+}
+
+.pnl-chart-panel h2 {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-mute);
+  margin: 0 0 0.2rem;
+}
+
+.pnl-chart-sub {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  font-family: var(--mono);
+}
+
+.pnl-chart-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.15rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.pnl-chart-delta {
+  font-family: var(--mono);
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+.pnl-chart-delta.pos { color: var(--ok); }
+.pnl-chart-delta.neg { color: #b45309; }
+
+.pnl-chart-last {
+  font-size: 0.72rem;
+  color: var(--text-mute);
+  font-family: var(--mono);
+}
+
+.pnl-chart-wrap {
+  width: 100%;
+  overflow: hidden;
+  border-radius: 12px;
+  background:
+    linear-gradient(180deg, rgba(248,250,252,0.9), rgba(255,255,255,0.7));
+  border: 1px solid var(--border);
+}
+
+.pnl-chart {
+  width: 100%;
+  height: auto;
+  display: block;
+  min-height: 160px;
+}
+
+.pnl-chart .grid-line {
+  stroke: rgba(15, 23, 42, 0.06);
+  stroke-width: 1;
+}
+.pnl-chart .axis-label {
+  fill: #a1a1aa;
+  font-size: 9px;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+}
+.pnl-chart .eq-area {
+  fill: url(#eqFill);
+  opacity: 0.9;
+}
+.pnl-chart .eq-line {
+  fill: none;
+  stroke: #10b981;
+  stroke-width: 2.25;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.pnl-chart .eq-line.is-neg {
+  stroke: #f59e0b;
+}
+.pnl-chart .eq-dot {
+  fill: #10b981;
+  stroke: #fff;
+  stroke-width: 1.5;
+}
+.pnl-chart .eq-dot.is-neg { fill: #f59e0b; }
+.pnl-chart .eq-dot.is-latest {
+  filter: drop-shadow(0 0 4px rgba(16, 185, 129, 0.55));
+}
