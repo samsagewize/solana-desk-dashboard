@@ -1,8 +1,8 @@
 {
   "meta": {
     "mode": "live",
-    "label": "LIVE — IDEA-002 NTDA fill · SI+NTDA open · positive-PnL · Coach · bot 99hEn…",
-    "updatedAt": "2026-10-07T04:43:26.897Z",
+    "label": "LIVE \u2014 SI+NTDA+baton \u00b7 TP armed (50% USDC skim) \u00b7 bot 99hEn\u2026",
+    "updatedAt": "2026-10-07T04:47:13.851Z",
     "bots": [
       "grok-bot",
       "solana-scout",
@@ -11,10 +11,10 @@
       "coach-bot"
     ],
     "owner": "Christian Sanchez",
-    "notes": "Positive-PnL mode · no binding $25/$75/$50 caps. Coach online · learn-from-mistakes. Bot book 99hEn… · SI held · cash thin (~0.012 SOL). Admin gate 3GfD… for Connect LIVE only."
+    "notes": "Chain book 99hEn\u2026 \u00b7 Token-2022 SI/NTDA/baton \u00b7 funded 0.17 SOL (0.07+0.10). Take-profit ACTIVE: 50% skim to USDC at TP1 \u2192 BE stop. Profit USDC $0. Free SOL ~0.0485."
   },
   "riskCaps": {
-    "mode": "positive_pnl",
+    "mode": "positive_pnl_take_profit",
     "hardCaps": false,
     "perTradeUsd": null,
     "maxOpenUsd": null,
@@ -23,8 +23,12 @@
     "siAddsHalted": true,
     "learnFromMistakes": true,
     "coachOnline": true,
-    "strategy": "Positive-PnL priority · Coach review · no hard dollar caps",
-    "label": "Positive-PnL mode · no hard caps"
+    "strategy": "Positive-PnL \u00b7 active take-profit \u00b7 50% USDC skim @ TP1 \u2192 BE",
+    "label": "TP ACTIVE \u00b7 50% USDC skim @ TP1 \u2192 BE",
+    "takeProfitActive": true,
+    "takeProfitRule": "50% USDC skim @ TP1 \u00b7 then BE stop",
+    "skimPct": 50,
+    "profitUsdc": 0
   },
   "wallet": {
     "label": "AGENT bot book",
@@ -33,24 +37,108 @@
     "isAgent": true,
     "address": "99hEnCqL2Tp59pkymd3zfpenKQVWZXCKpCViGXaHw92j",
     "adminAddress": "3GfDwiEtei62mumu1J8XnaqkUFtbkVLQE2Btpr5yAeek",
-    "fundedSol": 0.07,
-    "baselineSol": 0.07,
-    "solBalance": 0.011994688,
-    "solUsd": 1.4113,
+    "fundedSol": 0.17,
+    "baselineSol": 0.17,
+    "depositsSol": [
+      0.07,
+      0.1
+    ],
+    "solBalance": 0.048475491,
+    "solPriceUsd": 118.18,
+    "solUsd": 5.7288,
     "usdcBalance": 0,
+    "profitUsdc": 0,
     "siBalance": 243.682305,
     "siCostUsd": 6.66,
-    "siMark": 0.02712,
-    "siMarkUsd": 6.6087,
-    "otherUsd": 6.6087,
-    "totalUsd": 7.95,
-    "openIdea": "IDEA-001 SI · IDEA-002 NTDA",
+    "siMark": 0.02652,
+    "siMarkUsd": 6.4625,
+    "ntdaBalance": 368.172657,
+    "ntdaCostUsd": 4.5,
+    "ntdaMark": 0.01216,
+    "ntdaMarkUsd": 4.477,
+    "batonBalance": 226.524211,
+    "batonCostUsd": 2.66,
+    "batonMark": 0.0108,
+    "batonMarkUsd": 2.4465,
+    "otherUsd": 13.39,
+    "totalUsd": 19.11,
+    "holdings": [
+      {
+        "symbol": "SOL",
+        "mint": "So11111111111111111111111111111111111111112",
+        "kind": "native",
+        "qty": 0.048475491,
+        "decimals": 9,
+        "priceUsd": 118.18,
+        "valueUsd": 5.7288,
+        "costUsd": null,
+        "label": "Free SOL cash"
+      },
+      {
+        "symbol": "SI",
+        "name": "Super Inu",
+        "mint": "DEW9dSN6QpWyNthphCpMmAbZP1Q4cEKR9xQXAri98WDP",
+        "kind": "token2022",
+        "qty": 243.682305,
+        "decimals": 6,
+        "priceUsd": 0.02652,
+        "valueUsd": 6.4625,
+        "costUsd": 6.66,
+        "entry": 0.02733,
+        "stop": 0.0216,
+        "tp1": 0.03416,
+        "tp2": 0.041,
+        "tp1SkimPct": 50,
+        "afterTp1": "be_stop",
+        "unrealizedUsd": -0.1975,
+        "label": "SI \u00b7 Token-2022"
+      },
+      {
+        "symbol": "NTDA",
+        "name": "NTDA",
+        "mint": "13YLkUncbg2gjEFxcnz4iAyLHJXyLqdLvghWjEgNpump",
+        "kind": "token2022",
+        "qty": 368.172657,
+        "decimals": 6,
+        "priceUsd": 0.01216,
+        "valueUsd": 4.477,
+        "costUsd": 4.5,
+        "entry": 0.01222,
+        "stop": 0.00978,
+        "tp1": 0.01528,
+        "tp2": 0.01833,
+        "tp1SkimPct": 50,
+        "afterTp1": "be_stop",
+        "unrealizedUsd": -0.023,
+        "label": "NTDA \u00b7 Token-2022"
+      },
+      {
+        "symbol": "baton",
+        "name": "baton",
+        "mint": "Hg5Ja55T5wESq4vyFoiVCMeHXtGyVA69X2UHq8hgpump",
+        "kind": "token2022",
+        "qty": 226.524211,
+        "decimals": 6,
+        "priceUsd": 0.0108,
+        "valueUsd": 2.4465,
+        "costUsd": 2.66,
+        "entry": 0.01174,
+        "stop": 0.00939,
+        "tp1": 0.01468,
+        "tp2": 0.01761,
+        "tp1SkimPct": 50,
+        "afterTp1": "be_stop",
+        "unrealizedUsd": -0.2135,
+        "label": "baton \u00b7 Token-2022",
+        "fillSig": "54dS3yLZL9qtwCYw\u2026"
+      }
+    ],
+    "openIdea": "IDEA-001 SI \u00b7 IDEA-002 NTDA \u00b7 IDEA-003 baton",
     "halt": "SI_ADDS_HALTED",
     "stopPct": -20,
-    "note": "Baseline 0.07 SOL · SI held · NTDA 368.17 @ ~$4.50 · cash thin · equity ~$7.95",
+    "takeProfitActive": true,
     "cashThin": true,
-    "ntdaBalance": 368.17,
-    "ntdaCostUsd": 4.5
+    "note": "Funded 0.17 SOL \u00b7 free 0.048475 SOL \u00b7 SI 243.68 \u00b7 NTDA 368.17 \u00b7 baton 226.52 \u00b7 equity $19.11"
   },
   "bots": [
     {
@@ -58,10 +146,10 @@
       "name": "Grok Bot",
       "role": "Coordinator",
       "status": "online",
-      "tagline": "Routes Scout → Trader → Guard · keeps the desk organized",
-      "focus": "Orchestration · Coach · AUTO · agent wallet",
-      "lastAction": "IDEA-002 routed · NTDA fill on 99hEn… · Coach watching",
-      "lastAt": "2026-10-07T04:43:26.897Z",
+      "tagline": "Routes Scout \u2192 Trader \u2192 Guard \u00b7 keeps the desk organized",
+      "focus": "Orchestration \u00b7 Coach \u00b7 AUTO \u00b7 agent wallet",
+      "lastAction": "TP rule + holdings sync \u00b7 SI/NTDA/baton on book",
+      "lastAt": "2026-10-07T04:47:13.851Z",
       "metrics": [
         {
           "label": "Mode",
@@ -82,10 +170,10 @@
       "name": "Solana Scout",
       "role": "Research",
       "status": "online",
-      "tagline": "Price watch + research · feeds Trader with scored setups",
-      "focus": "IDEA-001 SI · short-horizon · ~$4.50 notional",
-      "lastAction": "No new SI clears while Guard halt latch is on",
-      "lastAt": "2026-10-07T04:24:31.952Z",
+      "tagline": "Price watch + research \u00b7 feeds Trader with scored setups",
+      "focus": "IDEA-001 SI \u00b7 short-horizon \u00b7 ~$4.50 notional",
+      "lastAction": "Watching SI/NTDA/baton vs TP1/TP2 \u00b7 no new clears",
+      "lastAt": "2026-10-07T04:47:13.851Z",
       "metrics": [
         {
           "label": "Watching",
@@ -106,22 +194,22 @@
       "name": "Solana Trader",
       "role": "Execution",
       "status": "online",
-      "tagline": "Buy/sell under small caps · LIVE mode armed",
-      "focus": "IDEA-001 SI HALTED · AGENT 99hEn…",
-      "lastAction": "IDEA-002 NTDA $4.50 / 368.17 filled · sig 3CznrY5m…",
-      "lastAt": "2026-10-07T04:43:26.897Z",
+      "tagline": "Buy/sell under small caps \u00b7 LIVE mode armed",
+      "focus": "SI+NTDA+baton open \u00b7 TP armed \u00b7 AGENT 99hEn\u2026",
+      "lastAction": "IDEA-003 baton ~$2.66 / 226.52 filled \u00b7 TP levels locked",
+      "lastAt": "2026-10-07T04:47:13.851Z",
       "metrics": [
         {
-          "label": "Open SI",
-          "value": "243.682305"
+          "label": "SI",
+          "value": "243.68"
         },
         {
-          "label": "Cost",
-          "value": "$6.66"
+          "label": "NTDA",
+          "value": "368.17"
         },
         {
-          "label": "Status",
-          "value": "HALTED"
+          "label": "baton",
+          "value": "226.52"
         }
       ]
     },
@@ -130,22 +218,22 @@
       "name": "Portfolio Guard",
       "role": "Risk / PnL",
       "status": "online",
-      "tagline": "Keep the book healthy · push net-positive · halt on breach",
-      "focus": "Soft risk · −20% stop optional · positive-PnL",
-      "lastAction": "Hard caps lifted · Coach latch · SI held · cash thin ~0.012 SOL",
-      "lastAt": "2026-10-07T04:27:33.773Z",
+      "tagline": "Keep the book healthy \u00b7 push net-positive \u00b7 halt on breach",
+      "focus": "TP ACTIVE \u00b7 50% USDC skim @ TP1 \u2192 BE \u00b7 soft \u221220%",
+      "lastAction": "Marks reconciled \u00b7 equity $19.11 \u00b7 day $-0.98 \u00b7 Profit USDC $0",
+      "lastAt": "2026-10-07T04:47:13.851Z",
       "metrics": [
         {
           "label": "Day PnL",
-          "value": "$-0.28"
+          "value": "$-0.98"
         },
         {
           "label": "Equity",
-          "value": "$8.02"
+          "value": "$19.11"
         },
         {
-          "label": "Stop",
-          "value": "-20%"
+          "label": "TP",
+          "value": "ARMED"
         }
       ]
     },
@@ -154,10 +242,10 @@
       "name": "Coach",
       "role": "Coach",
       "status": "online",
-      "tagline": "Positive-PnL coach · learn from mistakes · no hard caps",
-      "focus": "Review SI book · teach Trader · keep net+",
-      "lastAction": "Online · hard caps removed · positive-PnL priority · learn-from-mistakes ON",
-      "lastAt": "2026-10-07T04:27:33.773Z",
+      "tagline": "Positive-PnL coach \u00b7 learn from mistakes \u00b7 no hard caps",
+      "focus": "Review SI book \u00b7 teach Trader \u00b7 keep net+",
+      "lastAction": "TP ACTIVE \u00b7 50% skim USDC @ TP1 \u2192 BE \u00b7 learn ON",
+      "lastAt": "2026-10-07T04:47:13.851Z",
       "metrics": [
         {
           "label": "Mode",
@@ -178,14 +266,14 @@
     {
       "symbol": "SOL",
       "pair": "SOL/USDC",
-      "price": 121,
+      "price": 118.18,
       "change24hPct": 1.05,
       "volume24h": 1840000000
     },
     {
       "symbol": "BONK",
       "pair": "BONK/USDC",
-      "price": 0.0000214,
+      "price": 2.14e-05,
       "change24hPct": -1.82,
       "volume24h": 92000000
     },
@@ -215,27 +303,33 @@
     {
       "id": "pos-si-001",
       "symbol": "SI",
+      "name": "Super Inu",
       "side": "long",
       "qty": 243.682305,
       "costUsd": 6.66,
-      "markPrice": 0.02712,
-      "markUsd": 6.6087,
-      "unrealizedUsd": -0.0513,
+      "entry": 0.02733,
+      "markPrice": 0.02652,
+      "markUsd": 6.4625,
+      "unrealizedUsd": -0.1975,
+      "stop": 0.0216,
+      "tp1": 0.03416,
+      "tp2": 0.041,
       "status": "open",
       "haltAdds": true,
       "stopPct": -20,
-      "note": "IDEA-001 · 2 fills · SI adds HALTED · −20% stop",
+      "mint": "DEW9dSN6QpWyNthphCpMmAbZP1Q4cEKR9xQXAri98WDP",
+      "note": "IDEA-001 \u00b7 TP1 $0.03416 (50% skim) \u00b7 TP2 $0.04100 \u00b7 stop $0.0216",
       "fills": [
         {
           "usd": 4.5,
           "qty": 164.5,
-          "tx": "2gmL7hhx…",
+          "tx": "2gmL7hhx\u2026",
           "ts": "2026-10-07T04:18:40Z"
         },
         {
           "usd": 2.16,
           "qty": 79.18,
-          "tx": "4cmQH2ij…",
+          "tx": "4cmQH2ij\u2026",
           "ts": "2026-10-07T04:22:10Z"
         }
       ]
@@ -244,19 +338,53 @@
       "id": "pos-ntda-002",
       "symbol": "NTDA",
       "side": "long",
-      "qty": 368.17,
+      "qty": 368.172657,
       "costUsd": 4.5,
-      "markUsd": 4.5,
-      "unrealizedUsd": 0,
+      "entry": 0.01222,
+      "markPrice": 0.01216,
+      "markUsd": 4.477,
+      "unrealizedUsd": -0.023,
+      "stop": 0.00978,
+      "tp1": 0.01528,
+      "tp2": 0.01833,
       "status": "open",
       "idea": "IDEA-002",
-      "note": "IDEA-002 · BUY $4.50 / 368.17 · sig 3CznrY5m…",
+      "mint": "13YLkUncbg2gjEFxcnz4iAyLHJXyLqdLvghWjEgNpump",
+      "note": "IDEA-002 \u00b7 TP1 $0.01528 (50% skim) \u00b7 TP2 $0.01833 \u00b7 stop $0.00978",
       "fills": [
         {
           "usd": 4.5,
-          "qty": 368.17,
-          "tx": "3CznrY5m…",
+          "qty": 368.172657,
+          "sol": 0.041006062,
+          "tx": "3CznrY5mtxaEeFRsMn52gdyC3cW6GxHbMs1FwmrZzCrw4zYmrWTMZF9S8SHTE1vCNQT6ESGPKzahjpYJ3Wxgm53Q",
           "ts": "2026-10-07T04:43:26.897Z"
+        }
+      ]
+    },
+    {
+      "id": "pos-baton-003",
+      "symbol": "baton",
+      "side": "long",
+      "qty": 226.524211,
+      "costUsd": 2.66,
+      "entry": 0.01174,
+      "markPrice": 0.0108,
+      "markUsd": 2.4465,
+      "unrealizedUsd": -0.2135,
+      "stop": 0.00939,
+      "tp1": 0.01468,
+      "tp2": 0.01761,
+      "status": "open",
+      "idea": "IDEA-003",
+      "mint": "Hg5Ja55T5wESq4vyFoiVCMeHXtGyVA69X2UHq8hgpump",
+      "note": "IDEA-003 \u00b7 baton fill \u00b7 TP 50% skim armed",
+      "fills": [
+        {
+          "usd": 2.66,
+          "qty": 226.524211,
+          "sol": 0.022513135,
+          "tx": "54dS3yLZL9qtwCYwURauQ6GD9cX517G3wN2a7dcnUVfBcBA7CaCj3Kh2iAWmf7NxfPDAYfD1E9NiC4XEKTqqH2kk",
+          "ts": "2026-10-07T04:47:13.851Z"
         }
       ]
     }
@@ -264,33 +392,154 @@
   "pnl": {
     "walletAddress": "99hEnCqL2Tp59pkymd3zfpenKQVWZXCKpCViGXaHw92j",
     "realizedTodayUsd": 0,
-    "unrealizedUsd": -0.0513,
-    "dayPnlUsd": -0.35,
-    "dayPnlPct": -4.22,
-    "openExposureUsd": 11.16,
+    "unrealizedUsd": -0.43,
+    "dayPnlUsd": -0.98,
+    "dayPnlPct": -4.88,
+    "openExposureUsd": 13.39,
     "maxOpenUsd": null,
-    "startingBookUsd": 8.3,
-    "baselineSol": 0.07,
-    "equityUsd": 7.95,
-    "costBasisUsd": 6.66,
+    "startingBookUsd": 20.09,
+    "baselineSol": 0.17,
+    "fundedSol": 0.17,
+    "equityUsd": 19.11,
+    "costBasisUsd": 13.82,
     "siQty": 243.682305,
-    "siMark": 0.02712,
-    "solBalance": 0.011994688,
+    "siMark": 0.02652,
+    "siMarkUsd": 6.4625,
+    "siCostUsd": 6.66,
+    "ntdaQty": 368.172657,
+    "ntdaMark": 0.01216,
+    "ntdaMarkUsd": 4.477,
+    "ntdaCostUsd": 4.5,
+    "batonQty": 226.524211,
+    "batonMark": 0.0108,
+    "batonMarkUsd": 2.4465,
+    "batonCostUsd": 2.66,
+    "solBalance": 0.048475491,
+    "solUsd": 5.7288,
+    "solPriceUsd": 118.18,
+    "profitUsdc": 0,
+    "holdings": [
+      {
+        "symbol": "SOL",
+        "mint": "So11111111111111111111111111111111111111112",
+        "kind": "native",
+        "qty": 0.048475491,
+        "decimals": 9,
+        "priceUsd": 118.18,
+        "valueUsd": 5.7288,
+        "costUsd": null,
+        "label": "Free SOL cash"
+      },
+      {
+        "symbol": "SI",
+        "name": "Super Inu",
+        "mint": "DEW9dSN6QpWyNthphCpMmAbZP1Q4cEKR9xQXAri98WDP",
+        "kind": "token2022",
+        "qty": 243.682305,
+        "decimals": 6,
+        "priceUsd": 0.02652,
+        "valueUsd": 6.4625,
+        "costUsd": 6.66,
+        "entry": 0.02733,
+        "stop": 0.0216,
+        "tp1": 0.03416,
+        "tp2": 0.041,
+        "tp1SkimPct": 50,
+        "afterTp1": "be_stop",
+        "unrealizedUsd": -0.1975,
+        "label": "SI \u00b7 Token-2022"
+      },
+      {
+        "symbol": "NTDA",
+        "name": "NTDA",
+        "mint": "13YLkUncbg2gjEFxcnz4iAyLHJXyLqdLvghWjEgNpump",
+        "kind": "token2022",
+        "qty": 368.172657,
+        "decimals": 6,
+        "priceUsd": 0.01216,
+        "valueUsd": 4.477,
+        "costUsd": 4.5,
+        "entry": 0.01222,
+        "stop": 0.00978,
+        "tp1": 0.01528,
+        "tp2": 0.01833,
+        "tp1SkimPct": 50,
+        "afterTp1": "be_stop",
+        "unrealizedUsd": -0.023,
+        "label": "NTDA \u00b7 Token-2022"
+      },
+      {
+        "symbol": "baton",
+        "name": "baton",
+        "mint": "Hg5Ja55T5wESq4vyFoiVCMeHXtGyVA69X2UHq8hgpump",
+        "kind": "token2022",
+        "qty": 226.524211,
+        "decimals": 6,
+        "priceUsd": 0.0108,
+        "valueUsd": 2.4465,
+        "costUsd": 2.66,
+        "entry": 0.01174,
+        "stop": 0.00939,
+        "tp1": 0.01468,
+        "tp2": 0.01761,
+        "tp1SkimPct": 50,
+        "afterTp1": "be_stop",
+        "unrealizedUsd": -0.2135,
+        "label": "baton \u00b7 Token-2022",
+        "fillSig": "54dS3yLZL9qtwCYw\u2026"
+      }
+    ],
+    "takeProfit": {
+      "active": true,
+      "status": "ARMED",
+      "rule": "50% USDC skim at TP1 \u00b7 then move stop to breakeven",
+      "skimPct": 50,
+      "skimAsset": "USDC",
+      "profitUsdc": 0,
+      "afterTp1": "breakeven_stop",
+      "levels": {
+        "SI": {
+          "entry": 0.02733,
+          "stop": 0.0216,
+          "tp1": 0.03416,
+          "tp2": 0.041,
+          "mark": 0.02652,
+          "tp1Hit": false,
+          "tp2Hit": false
+        },
+        "NTDA": {
+          "entry": 0.01222,
+          "stop": 0.00978,
+          "tp1": 0.01528,
+          "tp2": 0.01833,
+          "mark": 0.01216,
+          "tp1Hit": false,
+          "tp2Hit": false
+        },
+        "baton": {
+          "entry": 0.01174,
+          "stop": 0.00939,
+          "tp1": 0.01468,
+          "tp2": 0.01761,
+          "mark": 0.0108,
+          "tp1Hit": false,
+          "tp2Hit": false
+        }
+      }
+    },
     "goal": "net_positive",
-    "goalLabel": "Positive-PnL · Coach · SI+NTDA open",
-    "goalStatus": "positive_pnl_no_hard_caps",
+    "goalLabel": "TP ACTIVE \u00b7 50% USDC skim @ TP1 \u2192 BE",
+    "goalStatus": "take_profit_armed",
     "streakGreenSessions": 0,
     "stopPct": -20,
-    "note": "Bot PnL on 99hEn… · equity ~$7.95 · day ≈ $-0.35 · SI+NTDA · IDEA-002 filled",
-    "mode": "positive_pnl",
-    "ntdaQty": 368.17,
-    "ntdaCostUsd": 4.5
+    "note": "Equity $19.11 \u00b7 day $-0.98 (-4.88%) vs 0.17 SOL funded \u00b7 Profit USDC $0",
+    "mode": "positive_pnl_take_profit"
   },
   "watchlist": [
     {
       "symbol": "SOL",
       "bias": "bullish",
-      "horizon": "15m–1h",
+      "horizon": "15m\u20131h",
       "note": "Primary momentum pair",
       "scoutScore": 78
     },
@@ -298,7 +547,7 @@
       "symbol": "JUP",
       "bias": "bullish",
       "horizon": "1h",
-      "note": "Above VWAP · volume rising",
+      "note": "Above VWAP \u00b7 volume rising",
       "scoutScore": 71
     },
     {
@@ -312,7 +561,7 @@
       "symbol": "WIF",
       "bias": "bearish",
       "horizon": "30m",
-      "note": "Below short MA · skip",
+      "note": "Below short MA \u00b7 skip",
       "scoutScore": 28
     },
     {
@@ -336,57 +585,133 @@
       "rpc": {
         "label": "Solana RPC",
         "state": "online",
-        "detail": "Public RPC · agent balance poll"
+        "detail": "Public RPC \u00b7 agent balance poll"
       },
       "priceFeed": {
         "label": "Price feed",
         "state": "live",
-        "detail": "SI mark ~$0.02712"
+        "detail": "SI $0.02652 \u00b7 NTDA $0.01216 \u00b7 baton $0.0108 \u00b7 SOL $118.18"
       },
       "coordinator": {
         "label": "Grok Bot",
         "state": "online",
-        "detail": "AUTO · bot book 99hEn…"
+        "detail": "AUTO \u00b7 bot book 99hEn\u2026"
       },
       "scout": {
         "label": "Solana Scout",
         "state": "online",
-        "detail": "IDEA-001 watch · no new SI clears"
+        "detail": "IDEA-001 watch \u00b7 no new SI clears"
       },
       "trader": {
         "label": "Solana Trader",
         "state": "online",
-        "detail": "SI held · soft sizing · Coach present"
+        "detail": "SI+NTDA+baton held \u00b7 TP levels locked"
       },
       "guard": {
         "label": "Portfolio Guard",
         "state": "online",
-        "detail": "No hard $ caps · Coach + soft stop −20%"
+        "detail": "TP ACTIVE \u00b7 50% USDC skim @ TP1 \u2192 BE \u00b7 soft \u221220%"
       },
       "agentWallet": {
         "label": "Agent trading wallet",
         "state": "online",
-        "detail": "99hEn… · equity ~$8.02 · day $-0.28"
+        "detail": "99hEn\u2026 \u00b7 equity $19.11 \u00b7 day $-0.98 \u00b7 TP armed"
       },
       "coach": {
         "label": "Coach",
         "state": "online",
-        "detail": "Positive-PnL · learn-from-mistakes · no hard caps"
+        "detail": "Positive-PnL \u00b7 learn-from-mistakes \u00b7 no hard caps"
       }
     },
     "positivePnlMode": true,
     "hardCaps": false,
     "coachOnline": true,
-    "learnFromMistakes": true
+    "learnFromMistakes": true,
+    "takeProfitActive": true,
+    "profitUsdc": 0
   },
   "events": [
+    {
+      "id": "evt-042",
+      "ts": "2026-10-07T04:47:13.851Z",
+      "bot": "portfolio-guard",
+      "level": "info",
+      "title": "Take-profit ARMED \u00b7 50% USDC skim",
+      "message": "TP ACTIVE on AGENT 99hEn\u2026. Rule: at TP1 skim 50% to USDC, then move stop to breakeven. SI stop $0.0216 / TP1 $0.03416 / TP2 $0.04100 \u00b7 NTDA stop $0.00978 / TP1 $0.01528 / TP2 $0.01833 \u00b7 baton stop $0.00939 / TP1 $0.01468 / TP2 $0.01761. Profit USDC $0. Day PnL vs 0.17 SOL funded.",
+      "tags": [
+        "take-profit",
+        "TP1",
+        "skim",
+        "USDC",
+        "guard"
+      ]
+    },
+    {
+      "id": "evt-041",
+      "ts": "2026-10-07T04:47:13.851Z",
+      "bot": "portfolio-guard",
+      "level": "info",
+      "title": "Holdings mark \u00b7 equity $19.11 \u00b7 day $-0.98",
+      "message": "Bot token holder 99hEn\u2026: SOL 0.048475 ($5.73) \u00b7 SI 243.6823 ($6.46) \u00b7 NTDA 368.1727 ($4.48) \u00b7 baton 226.5242 ($2.45). Equity $19.11 vs funded 0.17 SOL ($20.09).",
+      "tags": [
+        "holdings",
+        "pnl",
+        "SI",
+        "NTDA",
+        "baton"
+      ]
+    },
+    {
+      "id": "evt-040",
+      "ts": "2026-10-07T04:47:13.851Z",
+      "bot": "solana-trader",
+      "level": "signal",
+      "title": "BUY baton ~$2.66 filled \u00b7 IDEA-003",
+      "message": "BUY baton ~$2.66 \u2192 226.524211 tokens on AGENT 99hEn\u2026Hw92j (IDEA-003). Spent 0.022513135 SOL. Sig 54dS3yLZL9qtwCYwURau\u2026. TP 50% skim armed.",
+      "tags": [
+        "baton",
+        "buy",
+        "fill",
+        "IDEA-003",
+        "trade"
+      ]
+    },
+    {
+      "id": "evt-039",
+      "ts": "2026-10-07T04:43:26.897Z",
+      "bot": "solana-trader",
+      "level": "signal",
+      "title": "BUY NTDA ~$4.50 filled \u00b7 IDEA-002 (chain)",
+      "message": "BUY NTDA ~$4.50 \u2192 368.172657 tokens. Spent 0.041006062 SOL from pre-fill cash 0.111994688. Sig 3CznrY5mtxaEeFRsMn52gdyC3cW6GxHbMs1FwmrZzCrw4zYmrWTMZF9S8SHTE1vCNQT6ESGPKzahjpYJ3Wxgm53Q. Token-2022 mint 13YLkU\u2026pump.",
+      "tags": [
+        "NTDA",
+        "buy",
+        "fill",
+        "IDEA-002",
+        "trade",
+        "chain"
+      ]
+    },
+    {
+      "id": "evt-038",
+      "ts": "2026-10-07T04:42:18Z",
+      "bot": "grok-bot",
+      "level": "info",
+      "title": "Top-up +0.10 SOL \u00b7 funded 0.17",
+      "message": "AGENT topped up +0.10 SOL (sig 2hCABWkB\u2026). Total deposited 0.07+0.10=0.17 SOL. Pre-NTDA cash ~0.112 SOL.",
+      "tags": [
+        "funded",
+        "top-up",
+        "agent"
+      ]
+    },
     {
       "id": "evt-035",
       "ts": "2026-10-07T04:43:26.897Z",
       "bot": "solana-trader",
       "level": "signal",
-      "title": "BUY NTDA ~$4.50 filled · IDEA-002",
-      "message": "BUY NTDA ~$4.50 → 368.17 tokens on AGENT 99hEn…Hw92j (IDEA-002). Sig 3CznrY5m…. Under soft sizing · Coach aware · positive-PnL mode.",
+      "title": "BUY NTDA ~$4.50 filled \u00b7 IDEA-002",
+      "message": "BUY NTDA ~$4.50 \u2192 368.17 tokens on AGENT 99hEn\u2026Hw92j (IDEA-002). Sig 3CznrY5m\u2026. Under soft sizing \u00b7 Coach aware \u00b7 positive-PnL mode.",
       "tags": [
         "NTDA",
         "buy",
@@ -401,7 +726,7 @@
       "bot": "portfolio-guard",
       "level": "info",
       "title": "Open book after NTDA fill",
-      "message": "SI ~243.68 + NTDA 368.17 on AGENT book. Cash still thin. Soft −20% stop advisory · no hard caps · Coach online.",
+      "message": "SI ~243.68 + NTDA 368.17 on AGENT book. Cash still thin. Soft \u221220% stop advisory \u00b7 no hard caps \u00b7 Coach online.",
       "tags": [
         "NTDA",
         "SI",
@@ -414,7 +739,7 @@
       "bot": "solana-scout",
       "level": "signal",
       "title": "IDEA-002 NTDA cleared",
-      "message": "Scout cleared IDEA-002 NTDA starter ~$4.50 / 368.17 tokens for Trader on bot wallet 99hEn….",
+      "message": "Scout cleared IDEA-002 NTDA starter ~$4.50 / 368.17 tokens for Trader on bot wallet 99hEn\u2026.",
       "tags": [
         "NTDA",
         "IDEA-002",
@@ -427,7 +752,7 @@
       "bot": "coach-bot",
       "level": "info",
       "title": "Coach online",
-      "message": "Coach joined the desk. Mandate: positive-PnL priority, learn-from-mistakes, no binding hard dollar caps. Reviewing SI book on AGENT 99hEn…Hw92j (cash thin ~0.012 SOL).",
+      "message": "Coach joined the desk. Mandate: positive-PnL priority, learn-from-mistakes, no binding hard dollar caps. Reviewing SI book on AGENT 99hEn\u2026Hw92j (cash thin ~0.012 SOL).",
       "tags": [
         "coach",
         "online",
@@ -465,7 +790,7 @@
       "bot": "coach-bot",
       "level": "info",
       "title": "Learn-from-mistakes enabled",
-      "message": "Post-trade review loop ON. Day PnL ≈ −$0.28 logged as lesson input — refine SI timing/size next clears.",
+      "message": "Post-trade review loop ON. Day PnL \u2248 \u2212$0.28 logged as lesson input \u2014 refine SI timing/size next clears.",
       "tags": [
         "coach",
         "learn",
@@ -477,8 +802,8 @@
       "ts": "2026-10-07T04:25:03.774Z",
       "bot": "portfolio-guard",
       "level": "info",
-      "title": "SI held · cash thin",
-      "message": "SI ~243.68 still held on bot wallet 99hEn…. Residual SOL ~0.012 (cash thin). Soft −20% stop remains advisory; no hard $75 open cap.",
+      "title": "SI held \u00b7 cash thin",
+      "message": "SI ~243.68 still held on bot wallet 99hEn\u2026. Residual SOL ~0.012 (cash thin). Soft \u221220% stop remains advisory; no hard $75 open cap.",
       "tags": [
         "SI",
         "cash",
@@ -491,7 +816,7 @@
       "bot": "portfolio-guard",
       "level": "warn",
       "title": "SI buys HALTED pending Guard",
-      "message": "Further SI buys HALTED pending Guard review. Open book: 243.68 SI · cost ~$6.66 on AGENT 99hEnCqL2Tp59pkymd3zfpenKQVWZXCKpCViGXaHw92j. Caps intact ($25/$75/$50).",
+      "message": "Further SI buys HALTED pending Guard review. Open book: 243.68 SI \u00b7 cost ~$6.66 on AGENT 99hEnCqL2Tp59pkymd3zfpenKQVWZXCKpCViGXaHw92j. Caps intact ($25/$75/$50).",
       "tags": [
         "halt",
         "SI",
@@ -504,8 +829,8 @@
       "ts": "2026-10-07T04:24:31.952Z",
       "bot": "portfolio-guard",
       "level": "warn",
-      "title": "Bot PnL snapshot · day −$0.28",
-      "message": "AGENT 99hEnCqL2Tp59pkymd3zfpenKQVWZXCKpCViGXaHw92j: baseline 0.07 SOL → now 243.682305 SI (cost ~$6.66, mark ~$0.02712) + 0.011994688 SOL. Equity ~$8.02 · day PnL ≈ $-0.28. Open ~$6.66/$75. SI adds HALTED. −20% stop armed.",
+      "title": "Bot PnL snapshot \u00b7 day \u2212$0.28",
+      "message": "AGENT 99hEnCqL2Tp59pkymd3zfpenKQVWZXCKpCViGXaHw92j: baseline 0.07 SOL \u2192 now 243.682305 SI (cost ~$6.66, mark ~$0.02712) + 0.011994688 SOL. Equity ~$8.02 \u00b7 day PnL \u2248 $-0.28. Open ~$6.66/$75. SI adds HALTED. \u221220% stop armed.",
       "tags": [
         "pnl",
         "snapshot",
@@ -520,7 +845,7 @@
       "bot": "grok-bot",
       "level": "info",
       "title": "Combined SI open ~$6.66",
-      "message": "Two SI buys logged on bot wallet 99hEnCqL2Tp59pkymd3zfpenKQVWZXCKpCViGXaHw92j: $4.50 (164.50, 2gmL7hhx…) + $2.16 (79.18, 4cmQH2ij…) = ~$6.66 notional. Routing Guard review.",
+      "message": "Two SI buys logged on bot wallet 99hEnCqL2Tp59pkymd3zfpenKQVWZXCKpCViGXaHw92j: $4.50 (164.50, 2gmL7hhx\u2026) + $2.16 (79.18, 4cmQH2ij\u2026) = ~$6.66 notional. Routing Guard review.",
       "tags": [
         "SI",
         "combined",
@@ -533,7 +858,7 @@
       "bot": "solana-trader",
       "level": "signal",
       "title": "BUY SI ~$2.16 filled",
-      "message": "BUY SI ~$2.16 → 79.18 SI on AGENT 99hEn…Hw92j. Tx 4cmQH2ij…. Combined open ~$6.66 (243.68 SI).",
+      "message": "BUY SI ~$2.16 \u2192 79.18 SI on AGENT 99hEn\u2026Hw92j. Tx 4cmQH2ij\u2026. Combined open ~$6.66 (243.68 SI).",
       "tags": [
         "SI",
         "buy",
@@ -546,8 +871,8 @@
       "ts": "2026-10-07T04:20:00Z",
       "bot": "grok-bot",
       "level": "info",
-      "title": "AUTO ON · agent wallet tracked",
-      "message": "Desk AUTO ON. Tracking AGENT trading wallet 99hEnCqL2Tp59pkymd3zfpenKQVWZXCKpCViGXaHw92j for bot fills. Admin gate remains 3GfDwiEtei62mumu1J8XnaqkUFtbkVLQE2Btpr5yAeek (Phantom Connect → LIVE). Caps $25/$75/$50.",
+      "title": "AUTO ON \u00b7 agent wallet tracked",
+      "message": "Desk AUTO ON. Tracking AGENT trading wallet 99hEnCqL2Tp59pkymd3zfpenKQVWZXCKpCViGXaHw92j for bot fills. Admin gate remains 3GfDwiEtei62mumu1J8XnaqkUFtbkVLQE2Btpr5yAeek (Phantom Connect \u2192 LIVE). Caps $25/$75/$50.",
       "tags": [
         "auto",
         "agent",
@@ -561,7 +886,7 @@
       "bot": "solana-trader",
       "level": "signal",
       "title": "BUY SI ~$4.50 filled",
-      "message": "BUY SI ~$4.50 → 164.50 SI on AGENT 99hEn…Hw92j. Tx 2gmL7hhx…. IDEA-001 starter fill.",
+      "message": "BUY SI ~$4.50 \u2192 164.50 SI on AGENT 99hEn\u2026Hw92j. Tx 2gmL7hhx\u2026. IDEA-001 starter fill.",
       "tags": [
         "SI",
         "buy",
@@ -575,7 +900,7 @@
       "bot": "solana-trader",
       "level": "signal",
       "title": "Executing IDEA-001 SI ~$4.50",
-      "message": "Trader executing IDEA-001 (SI) notional ~$4.50 on AGENT wallet 99hEn…Hw92j. Under $25/trade cap · Scout clear honored · Guard latch open.",
+      "message": "Trader executing IDEA-001 (SI) notional ~$4.50 on AGENT wallet 99hEn\u2026Hw92j. Under $25/trade cap \u00b7 Scout clear honored \u00b7 Guard latch open.",
       "tags": [
         "IDEA-001",
         "SI",
@@ -602,7 +927,7 @@
       "bot": "solana-scout",
       "level": "signal",
       "title": "IDEA-001 SI cleared",
-      "message": "Scout cleared IDEA-001 SI for starter size ~$4.50. Bias short-horizon; score pass → Trader. Pair context SOL/USDC desk strategy.",
+      "message": "Scout cleared IDEA-001 SI for starter size ~$4.50. Bias short-horizon; score pass \u2192 Trader. Pair context SOL/USDC desk strategy.",
       "tags": [
         "IDEA-001",
         "SI",
@@ -615,7 +940,7 @@
       "bot": "grok-bot",
       "level": "info",
       "title": "Agent wallet funded 0.07 SOL",
-      "message": "Funded AGENT trading wallet 99hEnCqL2Tp59pkymd3zfpenKQVWZXCKpCViGXaHw92j with 0.07 SOL for live bot trading. Public address only · no keys on site. Desk will RPC-poll balance.",
+      "message": "Funded AGENT trading wallet 99hEnCqL2Tp59pkymd3zfpenKQVWZXCKpCViGXaHw92j with 0.07 SOL for live bot trading. Public address only \u00b7 no keys on site. Desk will RPC-poll balance.",
       "tags": [
         "funded",
         "agent",
@@ -628,7 +953,7 @@
       "bot": "solana-trader",
       "level": "info",
       "title": "Trader bound to AGENT wallet",
-      "message": "Execution path pointed at 99hEn…Hw92j. Fills/size checks use agent book, not admin UI gate wallet.",
+      "message": "Execution path pointed at 99hEn\u2026Hw92j. Fills/size checks use agent book, not admin UI gate wallet.",
       "tags": [
         "agent",
         "exec",
@@ -641,7 +966,7 @@
       "bot": "grok-bot",
       "level": "info",
       "title": "ADMIN trading wallet set",
-      "message": "Marked 3GfDwiEtei62mumu1J8XnaqkUFtbkVLQE2Btpr5yAeek as the ADMIN trading wallet for Christian Sanchez. LIVE · 0.35 SOL (~$42) · caps $25/$75/$50 · public address only.",
+      "message": "Marked 3GfDwiEtei62mumu1J8XnaqkUFtbkVLQE2Btpr5yAeek as the ADMIN trading wallet for Christian Sanchez. LIVE \u00b7 0.35 SOL (~$42) \u00b7 caps $25/$75/$50 \u00b7 public address only.",
       "tags": [
         "admin",
         "wallet",
@@ -655,7 +980,7 @@
       "bot": "grok-bot",
       "level": "info",
       "title": "LIVE mode on",
-      "message": "Desk switched to LIVE for Christian Sanchez. Wallet 3GfDwi…Aeek · 0.35 SOL (~$42 @ ~$121). Caps $25/$75/$50. Goal: net-positive. UI is visualization — bots should append real events here.",
+      "message": "Desk switched to LIVE for Christian Sanchez. Wallet 3GfDwi\u2026Aeek \u00b7 0.35 SOL (~$42 @ ~$121). Caps $25/$75/$50. Goal: net-positive. UI is visualization \u2014 bots should append real events here.",
       "tags": [
         "live",
         "mode",
@@ -682,7 +1007,7 @@
       "bot": "grok-bot",
       "level": "info",
       "title": "Caps broadcast",
-      "message": "Coordinator synced desk caps: $25/trade · $75 max open · $50 daily loss halt. Goal: stay net-positive.",
+      "message": "Coordinator synced desk caps: $25/trade \u00b7 $75 max open \u00b7 $50 daily loss halt. Goal: stay net-positive.",
       "tags": [
         "caps",
         "coordinator"
@@ -694,7 +1019,7 @@
       "bot": "solana-trader",
       "level": "info",
       "title": "LIVE armed",
-      "message": "Trader LIVE under caps $25/$75/$50 · zero open · awaiting Scout clears before any fill.",
+      "message": "Trader LIVE under caps $25/$75/$50 \u00b7 zero open \u00b7 awaiting Scout clears before any fill.",
       "tags": [
         "live",
         "caps",
@@ -743,7 +1068,7 @@
       "bot": "solana-trader",
       "level": "info",
       "title": "Stand down on WIF",
-      "message": "Scout skip (score 28) honored · no WIF order staged · capital reserved for SOL/JUP clears only.",
+      "message": "Scout skip (score 28) honored \u00b7 no WIF order staged \u00b7 capital reserved for SOL/JUP clears only.",
       "tags": [
         "WIF",
         "skip",
@@ -756,7 +1081,7 @@
       "bot": "solana-scout",
       "level": "research",
       "title": "JUP watchlist upgrade",
-      "message": "JUP reclaimed short MA with rising relative volume. Bias → bullish on 1h horizon.",
+      "message": "JUP reclaimed short MA with rising relative volume. Bias \u2192 bullish on 1h horizon.",
       "tags": [
         "JUP",
         "watchlist"
@@ -768,7 +1093,7 @@
       "bot": "solana-trader",
       "level": "info",
       "title": "Trader boot",
-      "message": "Solana Trader online · sized for ≤$25/trade · Scout follow-through only · Guard halt latch wired.",
+      "message": "Solana Trader online \u00b7 sized for \u2264$25/trade \u00b7 Scout follow-through only \u00b7 Guard halt latch wired.",
       "tags": [
         "boot",
         "exec"
@@ -802,46 +1127,158 @@
     "address": "99hEnCqL2Tp59pkymd3zfpenKQVWZXCKpCViGXaHw92j",
     "label": "AGENT trading wallet",
     "role": "agent",
-    "fundedSol": 0.07,
-    "solBalance": 0.011994688,
+    "fundedSol": 0.17,
+    "solBalance": 0.048475491,
     "siBalance": 243.682305,
+    "ntdaBalance": 368.172657,
+    "batonBalance": 226.524211,
     "siCostUsd": 6.66,
-    "siMark": 0.02712,
-    "equityUsd": 8.02,
-    "dayPnlUsd": -0.28,
+    "equityUsd": 19.11,
+    "dayPnlUsd": -0.98,
     "halt": "SI_ADDS_HALTED",
-    "stopPct": -20
+    "stopPct": -20,
+    "takeProfitActive": true,
+    "profitUsdc": 0,
+    "holdings": [
+      {
+        "symbol": "SOL",
+        "mint": "So11111111111111111111111111111111111111112",
+        "kind": "native",
+        "qty": 0.048475491,
+        "decimals": 9,
+        "priceUsd": 118.18,
+        "valueUsd": 5.7288,
+        "costUsd": null,
+        "label": "Free SOL cash"
+      },
+      {
+        "symbol": "SI",
+        "name": "Super Inu",
+        "mint": "DEW9dSN6QpWyNthphCpMmAbZP1Q4cEKR9xQXAri98WDP",
+        "kind": "token2022",
+        "qty": 243.682305,
+        "decimals": 6,
+        "priceUsd": 0.02652,
+        "valueUsd": 6.4625,
+        "costUsd": 6.66,
+        "entry": 0.02733,
+        "stop": 0.0216,
+        "tp1": 0.03416,
+        "tp2": 0.041,
+        "tp1SkimPct": 50,
+        "afterTp1": "be_stop",
+        "unrealizedUsd": -0.1975,
+        "label": "SI \u00b7 Token-2022"
+      },
+      {
+        "symbol": "NTDA",
+        "name": "NTDA",
+        "mint": "13YLkUncbg2gjEFxcnz4iAyLHJXyLqdLvghWjEgNpump",
+        "kind": "token2022",
+        "qty": 368.172657,
+        "decimals": 6,
+        "priceUsd": 0.01216,
+        "valueUsd": 4.477,
+        "costUsd": 4.5,
+        "entry": 0.01222,
+        "stop": 0.00978,
+        "tp1": 0.01528,
+        "tp2": 0.01833,
+        "tp1SkimPct": 50,
+        "afterTp1": "be_stop",
+        "unrealizedUsd": -0.023,
+        "label": "NTDA \u00b7 Token-2022"
+      },
+      {
+        "symbol": "baton",
+        "name": "baton",
+        "mint": "Hg5Ja55T5wESq4vyFoiVCMeHXtGyVA69X2UHq8hgpump",
+        "kind": "token2022",
+        "qty": 226.524211,
+        "decimals": 6,
+        "priceUsd": 0.0108,
+        "valueUsd": 2.4465,
+        "costUsd": 2.66,
+        "entry": 0.01174,
+        "stop": 0.00939,
+        "tp1": 0.01468,
+        "tp2": 0.01761,
+        "tp1SkimPct": 50,
+        "afterTp1": "be_stop",
+        "unrealizedUsd": -0.2135,
+        "label": "baton \u00b7 Token-2022",
+        "fillSig": "54dS3yLZL9qtwCYw\u2026"
+      }
+    ]
   },
   "equitySeries": [
     {
       "ts": "2026-10-07T03:50:00Z",
-      "equityUsd": 8.3,
-      "label": "baseline funded"
-    },
-    {
-      "ts": "2026-10-07T04:05:00Z",
-      "equityUsd": 8.25,
-      "label": "pre-SI"
+      "equityUsd": 8.27,
+      "label": "fund +0.07 SOL"
     },
     {
       "ts": "2026-10-07T04:18:40Z",
-      "equityUsd": 8.18,
+      "equityUsd": 8.15,
       "label": "SI buy $4.50"
     },
     {
       "ts": "2026-10-07T04:22:10Z",
-      "equityUsd": 8.1,
+      "equityUsd": 8.05,
       "label": "SI buy $2.16"
     },
     {
-      "ts": "2026-10-07T04:25:00Z",
-      "equityUsd": 8.02,
-      "label": "SI mark ~$0.02712"
+      "ts": "2026-10-07T04:35:00Z",
+      "equityUsd": 19.87,
+      "label": "top-up +0.10 SOL"
     },
     {
       "ts": "2026-10-07T04:43:26.897Z",
-      "equityUsd": 7.95,
+      "equityUsd": 19.55,
       "label": "NTDA IDEA-002 $4.50"
+    },
+    {
+      "ts": "2026-10-07T04:47:13.851Z",
+      "equityUsd": 19.11,
+      "label": "baton + marks \u00b7 day $-0.98"
     }
-  ]
+  ],
+  "takeProfit": {
+    "active": true,
+    "status": "ARMED",
+    "rule": "50% USDC skim at TP1 \u00b7 then move stop to breakeven",
+    "skimPct": 50,
+    "skimAsset": "USDC",
+    "profitUsdc": 0,
+    "afterTp1": "breakeven_stop",
+    "levels": {
+      "SI": {
+        "entry": 0.02733,
+        "stop": 0.0216,
+        "tp1": 0.03416,
+        "tp2": 0.041,
+        "mark": 0.02652,
+        "tp1Hit": false,
+        "tp2Hit": false
+      },
+      "NTDA": {
+        "entry": 0.01222,
+        "stop": 0.00978,
+        "tp1": 0.01528,
+        "tp2": 0.01833,
+        "mark": 0.01216,
+        "tp1Hit": false,
+        "tp2Hit": false
+      },
+      "baton": {
+        "entry": 0.01174,
+        "stop": 0.00939,
+        "tp1": 0.01468,
+        "tp2": 0.01761,
+        "mark": 0.0108,
+        "tp1Hit": false,
+        "tp2Hit": false
+      }
+    }
+  }
 }

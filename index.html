@@ -152,11 +152,11 @@
       </article>
     </section>
 
-    <section class="pnl-chart-panel glass-lift" aria-label="Bot wallet day equity chart">
+    <section class="pnl-chart-panel glass-lift" aria-label="Bot wallet day equity chart and token holdings">
       <div class="pnl-chart-head">
         <div>
-          <h2>Day equity · bot book</h2>
-          <p class="pnl-chart-sub">99hEn…Hw92j · from activity + stored marks</p>
+          <h2>Day equity · bot token holder</h2>
+          <p class="pnl-chart-sub">99hEn…Hw92j · qty + $ value per token · activity marks</p>
         </div>
         <div class="pnl-chart-meta">
           <span id="pnl-chart-delta" class="pnl-chart-delta">—</span>
@@ -165,6 +165,15 @@
       </div>
       <div class="pnl-chart-wrap">
         <svg id="pnl-chart" class="pnl-chart" viewBox="0 0 640 180" role="img" aria-label="Equity over time"></svg>
+      </div>
+      <div class="holdings-block" aria-label="Tokens held by bot wallet">
+        <div class="holdings-head">
+          <h3>Tokens held</h3>
+          <span id="holdings-total" class="holdings-total">—</span>
+        </div>
+        <div id="holdings-table" class="holdings-table">
+          <p class="muted">Loading holdings…</p>
+        </div>
       </div>
     </section>
 

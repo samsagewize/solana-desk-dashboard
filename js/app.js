@@ -134,14 +134,14 @@
       { title: "Signal draft", message: "Bias update · waiting for bar close confirmation" },
     ],
     "solana-trader": [
-      { title: "SI book", message: "243.68 SI open · cost ~$6.66 · adds HALTED" },
+      { title: "Open book", message: "SI + NTDA + baton held · TP 50% skim armed" },
       { title: "Size check", message: "No new SI adds · Coach/Guard review · soft sizing" },
       { title: "Exec halted", message: "IDEA-001 fills done · waiting Guard clear" },
     ],
     "portfolio-guard": [
-      { title: "PnL mark", message: "Day PnL ≈ −$0.28 · equity ~$8.02 · soft −20% stop" },
-      { title: "Exposure sweep", message: "Open ~$6.66 · no hard $ cap · SI held" },
-      { title: "Cash check", message: "Residual SOL ~0.012 · cash thin · Coach aware" },
+      { title: "PnL mark", message: "Day PnL vs 0.17 SOL funded · TP armed · soft −20%" },
+      { title: "Exposure sweep", message: "SI+NTDA+baton open · 50% USDC skim @ TP1 → BE" },
+      { title: "Cash check", message: "Free SOL ~0.048 · Profit USDC $0 · Coach aware" },
     ],
     "coach-bot": [
       { title: "Lesson tick", message: "Reviewing −$0.28 day · refine SI timing next clear" },
@@ -732,6 +732,61 @@
     }
   }
 
+  function getHoldings(wallet) {
+    const fromWallet = wallet?.holdings || state?.wallet?.holdings || state?.pnl?.holdings;
+    if (Array.isArray(fromWallet) && fromWallet.length) return fromWallet;
+    const w = wallet || state?.wallet || {};
+    const p = state?.pnl || {};
+    const liveSol = agentLive?.solBalance;
+    const rows = [];
+    const solBal = liveSol ?? w.solBalance ?? p.solBalance;
+    if (solBal != null) {
+      rows.push({
+        symbol: "SOL",
+        label: "Free SOL cash",
+        kind: "native",
+        qty: Number(solBal),
+        priceUsd: w.solPriceUsd ?? p.solPriceUsd ?? solPriceUsd,
+        valueUsd: w.solUsd ?? p.solUsd,
+      });
+    }
+    if (w.siBalance != null || p.siQty != null) {
+      rows.push({
+        symbol: "SI",
+        name: "Super Inu",
+        label: "SI · Token-2022",
+        kind: "token2022",
+        qty: Number(w.siBalance ?? p.siQty),
+        priceUsd: w.siMark ?? p.siMark,
+        valueUsd: w.siMarkUsd ?? p.siMarkUsd,
+        costUsd: w.siCostUsd ?? p.siCostUsd,
+      });
+    }
+    if (w.ntdaBalance != null || p.ntdaQty != null) {
+      rows.push({
+        symbol: "NTDA",
+        label: "NTDA · Token-2022",
+        kind: "token2022",
+        qty: Number(w.ntdaBalance ?? p.ntdaQty),
+        priceUsd: w.ntdaMark ?? p.ntdaMark,
+        valueUsd: w.ntdaMarkUsd ?? p.ntdaMarkUsd,
+        costUsd: w.ntdaCostUsd ?? p.ntdaCostUsd,
+      });
+    }
+    if (w.batonBalance != null || p.batonQty != null) {
+      rows.push({
+        symbol: "baton",
+        label: "baton · Token-2022",
+        kind: "token2022",
+        qty: Number(w.batonBalance ?? p.batonQty),
+        priceUsd: w.batonMark ?? p.batonMark,
+        valueUsd: w.batonMarkUsd ?? p.batonMarkUsd,
+        costUsd: w.batonCostUsd ?? p.batonCostUsd,
+      });
+    }
+    return rows;
+  }
+
   function renderWallet(wallet) {
     const el = $("#wallet-body");
     if (!el) return;
@@ -739,23 +794,26 @@
     const liveSol = agentLive?.solBalance;
     const solBal = liveSol ?? wallet?.solBalance ?? 0;
     const equity = wallet?.totalUsd ?? wallet?.equityUsd;
-    const siQty = wallet?.siBalance ?? state?.pnl?.siQty;
-    const siCost = wallet?.siCostUsd ?? state?.pnl?.costBasisUsd;
-    const siMark = wallet?.siMark ?? state?.pnl?.siMark;
+    const holdings = getHoldings(wallet);
+    const tokenBits = holdings
+      .filter((h) => h.symbol !== "SOL")
+      .map((h) => `${Number(h.qty).toFixed(2)} ${h.symbol}`)
+      .join(" · ");
     if (!wallet && !agentLive) {
       el.innerHTML = `<p class="muted">No wallet data</p>`;
       return;
     }
     el.innerHTML = `
-      <span class="admin-tag">Trading wallet · AGENT</span>
+      <span class="admin-tag">Trading wallet · AGENT · token holder</span>
       <div class="big">${fmtUsd(equity)}</div>
-      <div class="sub">${Number(solBal).toFixed(6)} SOL${siQty != null ? ` · ${Number(siQty).toFixed(2)} SI` : ""}${siCost != null ? ` · cost ${fmtUsd(siCost)}` : ""}</div>
-      ${siMark != null ? `<div class="sub">SI mark ~$${Number(siMark).toFixed(5)}</div>` : ""}
+      <div class="sub">${Number(solBal).toFixed(6)} SOL free${tokenBits ? ` · ${escapeHtml(tokenBits)}` : ""}</div>
+      <div class="sub" style="margin-top:0.35rem;color:var(--text-mute)">See Day equity panel for qty + $ per token</div>
       <div class="mono" title="${escapeHtml(addr)}">${escapeHtml(shortAddr(addr))}</div>
       <div class="wallet-full">${escapeHtml(addr)}</div>
-      <div class="sub" style="margin-top:0.45rem;color:var(--text-mute)">Funded ${wallet?.fundedSol ?? wallet?.baselineSol ?? 0.07} SOL baseline · admin gate ${escapeHtml(shortAddr(ADMIN_WALLET))}</div>
+      <div class="sub" style="margin-top:0.45rem;color:var(--text-mute)">Funded ${wallet?.fundedSol ?? wallet?.baselineSol ?? 0.17} SOL deposited · admin gate ${escapeHtml(shortAddr(ADMIN_WALLET))}</div>
     `;
     renderAgentTrack();
+    renderHoldingsTable(wallet);
   }
 
   function renderPnL(pnl) {
@@ -765,20 +823,32 @@
     const sign = day > 0 ? "+" : "";
     const open = pnl?.openExposureUsd ?? 0;
     const equity = pnl?.equityUsd ?? state?.wallet?.totalUsd;
-    const stop = pnl?.stopPct ?? state?.riskCaps?.stopPct;
-    const halted = state?.status?.siAddsHalted || state?.riskCaps?.siAddsHalted;
-    const softStop =
-      stop != null ? `Soft stop ${stop}%` : "Soft risk · Coach";
+    const funded = pnl?.fundedSol ?? pnl?.baselineSol ?? state?.wallet?.fundedSol ?? 0.17;
+    const tp = pnl?.takeProfit || state?.takeProfit || {};
+    const tpOn = tp.active !== false && (state?.riskCaps?.takeProfitActive !== false);
+    const profitUsdc = tp.profitUsdc ?? state?.wallet?.profitUsdc ?? 0;
+    const si = pnl?.siQty != null ? Number(pnl.siQty).toFixed(2) : "—";
+    const ntda = pnl?.ntdaQty != null ? Number(pnl.ntdaQty).toFixed(2) : "—";
+    const baton = pnl?.batonQty != null ? Number(pnl.batonQty).toFixed(2) : "—";
+    const levels = tp.levels || {};
+    const lvlLine = ["SI", "NTDA", "baton"]
+      .filter((s) => levels[s])
+      .map((s) => {
+        const L = levels[s];
+        return `${s} TP1 $${Number(L.tp1).toFixed(5)} / stop $${Number(L.stop).toFixed(5)}`;
+      })
+      .join(" · ");
     el.innerHTML = `
       <div class="big ${pnlClass(day)}">${sign}${fmtUsd(day)}</div>
-      <div class="sub">Day · ${fmtPct(pnl?.dayPnlPct)} · equity ${fmtUsd(equity)}</div>
+      <div class="sub">Day · ${fmtPct(pnl?.dayPnlPct)} · equity ${fmtUsd(equity)} · vs ${funded} SOL funded</div>
       <div class="sub" style="margin-top:0.55rem;color:var(--text-mute)">
-        Open ${fmtUsd(open)} · SI ${pnl?.siQty != null ? Number(pnl.siQty).toFixed(2) : "—"} · no hard caps
+        Open ${fmtUsd(open)} · SI ${si} · NTDA ${ntda} · baton ${baton}
       </div>
-      <div class="sub" style="margin-top:0.35rem;color:var(--text-mute)">
-        ${halted ? "SI held / adds reviewed · " : ""}${escapeHtml(softStop)} · bot ${escapeHtml(shortAddr(pnl?.walletAddress || AGENT_WALLET))}
+      <div class="sub" style="margin-top:0.35rem;color:var(--ok)">
+        ${tpOn ? "TP ACTIVE · 50% USDC skim @ TP1 → BE stop" : "TP off"} · Profit USDC ${fmtUsd(profitUsdc)}
       </div>
-      <div class="sub" style="margin-top:0.35rem">${escapeHtml(pnl?.goalLabel || "Positive-PnL mode")}</div>
+      ${lvlLine ? `<div class="sub" style="margin-top:0.35rem;color:var(--text-mute)">${escapeHtml(lvlLine)}</div>` : ""}
+      <div class="sub" style="margin-top:0.35rem">${escapeHtml(pnl?.goalLabel || "TP ACTIVE · positive-PnL")}</div>
     `;
     syncVitalCards(pnl);
   }
@@ -787,19 +857,93 @@
     const el = $("#caps-body");
     if (!el) return;
     const c = caps || {};
-    const modeLabel = c.label || (c.hardCaps === false ? "Positive-PnL mode · no hard caps" : "Positive-PnL mode");
+    const tp = state?.takeProfit || state?.pnl?.takeProfit || {};
+    const modeLabel =
+      c.label ||
+      (c.takeProfitActive || tp.active
+        ? "TP ACTIVE · 50% USDC skim @ TP1 → BE"
+        : c.hardCaps === false
+          ? "Positive-PnL mode · no hard caps"
+          : "Positive-PnL mode");
     const coachOn = c.coachOnline !== false && (state?.status?.coachOnline !== false);
     const learn = c.learnFromMistakes ?? state?.status?.learnFromMistakes;
+    const profitUsdc = c.profitUsdc ?? tp.profitUsdc ?? 0;
     el.innerHTML = `
-      <span class="admin-tag" style="color:#be185d;border-color:#fbcfe8;background:#fdf2f8">Coach ${coachOn ? "online" : "—"}</span>
+      <span class="admin-tag" style="color:#047857;border-color:#bbf7d0;background:#ecfdf5">TP ${tp.active === false ? "off" : "ARMED"}</span>
+      <span class="admin-tag" style="color:#be185d;border-color:#fbcfe8;background:#fdf2f8;margin-left:0.35rem">Coach ${coachOn ? "online" : "—"}</span>
       <div class="big" style="font-size:1.05rem;letter-spacing:-0.015em">${escapeHtml(modeLabel)}</div>
       <ul class="caps-list" style="margin-top:0.65rem">
-        <li><span class="label">Hard caps</span><span class="val">Off</span></li>
-        <li><span class="label">Priority</span><span class="val">Pos-PnL</span></li>
+        <li><span class="label">Skim @ TP1</span><span class="val">50% USDC</span></li>
+        <li><span class="label">After TP1</span><span class="val">BE stop</span></li>
+        <li><span class="label">Profit USDC</span><span class="val">${fmtUsd(profitUsdc)}</span></li>
         <li><span class="label">Learn</span><span class="val">${learn === false ? "Off" : "ON"}</span></li>
       </ul>
-      <div class="sub" style="margin-top:0.55rem;color:var(--text-mute)">${escapeHtml(c.strategy || "Coach review · no hard dollar caps")}</div>
+      <div class="sub" style="margin-top:0.55rem;color:var(--text-mute)">${escapeHtml(c.strategy || c.takeProfitRule || "50% USDC skim @ TP1 → breakeven stop")}</div>
     `;
+  }
+
+  function renderHoldingsTable(wallet) {
+    const el = $("#holdings-table");
+    const totalEl = $("#holdings-total");
+    if (!el) return;
+    const holdings = getHoldings(wallet || state?.wallet);
+    const tp = state?.takeProfit || state?.pnl?.takeProfit || {};
+    const levels = tp.levels || {};
+    if (!holdings.length) {
+      el.innerHTML = `<p class="muted">No token holdings</p>`;
+      if (totalEl) totalEl.textContent = "—";
+      return;
+    }
+    let sum = 0;
+    el.innerHTML = holdings
+      .map((h) => {
+        const qty = Number(h.qty);
+        let value = h.valueUsd;
+        if (value == null && h.priceUsd != null && !Number.isNaN(qty)) {
+          value = qty * Number(h.priceUsd);
+        }
+        if (value != null && !Number.isNaN(Number(value))) sum += Number(value);
+        const mark = h.priceUsd != null ? `$${Number(h.priceUsd).toFixed(h.symbol === "SOL" ? 2 : 5)}` : "—";
+        const qtyStr =
+          h.symbol === "SOL"
+            ? qty.toFixed(6)
+            : qty.toLocaleString(undefined, { maximumFractionDigits: 4 });
+        const L = levels[h.symbol] || {};
+        const upnl =
+          h.costUsd != null && value != null ? Number(value) - Number(h.costUsd) : null;
+        const upnlCls = upnl == null ? "" : upnl < 0 ? "neg" : upnl > 0 ? "pos" : "";
+        const tpPill =
+          h.symbol === "SOL"
+            ? `<span class="tp-pill">cash</span>`
+            : `<span class="tp-pill">TP armed</span>`;
+        const tpDetail =
+          h.symbol !== "SOL" && (h.tp1 || L.tp1)
+            ? ` · TP1 $${Number(h.tp1 || L.tp1).toFixed(5)} · stop $${Number(h.stop || L.stop).toFixed(5)}`
+            : "";
+        const costBit =
+          h.costUsd != null ? ` · cost ${fmtUsd(h.costUsd)}` : "";
+        return `<div class="holding-row${h.symbol === "SOL" ? " is-sol" : ""}">
+          <div>
+            <span class="sym">${escapeHtml(h.symbol)}</span>
+            <span class="sym-sub">${escapeHtml(h.label || h.name || h.kind || "token")}</span>
+          </div>
+          <div class="qty"><span class="qty-lab">Qty held</span>${escapeHtml(qtyStr)}</div>
+          <div>
+            <div class="val">${fmtUsd(value)}</div>
+            <div class="mark">mark ${escapeHtml(mark)}</div>
+          </div>
+          ${tpPill}
+          <div class="upnl ${upnlCls}">${
+            upnl == null
+              ? "Native SOL cash"
+              : `uPnL ${upnl >= 0 ? "+" : ""}${fmtUsd(upnl)}${costBit}${tpDetail}`
+          }</div>
+        </div>`;
+      })
+      .join("");
+    if (totalEl) {
+      totalEl.textContent = `book ${fmtUsd(sum)} · ${holdings.length} lines`;
+    }
   }
 
   function eventKey(e) {
@@ -1092,6 +1236,7 @@
     renderPnL(data.pnl || {});
     renderCaps(data.riskCaps);
     renderEquityChart(data);
+    renderHoldingsTable(data.wallet);
     renderFeed(state.events);
     renderAgentTrack();
     updateConnectUi();
