@@ -1,8 +1,8 @@
 {
   "meta": {
     "mode": "live",
-    "label": "LIVE \u2014 SI+NTDA+baton \u00b7 TP armed (50% USDC skim) \u00b7 bot 99hEn\u2026",
-    "updatedAt": "2026-10-07T04:47:13.851Z",
+    "label": "LIVE \u2014 $3k goal meter \u00b7 SI+NTDA+baton \u00b7 TP/skim armed \u00b7 99hEn\u2026",
+    "updatedAt": "2026-10-07T04:48:53.968Z",
     "bots": [
       "grok-bot",
       "solana-scout",
@@ -11,7 +11,7 @@
       "coach-bot"
     ],
     "owner": "Christian Sanchez",
-    "notes": "Chain book 99hEn\u2026 \u00b7 Token-2022 SI/NTDA/baton \u00b7 funded 0.17 SOL (0.07+0.10). Take-profit ACTIVE: 50% skim to USDC at TP1 \u2192 BE stop. Profit USDC $0. Free SOL ~0.0485."
+    "notes": "First goal $3000 SOL+USDC: stack $5.73 (0.19%). Risk: \u226410\u201315% free SOL/trade; 50% win skim USDC; compound rest. Profit USDC $0. Holdings SI 243.68 \u00b7 NTDA 368.17 \u00b7 baton 226.52."
   },
   "riskCaps": {
     "mode": "positive_pnl_take_profit",
@@ -23,12 +23,17 @@
     "siAddsHalted": true,
     "learnFromMistakes": true,
     "coachOnline": true,
-    "strategy": "Positive-PnL \u00b7 active take-profit \u00b7 50% USDC skim @ TP1 \u2192 BE",
-    "label": "TP ACTIVE \u00b7 50% USDC skim @ TP1 \u2192 BE",
+    "strategy": "\u226410\u201315% free SOL/trade \u00b7 50% win skim USDC \u00b7 compound rest \u00b7 first goal $3k SOL+USDC",
+    "label": "TP ACTIVE \u00b7 \u226415% free SOL \u00b7 50% skim \u00b7 $3k goal",
     "takeProfitActive": true,
     "takeProfitRule": "50% USDC skim @ TP1 \u00b7 then BE stop",
     "skimPct": 50,
-    "profitUsdc": 0
+    "profitUsdc": 0,
+    "maxFreeSolPctPerTradeMin": 10,
+    "maxFreeSolPctPerTradeMax": 15,
+    "winSkimPct": 50,
+    "compoundRest": true,
+    "firstGoalUsd": 3000
   },
   "wallet": {
     "label": "AGENT bot book",
@@ -47,7 +52,7 @@
     "solPriceUsd": 118.18,
     "solUsd": 5.7288,
     "usdcBalance": 0,
-    "profitUsdc": 0,
+    "profitUsdc": 0.0,
     "siBalance": 243.682305,
     "siCostUsd": 6.66,
     "siMark": 0.02652,
@@ -72,7 +77,9 @@
         "priceUsd": 118.18,
         "valueUsd": 5.7288,
         "costUsd": null,
-        "label": "Free SOL cash"
+        "label": "Free SOL cash",
+        "displayQty": "0.048475",
+        "displayLabel": "Free SOL"
       },
       {
         "symbol": "SI",
@@ -91,7 +98,9 @@
         "tp1SkimPct": 50,
         "afterTp1": "be_stop",
         "unrealizedUsd": -0.1975,
-        "label": "SI \u00b7 Token-2022"
+        "label": "SI \u00b7 Token-2022",
+        "displayQty": "243.68",
+        "displayLabel": "SI held"
       },
       {
         "symbol": "NTDA",
@@ -110,7 +119,9 @@
         "tp1SkimPct": 50,
         "afterTp1": "be_stop",
         "unrealizedUsd": -0.023,
-        "label": "NTDA \u00b7 Token-2022"
+        "label": "NTDA \u00b7 Token-2022",
+        "displayQty": "368.17",
+        "displayLabel": "NTDA held"
       },
       {
         "symbol": "baton",
@@ -130,7 +141,9 @@
         "afterTp1": "be_stop",
         "unrealizedUsd": -0.2135,
         "label": "baton \u00b7 Token-2022",
-        "fillSig": "54dS3yLZL9qtwCYw\u2026"
+        "fillSig": "54dS3yLZL9qtwCYw\u2026",
+        "displayQty": "226.52",
+        "displayLabel": "baton held"
       }
     ],
     "openIdea": "IDEA-001 SI \u00b7 IDEA-002 NTDA \u00b7 IDEA-003 baton",
@@ -138,7 +151,9 @@
     "stopPct": -20,
     "takeProfitActive": true,
     "cashThin": true,
-    "note": "Funded 0.17 SOL \u00b7 free 0.048475 SOL \u00b7 SI 243.68 \u00b7 NTDA 368.17 \u00b7 baton 226.52 \u00b7 equity $19.11"
+    "note": "Funded 0.17 SOL \u00b7 free 0.048475 SOL \u00b7 SI 243.68 \u00b7 NTDA 368.17 \u00b7 baton 226.52 \u00b7 equity $19.11",
+    "solUsdcStackUsd": 5.73,
+    "firstGoalUsd": 3000.0
   },
   "bots": [
     {
@@ -417,7 +432,7 @@
     "solBalance": 0.048475491,
     "solUsd": 5.7288,
     "solPriceUsd": 118.18,
-    "profitUsdc": 0,
+    "profitUsdc": 0.0,
     "holdings": [
       {
         "symbol": "SOL",
@@ -527,13 +542,16 @@
         }
       }
     },
-    "goal": "net_positive",
-    "goalLabel": "TP ACTIVE \u00b7 50% USDC skim @ TP1 \u2192 BE",
+    "goal": "first_3k_sol_usdc",
+    "goalLabel": "First goal $3,000 SOL+USDC \u00b7 0.19% \u00b7 stack $5.73",
     "goalStatus": "take_profit_armed",
     "streakGreenSessions": 0,
     "stopPct": -20,
     "note": "Equity $19.11 \u00b7 day $-0.98 (-4.88%) vs 0.17 SOL funded \u00b7 Profit USDC $0",
-    "mode": "positive_pnl_take_profit"
+    "mode": "positive_pnl_take_profit",
+    "goalTargetUsd": 3000.0,
+    "goalCurrentUsd": 5.73,
+    "goalProgressPct": 0.191
   },
   "watchlist": [
     {
@@ -631,6 +649,21 @@
     "profitUsdc": 0
   },
   "events": [
+    {
+      "id": "evt-043",
+      "ts": "2026-10-07T04:48:53.968Z",
+      "bot": "coach-bot",
+      "level": "info",
+      "title": "First goal $3,000 SOL+USDC \u00b7 risk locked",
+      "message": "Desk goal meter ON: $5.73 / $3,000 SOL+USDC (0.19%). Risk: size \u226410\u201315% of free SOL per trade. On wins skim 50% to USDC profit pocket, compound the rest. Profit USDC pocket $0. Token holder: SI 243.68 \u00b7 NTDA 368.17 \u00b7 baton 226.52.",
+      "tags": [
+        "goal",
+        "3k",
+        "risk",
+        "skim",
+        "USDC"
+      ]
+    },
     {
       "id": "evt-042",
       "ts": "2026-10-07T04:47:13.851Z",
@@ -1280,5 +1313,30 @@
         "tp2Hit": false
       }
     }
+  },
+  "goal": {
+    "id": "first-3k",
+    "label": "First goal \u00b7 $3,000 SOL+USDC",
+    "targetUsd": 3000.0,
+    "currentUsd": 5.73,
+    "progressPct": 0.191,
+    "components": {
+      "solCashUsd": 5.7288,
+      "usdcBalance": 0.0,
+      "profitUsdc": 0.0
+    },
+    "note": "Counts free SOL (USD) + USDC pocket only \u2014 not open token marks"
+  },
+  "risk": {
+    "maxFreeSolPctPerTrade": [
+      10,
+      15
+    ],
+    "maxFreeSolPctLabel": "\u226410\u201315% free SOL / trade",
+    "winSkimPct": 50,
+    "winSkimAsset": "USDC",
+    "compoundRest": true,
+    "compoundLabel": "50% win skim \u2192 USDC pocket \u00b7 compound rest",
+    "profitUsdc": 0.0
   }
 }

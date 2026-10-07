@@ -797,7 +797,10 @@
     const holdings = getHoldings(wallet);
     const tokenBits = holdings
       .filter((h) => h.symbol !== "SOL")
-      .map((h) => `${Number(h.qty).toFixed(2)} ${h.symbol}`)
+      .map((h) => {
+        const q = h.displayQty || Number(h.qty).toFixed(2);
+        return `${q} ${h.symbol}`;
+      })
       .join(" · ");
     if (!wallet && !agentLive) {
       el.innerHTML = `<p class="muted">No wallet data</p>`;
@@ -873,12 +876,54 @@
       <span class="admin-tag" style="color:#be185d;border-color:#fbcfe8;background:#fdf2f8;margin-left:0.35rem">Coach ${coachOn ? "online" : "—"}</span>
       <div class="big" style="font-size:1.05rem;letter-spacing:-0.015em">${escapeHtml(modeLabel)}</div>
       <ul class="caps-list" style="margin-top:0.65rem">
-        <li><span class="label">Skim @ TP1</span><span class="val">50% USDC</span></li>
-        <li><span class="label">After TP1</span><span class="val">BE stop</span></li>
+        <li><span class="label">Size / trade</span><span class="val">≤10–15% free SOL</span></li>
+        <li><span class="label">Win skim</span><span class="val">50% → USDC</span></li>
+        <li><span class="label">Rest</span><span class="val">Compound</span></li>
         <li><span class="label">Profit USDC</span><span class="val">${fmtUsd(profitUsdc)}</span></li>
         <li><span class="label">Learn</span><span class="val">${learn === false ? "Off" : "ON"}</span></li>
       </ul>
-      <div class="sub" style="margin-top:0.55rem;color:var(--text-mute)">${escapeHtml(c.strategy || c.takeProfitRule || "50% USDC skim @ TP1 → breakeven stop")}</div>
+      <div class="sub" style="margin-top:0.55rem;color:var(--text-mute)">${escapeHtml(c.strategy || "≤10–15% free SOL/trade · 50% skim USDC · compound rest")}</div>
+    `;
+  }
+
+
+  function renderGoal(data) {
+    const el = $("#goal-body");
+    if (!el) return;
+    const g = data?.goal || {};
+    const w = data?.wallet || {};
+    const p = data?.pnl || {};
+    const target = Number(g.targetUsd ?? p.goalTargetUsd ?? 3000);
+    const solUsd = Number(g.components?.solCashUsd ?? w.solUsd ?? 0);
+    const usdc = Number(g.components?.usdcBalance ?? w.usdcBalance ?? 0);
+    const profitUsdc = Number(
+      g.components?.profitUsdc ?? w.profitUsdc ?? p.profitUsdc ?? 0
+    );
+    const current = Number(
+      g.currentUsd ?? p.goalCurrentUsd ?? w.solUsdcStackUsd ?? solUsd + usdc + profitUsdc
+    );
+    const pct = Math.max(
+      0,
+      Math.min(100, Number(g.progressPct ?? p.goalProgressPct ?? (target ? (100 * current) / target : 0)))
+    );
+    const risk = data?.risk || {};
+    el.innerHTML = `
+      <div class="goal-meter-big">${fmtUsd(current)} <span style="font-size:0.85rem;color:var(--text-mute);font-weight:500">/ ${fmtUsd(target)}</span></div>
+      <div class="goal-meter" role="meter" aria-valuemin="0" aria-valuemax="${target}" aria-valuenow="${current}" aria-label="Progress to first $3000 SOL plus USDC goal">
+        <div class="goal-meter-track"><div class="goal-meter-fill" style="width:${pct.toFixed(3)}%"></div></div>
+        <div class="goal-meter-meta">
+          <span>${pct.toFixed(2)}% to first $3,000</span>
+          <span>${fmtUsd(Math.max(0, target - current))} remaining</span>
+        </div>
+      </div>
+      <div class="goal-chips">
+        <span class="goal-chip strong">SOL cash ${fmtUsd(solUsd)}</span>
+        <span class="goal-chip strong">USDC ${fmtUsd(usdc)}</span>
+        <span class="goal-chip strong">Profit USDC ${fmtUsd(profitUsdc)}</span>
+        <span class="goal-chip">${escapeHtml(risk.maxFreeSolPctLabel || "≤10–15% free SOL / trade")}</span>
+        <span class="goal-chip">${escapeHtml(risk.compoundLabel || "50% win skim → USDC · compound rest")}</span>
+      </div>
+      <div class="sub" style="margin-top:0.55rem;color:var(--text-mute)">${escapeHtml(g.note || "Counts free SOL (USD) + USDC pocket only — not open token marks")}</div>
     `;
   }
 
@@ -905,9 +950,14 @@
         if (value != null && !Number.isNaN(Number(value))) sum += Number(value);
         const mark = h.priceUsd != null ? `$${Number(h.priceUsd).toFixed(h.symbol === "SOL" ? 2 : 5)}` : "—";
         const qtyStr =
-          h.symbol === "SOL"
+          h.displayQty ||
+          (h.symbol === "SOL"
             ? qty.toFixed(6)
-            : qty.toLocaleString(undefined, { maximumFractionDigits: 4 });
+            : qty.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              }));
+        const qtyLab = h.displayLabel || (h.symbol === "SOL" ? "Free SOL" : `${h.symbol} held`);
         const L = levels[h.symbol] || {};
         const upnl =
           h.costUsd != null && value != null ? Number(value) - Number(h.costUsd) : null;
@@ -927,7 +977,7 @@
             <span class="sym">${escapeHtml(h.symbol)}</span>
             <span class="sym-sub">${escapeHtml(h.label || h.name || h.kind || "token")}</span>
           </div>
-          <div class="qty"><span class="qty-lab">Qty held</span>${escapeHtml(qtyStr)}</div>
+          <div class="qty"><span class="qty-lab">${escapeHtml(qtyLab)}</span><span class="holding-qty-big">${escapeHtml(qtyStr)}</span></div>
           <div>
             <div class="val">${fmtUsd(value)}</div>
             <div class="mark">mark ${escapeHtml(mark)}</div>
