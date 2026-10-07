@@ -9,12 +9,28 @@
   "use strict";
 
   const DATA_URL = "data/activity.json";
-  const REFRESH_MS = 15000;
+  const REFRESH_MS = 4000;
+  const CHAIN_POLL_MS = 5000;
   const ADMIN_WALLET = "3GfDwiEtei62mumu1J8XnaqkUFtbkVLQE2Btpr5yAeek";
   /** Bot trading book — Wallet/PnL cards + RPC track this address */
   const AGENT_WALLET = "99hEnCqL2Tp59pkymd3zfpenKQVWZXCKpCViGXaHw92j";
   const DEPOSIT_USD = 5;
-  const RPC_URL = "https://api.mainnet-beta.solana.com";
+  const RPC_URLS = [
+    "https://api.mainnet-beta.solana.com",
+    "https://rpc.ankr.com/solana",
+    "https://solana-rpc.publicnode.com",
+  ];
+  let rpcUrlIdx = 0;
+  const RPC_URL = RPC_URLS[0];
+  const TOKEN_PROGRAM = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
+  const TOKEN_2022_PROGRAM = "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb";
+  const KNOWN_MINTS = {
+    So11111111111111111111111111111111111111112: "SOL",
+    EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v: "USDC",
+    DEW9dSN6QpWyNthphCpMmAbZP1Q4cEKR9xQXAri98WDP: "SI",
+    "13YLkUncbg2gjEFxcnz4iAyLHJXyLqdLvghWjEgNpump": "NTDA",
+    Hg5Ja55T5wESq4vyFoiVCMeHXtGyVA69X2UHq8hgpump: "baton",
+  };
   const SOL_PRICE_URLS = [
     "https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd",
     "https://price.jup.ag/v6/price?ids=SOL",
@@ -171,8 +187,16 @@
   let motionBooted = false;
   let soundMuted = false;
   let audioCtx = null;
+  let audioUnlocked = false;
+  let knownTxSigs = null; // Set | null until first chain poll seeds
+  let chainPollBusy = false;
+  let lastHoldingsSnap = "";
+  let chartTf = "5m";
+  const CHART_TF_KEY = "solana-desk-chart-tf";
+  const TF_MS = { "1m": 60_000, "5m": 300_000, "1h": 3_600_000 };
   const SOUND_KEY = "solana-desk-sound-muted";
   const EQUITY_STORE_KEY = "solana-desk-equity-99hEn";
+  const TX_STORE_KEY = "solana-desk-txsigs-99hEn";
 
   const $ = (sel, el = document) => el.querySelector(sel);
 
@@ -277,6 +301,69 @@
     return data;
   }
 
+
+  async function rpcCall(method, params, tries = 3) {
+    let lastErr = null;
+    for (let t = 0; t < tries; t++) {
+      const url = RPC_URLS[(rpcUrlIdx + t) % RPC_URLS.length];
+      try {
+        const r = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            jsonrpc: "2.0",
+            id: Date.now() + t,
+            method,
+            params,
+          }),
+        });
+        if (!r.ok) throw new Error("RPC HTTP " + r.status);
+        const j = await r.json();
+        if (j.error) throw new Error(j.error.message || "RPC error");
+        rpcUrlIdx = (rpcUrlIdx + t) % RPC_URLS.length;
+        return j.result;
+      } catch (err) {
+        lastErr = err;
+      }
+    }
+    throw lastErr || new Error("RPC failed");
+  }
+
+  function shortSig(sig) {
+    if (!sig || sig.length < 12) return String(sig || "—");
+    return sig.slice(0, 6) + "…" + sig.slice(-4);
+  }
+
+  function mintSymbol(mint) {
+    return KNOWN_MINTS[mint] || (mint ? mint.slice(0, 4) + "…" : "?");
+  }
+
+  function loadKnownTxSigs() {
+    try {
+      const raw = localStorage.getItem(TX_STORE_KEY);
+      if (!raw) return new Set();
+      const arr = JSON.parse(raw);
+      return new Set(Array.isArray(arr) ? arr : []);
+    } catch (_) {
+      return new Set();
+    }
+  }
+
+  function saveKnownTxSigs(set) {
+    try {
+      localStorage.setItem(TX_STORE_KEY, JSON.stringify([...set].slice(-80)));
+    } catch (_) { /* ignore */ }
+  }
+
+  function unlockAudio() {
+    if (audioUnlocked) return;
+    audioUnlocked = true;
+    try {
+      const ctx = ensureAudio();
+      if (ctx?.state === "suspended") ctx.resume();
+    } catch (_) { /* ignore */ }
+  }
+
   async function fetchSolPrice() {
     try {
       const r = await fetch(SOL_PRICE_URLS[0], { cache: "no-store" });
@@ -298,24 +385,13 @@
 
   async function fetchAgentSolBalance() {
     try {
-      const r = await fetch(RPC_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          jsonrpc: "2.0",
-          id: 1,
-          method: "getBalance",
-          params: [AGENT_WALLET],
-        }),
-      });
-      if (!r.ok) throw new Error("RPC " + r.status);
-      const j = await r.json();
-      const lamports = j?.result?.value;
-      if (lamports == null) throw new Error("no balance");
-      const solBalance = lamports / 1e9;
+      const lamports = await rpcCall("getBalance", [AGENT_WALLET]);
+      const value = typeof lamports === "object" ? lamports?.value : lamports;
+      if (value == null) throw new Error("no balance");
+      const solBalance = value / 1e9;
       const price = solPriceUsd || 140;
       return {
-        lamports,
+        lamports: value,
         solBalance,
         solUsd: solBalance * price,
         source: "rpc",
@@ -995,9 +1071,11 @@
     const blob = `${e?.title || ""} ${e?.message || ""} ${(e?.tags || []).join(" ")} ${e?.level || ""}`.toLowerCase();
     const bot = e?.bot || "";
     const isTrade =
-      /\b(buy|sell|fill|filled|execut|trade|order)\b/.test(blob) ||
-      (e?.level === "signal" && bot === "solana-trader") ||
-      (e?.tags || []).some((t) => /buy|sell|fill|trade/i.test(t));
+      e?.source === "chain" ||
+      /\b(buy|sell|fill|filled|execut|trade|order|swap|routed|jupiter|on-chain)\b/.test(blob) ||
+      /→|->|⇒/.test(`${e?.title || ""} ${e?.message || ""}`) ||
+      (e?.level === "signal" && (bot === "solana-trader" || bot === "solana-scout")) ||
+      (e?.tags || []).some((t) => /buy|sell|fill|trade|swap|tx|chain/i.test(t));
     const isLearn =
       bot === "coach-bot" ||
       /\b(learn|lesson|coach|review|mistak)/.test(blob) ||
@@ -1277,11 +1355,19 @@
     renderWallet(data.wallet);
     renderPnL(data.pnl || {});
     renderCaps(data.riskCaps);
-    renderEquityChart(data);
+    renderGoal(data);
     renderHoldingsTable(data.wallet);
     renderFeed(state.events);
     renderAgentTrack();
     updateConnectUi();
+    if (data?.pnl?.equityUsd != null || data?.wallet?.totalUsd != null) {
+      pushEquityMark(
+        Number(data?.pnl?.equityUsd ?? data.wallet.totalUsd),
+        "file mark",
+        false
+      );
+    }
+    renderEquityChart(data);
     refreshAgentBalance();
     const upd = $("#data-updated");
     if (upd) {
@@ -1290,6 +1376,278 @@
         : data._seeded
           ? "Sample activity seeded (file empty)"
           : "";
+    }
+  }
+
+
+  function holdingsSnapshot(holdings) {
+    return (holdings || [])
+      .map((h) => `${h.symbol || "?"}:${Number(h.qty || 0).toFixed(6)}`)
+      .sort()
+      .join("|");
+  }
+
+  function estimateEquityFromHoldings(holdings, solBal) {
+    let sum = 0;
+    let used = false;
+    for (const h of holdings || []) {
+      if (h.valueUsd != null && !Number.isNaN(Number(h.valueUsd))) {
+        sum += Number(h.valueUsd);
+        used = true;
+      } else if (h.priceUsd != null && h.qty != null) {
+        sum += Number(h.qty) * Number(h.priceUsd);
+        used = true;
+      }
+    }
+    if (!used && solBal != null) {
+      sum = Number(solBal) * (solPriceUsd || state?.wallet?.solPriceUsd || 140);
+      used = true;
+    }
+    return used ? sum : null;
+  }
+
+  function pushEquityMark(equityUsd, label, force) {
+    if (equityUsd == null || Number.isNaN(Number(equityUsd))) return;
+    const pts = readStoredEquity();
+    const now = Date.now();
+    const last = pts[pts.length - 1];
+    if (
+      !force &&
+      last &&
+      Math.abs(Number(last.equityUsd) - Number(equityUsd)) < 0.0005 &&
+      now - new Date(last.ts).getTime() < 4000
+    ) {
+      return;
+    }
+    pts.push({
+      ts: new Date(now).toISOString(),
+      equityUsd: Number(equityUsd),
+      label: label || "mark",
+    });
+    writeStoredEquity(pts);
+  }
+
+  function injectChainEvents(events) {
+    if (!state || !events?.length) return;
+    const persisted = (state.events || []).filter((e) => !e._ephemeral);
+    const ephemeral = (state.events || []).filter((e) => e._ephemeral);
+    state.events = [...events, ...ephemeral, ...persisted];
+    renderFeed(state.events);
+  }
+
+  async function fetchParsedTokenAccounts(programId) {
+    const result = await rpcCall("getTokenAccountsByOwner", [
+      AGENT_WALLET,
+      { programId },
+      { encoding: "jsonParsed", commitment: "confirmed" },
+    ]);
+    return result?.value || [];
+  }
+
+  function mergeLiveTokenRows(accounts, kind) {
+    const priceByMint = {};
+    const prev = state?.wallet?.holdings || [];
+    for (const h of prev) {
+      if (h.mint && h.priceUsd != null) priceByMint[h.mint] = Number(h.priceUsd);
+    }
+    const rows = [];
+    for (const acc of accounts || []) {
+      const info = acc?.account?.data?.parsed?.info;
+      const tok = info?.tokenAmount;
+      if (!info?.mint || !tok) continue;
+      const qty = Number(tok.uiAmount);
+      if (!qty || qty <= 0) continue;
+      const mint = info.mint;
+      const symbol = mintSymbol(mint);
+      const priceUsd = priceByMint[mint];
+      const valueUsd =
+        priceUsd != null && !Number.isNaN(priceUsd) ? qty * priceUsd : null;
+      rows.push({
+        symbol,
+        mint,
+        kind,
+        qty,
+        decimals: tok.decimals,
+        priceUsd: priceUsd ?? null,
+        valueUsd,
+        displayQty: qty >= 1 ? qty.toFixed(2) : qty.toFixed(6),
+        displayLabel: `${symbol} held`,
+        label: `${symbol} · live`,
+      });
+    }
+    return rows;
+  }
+
+  async function refreshLiveHoldings(opts) {
+    const forceMark = !!(opts && opts.forceMark);
+    const fillLabel = opts?.fillLabel || "live mark";
+    try {
+      const [solLive, classic, t22] = await Promise.all([
+        fetchAgentSolBalance(),
+        fetchParsedTokenAccounts(TOKEN_PROGRAM).catch(() => []),
+        fetchParsedTokenAccounts(TOKEN_2022_PROGRAM).catch(() => []),
+      ]);
+      if (solLive) agentLive = solLive;
+      if (!state) return null;
+
+      const tokenRows = [
+        ...mergeLiveTokenRows(classic, "spl"),
+        ...mergeLiveTokenRows(t22, "token2022"),
+      ];
+      const prevHoldings = getHoldings(state.wallet);
+      const priceBySym = {};
+      for (const h of prevHoldings) {
+        if (h.symbol && h.priceUsd != null) priceBySym[h.symbol] = h.priceUsd;
+        if (h.mint && h.priceUsd != null) priceBySym[h.mint] = h.priceUsd;
+      }
+      for (const row of tokenRows) {
+        if (row.priceUsd == null) {
+          const p = priceBySym[row.symbol] ?? priceBySym[row.mint];
+          if (p != null) {
+            row.priceUsd = p;
+            row.valueUsd = row.qty * p;
+          }
+        }
+      }
+
+      const solBal = solLive?.solBalance ?? state.wallet?.solBalance;
+      const solPrice = state.wallet?.solPriceUsd ?? solPriceUsd ?? 140;
+      const solRow = {
+        symbol: "SOL",
+        mint: "So11111111111111111111111111111111111111112",
+        kind: "native",
+        qty: Number(solBal || 0),
+        decimals: 9,
+        priceUsd: solPrice,
+        valueUsd: Number(solBal || 0) * solPrice,
+        displayQty: Number(solBal || 0).toFixed(6),
+        displayLabel: "Free SOL",
+        label: "Free SOL cash",
+      };
+
+      // Prefer live token rows; keep prior rows for mints not yet visible if qty was >0 and RPC lag
+      const byMint = new Map();
+      byMint.set(solRow.mint, solRow);
+      for (const r of tokenRows) byMint.set(r.mint, r);
+
+      const holdings = [...byMint.values()];
+      const snap = holdingsSnapshot(holdings);
+      const changed = snap !== lastHoldingsSnap && lastHoldingsSnap !== "";
+      lastHoldingsSnap = snap || lastHoldingsSnap;
+
+      state.wallet.holdings = holdings;
+      state.wallet.solBalance = solRow.qty;
+      state.wallet.solUsd = solRow.valueUsd;
+      const equity = estimateEquityFromHoldings(holdings, solRow.qty);
+      if (equity != null) {
+        state.wallet.totalUsd = equity;
+        if (!state.pnl) state.pnl = {};
+        state.pnl.equityUsd = equity;
+        pushEquityMark(equity, changed || forceMark ? fillLabel : "mark", changed || forceMark);
+      }
+
+      // Sync known symbol balances for cards
+      for (const h of holdings) {
+        if (h.symbol === "SI") {
+          state.wallet.siBalance = h.qty;
+          state.wallet.siMarkUsd = h.valueUsd;
+        }
+        if (h.symbol === "NTDA") {
+          state.wallet.ntdaBalance = h.qty;
+          state.wallet.ntdaMarkUsd = h.valueUsd;
+        }
+        if (h.symbol === "baton") {
+          state.wallet.batonBalance = h.qty;
+          state.wallet.batonMarkUsd = h.valueUsd;
+        }
+      }
+
+      renderWallet(state.wallet);
+      renderHoldingsTable(state.wallet);
+      renderPnL(state.pnl || {});
+      renderAgentTrack();
+      renderEquityChart(state);
+      renderGoal(state);
+      return { holdings, equity, changed };
+    } catch (err) {
+      console.warn("live holdings refresh failed", err);
+      return null;
+    }
+  }
+
+  async function pollAgentChain() {
+    if (chainPollBusy) return;
+    chainPollBusy = true;
+    try {
+      const sigs = await rpcCall("getSignaturesForAddress", [
+        AGENT_WALLET,
+        { limit: 20 },
+      ]);
+      const list = Array.isArray(sigs) ? sigs : [];
+      if (!knownTxSigs) {
+        knownTxSigs = loadKnownTxSigs();
+        // Seed without notifying so we don't chime historical txs on first load
+        if (knownTxSigs.size === 0) {
+          for (const s of list) if (s?.signature) knownTxSigs.add(s.signature);
+          saveKnownTxSigs(knownTxSigs);
+          await refreshLiveHoldings({ forceMark: true, fillLabel: "boot mark" });
+          return;
+        }
+      }
+
+      const fresh = [];
+      for (const s of list) {
+        const sig = s?.signature;
+        if (!sig || knownTxSigs.has(sig)) continue;
+        knownTxSigs.add(sig);
+        fresh.push(s);
+      }
+      if (fresh.length) saveKnownTxSigs(knownTxSigs);
+
+      const newEvents = [];
+      // Oldest first so feed + chimes follow fill order
+      fresh
+        .slice()
+        .reverse()
+        .forEach((s) => {
+          const sig = s.signature;
+          const err = s.err;
+          const ts = s.blockTime
+            ? new Date(s.blockTime * 1000).toISOString()
+            : new Date().toISOString();
+          newEvents.push({
+            id: `tx-${sig}`,
+            ts,
+            bot: "solana-trader",
+            level: err ? "warn" : "signal",
+            title: err ? "On-chain tx failed" : "On-chain fill",
+            message: err
+              ? `Tx ${shortSig(sig)} errored on AGENT book`
+              : `Live tx ${shortSig(sig)} on 99hEn… · refreshing holdings/PnL`,
+            tags: ["fill", "tx", "chain"],
+            source: "chain",
+            signature: sig,
+            _ephemeral: true,
+          });
+        });
+
+      if (newEvents.length) {
+        injectChainEvents(newEvents);
+        // Chime already fired via renderFeed → reactToEvents per trade
+      }
+
+      await refreshLiveHoldings({
+        forceMark: newEvents.length > 0,
+        fillLabel: newEvents.length ? "fill mark" : "mark",
+      });
+    } catch (err) {
+      console.warn("chain poll failed", err);
+      // Still try a holdings mark so chart keeps ticking
+      try {
+        await refreshLiveHoldings({ fillLabel: "mark" });
+      } catch (_) { /* ignore */ }
+    } finally {
+      chainPollBusy = false;
     }
   }
 
@@ -1455,7 +1813,7 @@
     $("#btn-pause")?.addEventListener("click", toggleDeskPause);
     $("#btn-mute")?.addEventListener("click", () => {
       toggleMute();
-      // Unlock audio on gesture
+      unlockAudio();
       if (!soundMuted) ensureAudio()?.resume?.();
     });
     $("#btn-connect")?.addEventListener("click", connectWallet);
@@ -1697,9 +2055,9 @@
     return audioCtx;
   }
 
-  /** Short pleasant ping for trade fills — no external assets */
+  /** Clear ping for each trade fill — no external assets; safe to stack */
   function playTradeChime() {
-    if (soundMuted || deskPaused || reduceMotion) return;
+    if (soundMuted || deskPaused) return;
     try {
       const ctx = ensureAudio();
       if (!ctx) return;
@@ -1707,26 +2065,38 @@
       const now = ctx.currentTime;
       const master = ctx.createGain();
       master.gain.setValueAtTime(0.0001, now);
-      master.gain.exponentialRampToValueAtTime(0.12, now + 0.02);
-      master.gain.exponentialRampToValueAtTime(0.0001, now + 0.28);
+      master.gain.exponentialRampToValueAtTime(0.2, now + 0.012);
+      master.gain.exponentialRampToValueAtTime(0.0001, now + 0.38);
       master.connect(ctx.destination);
 
-      const freqs = [880, 1174.7];
-      freqs.forEach((f, i) => {
+      // Bright two-tone ping + soft click overtone
+      const tones = [
+        { f: 988, type: "sine", peak: 0.55, start: 0, dur: 0.28 },
+        { f: 1480, type: "triangle", peak: 0.28, start: 0.04, dur: 0.22 },
+        { f: 2200, type: "sine", peak: 0.12, start: 0.0, dur: 0.08 },
+      ];
+      tones.forEach((t) => {
         const osc = ctx.createOscillator();
         const g = ctx.createGain();
-        osc.type = "sine";
-        osc.frequency.setValueAtTime(f, now);
-        g.gain.setValueAtTime(0.0001, now);
-        g.gain.exponentialRampToValueAtTime(0.5 / (i + 1), now + 0.015 + i * 0.02);
-        g.gain.exponentialRampToValueAtTime(0.0001, now + 0.22 + i * 0.04);
+        osc.type = t.type;
+        osc.frequency.setValueAtTime(t.f, now + t.start);
+        g.gain.setValueAtTime(0.0001, now + t.start);
+        g.gain.exponentialRampToValueAtTime(t.peak, now + t.start + 0.012);
+        g.gain.exponentialRampToValueAtTime(0.0001, now + t.start + t.dur);
         osc.connect(g);
         g.connect(master);
-        osc.start(now + i * 0.03);
-        osc.stop(now + 0.32 + i * 0.04);
+        osc.start(now + t.start);
+        osc.stop(now + t.start + t.dur + 0.02);
       });
     } catch (err) {
       console.warn("chime failed", err);
+    }
+  }
+
+  function playTradeChimes(count) {
+    const n = Math.max(0, Math.min(8, Number(count) || 0));
+    for (let i = 0; i < n; i++) {
+      setTimeout(() => playTradeChime(), i * 150);
     }
   }
 
@@ -1745,7 +2115,7 @@
     try {
       localStorage.setItem(
         EQUITY_STORE_KEY,
-        JSON.stringify((points || []).slice(-48))
+        JSON.stringify((points || []).slice(-720))
       );
     } catch (_) { /* ignore */ }
   }
@@ -1759,12 +2129,14 @@
         }))
       : [];
     const stored = readStoredEquity();
+    const liveEq =
+      data?.pnl?.equityUsd ?? data?.wallet?.totalUsd ?? null;
     const live =
-      data?.pnl?.equityUsd != null
+      liveEq != null
         ? [
             {
-              ts: data?.meta?.updatedAt || new Date().toISOString(),
-              equityUsd: Number(data.pnl.equityUsd),
+              ts: new Date().toISOString(),
+              equityUsd: Number(liveEq),
               label: "live",
             },
           ]
@@ -1772,13 +2144,63 @@
     const map = new Map();
     for (const p of [...fromFile, ...stored, ...live]) {
       if (p?.ts == null || Number.isNaN(p.equityUsd)) continue;
-      map.set(p.ts, p);
+      // Bucket identical second timestamps lightly by label preference
+      const key = `${p.ts}|${Number(p.equityUsd).toFixed(4)}`;
+      map.set(key, p);
     }
     const merged = [...map.values()].sort(
       (a, b) => new Date(a.ts) - new Date(b.ts)
     );
     writeStoredEquity(merged);
+    // Keep chart moving with latest mark
+    if (liveEq != null) pushEquityMark(Number(liveEq), "live", false);
     return merged;
+  }
+
+  function loadChartTf() {
+    try {
+      const t = localStorage.getItem(CHART_TF_KEY);
+      if (t && TF_MS[t]) chartTf = t;
+    } catch (_) { /* ignore */ }
+  }
+
+  function syncChartTfUi() {
+    const root = $("#pnl-tf");
+    if (!root) return;
+    root.querySelectorAll("[data-tf]").forEach((btn) => {
+      const on = btn.getAttribute("data-tf") === chartTf;
+      btn.classList.toggle("is-active", on);
+      btn.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+  }
+
+  function setChartTf(tf) {
+    if (!TF_MS[tf]) return;
+    chartTf = tf;
+    try {
+      localStorage.setItem(CHART_TF_KEY, tf);
+    } catch (_) { /* ignore */ }
+    syncChartTfUi();
+    if (state) renderEquityChart(state);
+  }
+
+  function pointsForTimeframe(allPoints) {
+    const windowMs = TF_MS[chartTf] || TF_MS["5m"];
+    const now = Date.now();
+    const cut = now - windowMs;
+    let pts = (allPoints || []).filter((p) => {
+      const t = new Date(p.ts).getTime();
+      return !Number.isNaN(t) && t >= cut && t <= now + 1000;
+    });
+    // If window is empty, show last point extended so chart isn't blank
+    if (!pts.length && allPoints?.length) {
+      const last = allPoints[allPoints.length - 1];
+      pts = [
+        { ts: new Date(cut).toISOString(), equityUsd: last.equityUsd, label: "carry" },
+        { ...last, ts: new Date(now).toISOString(), label: last.label || "live" },
+      ];
+    }
+    return { pts, windowMs, now, cut };
   }
 
   function renderEquityChart(data) {
@@ -1786,10 +2208,11 @@
     const deltaEl = $("#pnl-chart-delta");
     const lastEl = $("#pnl-chart-last");
     if (!svg) return;
-    const points = mergeEquitySeries(data);
+    const all = mergeEquitySeries(data);
+    const { pts: points, windowMs, now, cut } = pointsForTimeframe(all);
     if (points.length < 2) {
       svg.innerHTML =
-        '<text x="24" y="96" class="axis-label">Waiting for equity points…</text>';
+        '<text x="24" y="96" class="axis-label">Waiting for live equity marks…</text>';
       if (deltaEl) deltaEl.textContent = "—";
       if (lastEl) lastEl.textContent = "—";
       return;
@@ -1797,18 +2220,20 @@
 
     const W = 640;
     const H = 180;
-    const pad = { l: 40, r: 16, t: 16, b: 28 };
+    const pad = { l: 44, r: 16, t: 16, b: 28 };
     const vals = points.map((p) => p.equityUsd);
     let minV = Math.min(...vals);
     let maxV = Math.max(...vals);
     if (minV === maxV) {
-      minV -= 0.25;
-      maxV += 0.25;
+      minV -= Math.max(0.05, Math.abs(minV) * 0.002);
+      maxV += Math.max(0.05, Math.abs(maxV) * 0.002);
     }
     const span = maxV - minV || 1;
-    const xs = points.map((_, i) =>
-      pad.l + (i / (points.length - 1)) * (W - pad.l - pad.r)
-    );
+    const tSpan = Math.max(1, now - cut);
+    const xs = points.map((p) => {
+      const t = new Date(p.ts).getTime();
+      return pad.l + ((t - cut) / tSpan) * (W - pad.l - pad.r);
+    });
     const ys = vals.map(
       (v) => pad.t + (1 - (v - minV) / span) * (H - pad.t - pad.b)
     );
@@ -1826,12 +2251,16 @@
       (t) => pad.t + t * (H - pad.t - pad.b)
     );
     const gridVals = [maxV, (maxV + minV) / 2, minV];
+    const fillMarks = points
+      .map((p, i) => ({ p, i }))
+      .filter(({ p }) => /fill|tx|swap|buy|sell/i.test(p.label || ""));
 
     svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
     const dark = currentTheme() === "dark";
     const strokePos = dark ? "#22d3ee" : "#10b981";
     const strokeNeg = dark ? "#f472b6" : "#f59e0b";
     const fill = neg ? strokeNeg : strokePos;
+    const tfLabel = chartTf;
     svg.innerHTML = `
       <defs>
         <linearGradient id="eqFill" x1="0" y1="0" x2="0" y2="1">
@@ -1842,7 +2271,7 @@
       ${gridYs
         .map(
           (y, i) =>
-            `<line class="grid-line" x1="${pad.l}" y1="${y.toFixed(1)}" x2="${W - pad.r}" y2="${y.toFixed(1)}"/><text class="axis-label" x="6" y="${(y + 3).toFixed(1)}">$${gridVals[i].toFixed(2)}</text>`
+            `<line class="grid-line" x1="${pad.l}" y1="${y.toFixed(1)}" x2="${W - pad.r}" y2="${y.toFixed(1)}"/><text class="axis-label" x="4" y="${(y + 3).toFixed(1)}">$${gridVals[i].toFixed(2)}</text>`
         )
         .join("")}
       <path class="eq-area" d="${area}"></path>
@@ -1850,36 +2279,40 @@
       ${points
         .map((p, i) => {
           const latest = i === points.length - 1 ? " is-latest" : "";
-          return `<circle class="eq-dot${neg ? " is-neg" : ""}${latest}" cx="${xs[i].toFixed(1)}" cy="${ys[i].toFixed(1)}" r="${i === points.length - 1 ? 4 : 2.5}"><title>${escapeHtml(p.label || "")} · $${p.equityUsd.toFixed(2)} · ${escapeHtml(fmtTimeCompact(p.ts))}</title></circle>`;
+          return `<circle class="eq-dot${neg ? " is-neg" : ""}${latest}" cx="${xs[i].toFixed(1)}" cy="${ys[i].toFixed(1)}" r="${i === points.length - 1 ? 4 : 2.2}"><title>${escapeHtml(p.label || "")} · $${p.equityUsd.toFixed(2)} · ${escapeHtml(fmtTimeCompact(p.ts))}</title></circle>`;
         })
         .join("")}
-      <text class="axis-label" x="${pad.l}" y="${H - 8}">${escapeHtml(fmtTimeCompact(points[0].ts))}</text>
-      <text class="axis-label" x="${W - pad.r}" y="${H - 8}" text-anchor="end">${escapeHtml(fmtTimeCompact(points[points.length - 1].ts))}</text>
+      ${fillMarks
+        .map(({ i }) => `<circle class="fill-mark" cx="${xs[i].toFixed(1)}" cy="${ys[i].toFixed(1)}" r="3.2"></circle>`)
+        .join("")}
+      <text class="axis-label" x="${pad.l}" y="${H - 8}">${escapeHtml(fmtTimeCompact(new Date(cut).toISOString()))}</text>
+      <text class="axis-label" x="${W - pad.r}" y="${H - 8}" text-anchor="end">${escapeHtml(fmtTimeCompact(new Date(now).toISOString()))} · ${tfLabel}</text>
     `;
 
     if (deltaEl) {
       const sign = dlt > 0 ? "+" : "";
-      deltaEl.textContent = `${sign}${fmtUsd(dlt)} day`;
+      deltaEl.textContent = `${sign}${fmtUsd(dlt)} ${tfLabel}`;
       deltaEl.className = "pnl-chart-delta " + (dlt < 0 ? "neg" : dlt > 0 ? "pos" : "");
     }
     if (lastEl) {
-      lastEl.textContent = `equity ${fmtUsd(last)} · ${points.length} pts`;
+      lastEl.textContent = `equity ${fmtUsd(last)} · ${points.length} pts · ${tfLabel}`;
     }
   }
 
   function reactToEvents(events, opts) {
     if (!events?.length || deskPaused) return;
     const soft = !!(opts && opts.soft);
-    let trade = false;
+    let tradeCount = 0;
     let learn = false;
     for (const e of events) {
       const k = classifyEvent(e);
-      if (k.isTrade) trade = true;
+      if (k.isTrade) tradeCount += 1;
       if (k.isLearn) learn = true;
     }
-    if (trade) {
+    if (tradeCount) {
       if (!reduceMotion) playTradeFx(soft);
-      if (!soft) playTradeChime();
+      // One ping per fill/tx — not a single shared beep for the whole batch
+      if (!soft) playTradeChimes(tradeCount);
     }
     if (learn && !reduceMotion) playLearnFx(soft);
   }
@@ -1973,10 +2406,29 @@
       solPriceUsd = p;
       updateDepositHint();
     });
+    loadChartTf();
+    syncChartTfUi();
+    $("#pnl-tf")?.addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-tf]");
+      if (!btn) return;
+      setChartTf(btn.getAttribute("data-tf"));
+    });
+    const unlock = () => unlockAudio();
+    document.addEventListener("pointerdown", unlock, { once: true });
+    document.addEventListener("keydown", unlock, { once: true });
     await refresh();
     scheduleBotRotation();
     scheduleIdleStudy();
     setInterval(refresh, REFRESH_MS);
+    // Live agent wallet txs + holdings → chart marks + fill sounds
+    pollAgentChain();
+    setInterval(pollAgentChain, CHAIN_POLL_MS);
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") {
+        refresh();
+        pollAgentChain();
+      }
+    });
   }
 
   if (document.readyState === "loading") {

@@ -170,10 +170,15 @@
     <section class="pnl-chart-panel glass-lift" aria-label="Bot wallet day equity chart and token holdings">
       <div class="pnl-chart-head">
         <div>
-          <h2>Day equity · bot token holder</h2>
-          <p class="pnl-chart-sub">99hEn…Hw92j · qty + $ value per token · activity marks</p>
+          <h2>Live equity · bot token holder</h2>
+          <p class="pnl-chart-sub">99hEn…Hw92j · live fills/marks · 1m / 5m / 1h</p>
         </div>
         <div class="pnl-chart-meta">
+          <div class="pnl-tf" id="pnl-tf" role="group" aria-label="Chart timeframe">
+            <button type="button" class="btn btn-ghost btn-tf" data-tf="1m" aria-pressed="false">1m</button>
+            <button type="button" class="btn btn-ghost btn-tf is-active" data-tf="5m" aria-pressed="true">5m</button>
+            <button type="button" class="btn btn-ghost btn-tf" data-tf="1h" aria-pressed="false">1h</button>
+          </div>
           <span id="pnl-chart-delta" class="pnl-chart-delta">—</span>
           <span id="pnl-chart-last" class="pnl-chart-last">—</span>
         </div>

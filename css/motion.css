@@ -547,3 +547,38 @@ body.is-desk-paused .vital-card.is-healthy {
   font-weight: 650;
   letter-spacing: -0.02em;
 }
+
+
+/* Equity timeframe toggles */
+.pnl-tf {
+  display: inline-flex;
+  gap: 0.3rem;
+  margin-bottom: 0.25rem;
+}
+.btn-tf {
+  padding: 0.22rem 0.55rem;
+  font-size: 0.68rem;
+  font-family: var(--mono);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  min-width: 2.4rem;
+}
+.btn-tf.is-active {
+  border-color: rgba(34, 211, 238, 0.55);
+  color: #67e8f9;
+  background: rgba(34, 211, 238, 0.12);
+  box-shadow: 0 0 12px rgba(34, 211, 238, 0.2);
+  font-weight: 600;
+}
+html[data-theme="light"] .btn-tf.is-active {
+  border-color: #10b981;
+  color: #047857;
+  background: #ecfdf5;
+  box-shadow: none;
+}
+.pnl-chart .fill-mark {
+  fill: #e879f9;
+  stroke: #0a0c12;
+  stroke-width: 1.2;
+  filter: drop-shadow(0 0 4px rgba(232, 121, 249, 0.65));
+}
