@@ -1,0 +1,253 @@
+/* Realistic desk motion — trade beams, learn links, idle study, vitals */
+.desk-fx {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 4;
+  overflow: visible;
+}
+
+.desk-fx .fx-beam {
+  fill: none;
+  stroke: url(#beamGrad);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  opacity: 0;
+  filter: drop-shadow(0 0 6px rgba(16, 185, 129, 0.65));
+}
+
+.desk-fx .fx-beam.is-on {
+  animation: beam-fire 0.85s ease-out forwards;
+}
+
+.desk-fx .fx-link {
+  fill: none;
+  stroke: rgba(168, 85, 247, 0.45);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-dasharray: 5 6;
+  opacity: 0;
+  filter: drop-shadow(0 0 4px rgba(168, 85, 247, 0.4));
+}
+
+.desk-fx .fx-link.is-on {
+  animation: link-pulse 2.4s ease-in-out infinite;
+}
+
+.desk-fx .fx-node {
+  fill: rgba(168, 85, 247, 0.85);
+  opacity: 0;
+  filter: drop-shadow(0 0 6px rgba(168, 85, 247, 0.7));
+}
+.desk-fx .fx-node.is-on {
+  animation: node-fade 2.4s ease-in-out infinite;
+}
+
+.desk-ripple {
+  position: absolute;
+  left: 50%;
+  top: 58%;
+  width: 28px;
+  height: 28px;
+  margin: -14px 0 0 -14px;
+  border-radius: 50%;
+  border: 2px solid rgba(16, 185, 129, 0.55);
+  pointer-events: none;
+  z-index: 3;
+  opacity: 0;
+  transform: scale(0.4);
+}
+.desk-ripple.is-on {
+  display: block;
+  animation: desk-ripple 0.95s ease-out forwards;
+}
+
+.desk-floor.is-trade-flash .monitor-screen {
+  box-shadow:
+    inset 0 0 22px rgba(52, 211, 153, 0.55),
+    0 0 18px rgba(16, 185, 129, 0.35);
+  animation: monitor-flash 0.7s ease-out;
+}
+
+.activity-console.is-trade-flash {
+  animation: console-flash 0.7s ease-out;
+  box-shadow:
+    0 24px 50px rgba(0, 0, 0, 0.28),
+    0 0 0 1px rgba(52, 211, 153, 0.45),
+    0 0 28px rgba(16, 185, 129, 0.2);
+}
+
+.activity-console.is-learn-flash {
+  animation: console-learn 0.9s ease-out;
+}
+
+.vital-card.is-pnl-pulse {
+  animation: pnl-pulse 0.85s ease-out;
+}
+
+.vital-card.is-healthy {
+  animation: vital-heartbeat 2.8s ease-in-out infinite;
+}
+.vital-card.is-healthy::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow: inset 0 0 0 1px rgba(16, 185, 129, 0.18);
+}
+
+.vital-card.is-warn {
+  background: linear-gradient(165deg, rgba(255, 251, 235, 0.95), rgba(255, 255, 255, 0.82));
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.95) inset,
+    0 18px 40px rgba(180, 83, 9, 0.08),
+    0 0 0 1px rgba(251, 191, 36, 0.35);
+}
+#card-pnl.is-warn .big { color: #b45309; }
+
+/* Guard alert glow (reference yellow) */
+.bot[data-bot="portfolio-guard"] .bot-glow {
+  opacity: 0.28;
+  background: radial-gradient(circle, rgba(245, 158, 11, 0.55), transparent 68%);
+}
+.bot[data-bot="portfolio-guard"] .bot-name {
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.25), 0 4px 12px rgba(15, 23, 42, 0.1);
+}
+.bot[data-bot="portfolio-guard"].guard-alert .bot-figure {
+  animation: guard-vigil 3.2s ease-in-out infinite;
+}
+
+.bot.coach-glow .bot-glow {
+  opacity: 0.5 !important;
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.55), transparent 68%);
+}
+.bot.coach-glow .bot-name {
+  border-color: #a855f7;
+  box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.25);
+}
+
+/* Idle study leans */
+.bot.is-study-monitor .bot-figure {
+  animation: study-monitor 2.6s ease-in-out infinite;
+}
+.bot.is-study-peer .bot-figure {
+  animation: study-peer 2.8s ease-in-out infinite;
+}
+.bot[data-bot="solana-trader"].is-firing .bot-figure {
+  animation: trader-fire 0.7s ease-out;
+}
+
+.console-feed .line-level.learn,
+.console-feed li.level-learn .line-level,
+.console-feed .learn-tag {
+  color: #e9d5ff;
+  border-color: #a855f7;
+  background: rgba(168, 85, 247, 0.15);
+}
+
+.console-feed li.is-learn {
+  box-shadow: inset 2px 0 0 #a855f7;
+  background: rgba(168, 85, 247, 0.07);
+}
+
+.console-feed li.is-trade {
+  box-shadow: inset 2px 0 0 #34d399;
+}
+
+/* Pause freezes FX */
+.desk-floor.is-desk-paused .desk-fx,
+.desk-floor.is-desk-paused .desk-ripple,
+.desk-floor.is-desk-paused .bot.guard-alert .bot-figure,
+.desk-floor.is-desk-paused .bot.is-study-monitor .bot-figure,
+.desk-floor.is-desk-paused .bot.is-study-peer .bot-figure,
+.desk-floor.is-desk-paused .bot.coach-glow .bot-glow {
+  animation-play-state: paused !important;
+}
+body.is-desk-paused .vital-card.is-healthy {
+  animation-play-state: paused !important;
+}
+
+@keyframes beam-fire {
+  0% { opacity: 0; stroke-dasharray: 0 200; stroke-dashoffset: 0; }
+  15% { opacity: 1; }
+  55% { opacity: 1; stroke-dasharray: 200 0; }
+  100% { opacity: 0; stroke-dasharray: 200 0; }
+}
+@keyframes link-pulse {
+  0%, 100% { opacity: 0.25; stroke-dashoffset: 0; }
+  50% { opacity: 0.85; stroke-dashoffset: -22; }
+}
+@keyframes node-fade {
+  0%, 100% { opacity: 0.35; r: 2.5; }
+  50% { opacity: 0.95; r: 3.5; }
+}
+@keyframes desk-ripple {
+  0% { opacity: 0.7; transform: scale(0.4); }
+  100% { opacity: 0; transform: scale(7.5); }
+}
+@keyframes monitor-flash {
+  0% { filter: brightness(1); }
+  30% { filter: brightness(1.45); }
+  100% { filter: brightness(1); }
+}
+@keyframes console-flash {
+  0% { filter: brightness(1); }
+  35% { filter: brightness(1.12); }
+  100% { filter: brightness(1); }
+}
+@keyframes console-learn {
+  0% { box-shadow: 0 24px 50px rgba(0,0,0,0.28); }
+  40% { box-shadow: 0 24px 50px rgba(0,0,0,0.28), 0 0 0 1px rgba(168,85,247,0.4), 0 0 24px rgba(168,85,247,0.18); }
+  100% { box-shadow: 0 24px 50px rgba(0,0,0,0.28); }
+}
+@keyframes pnl-pulse {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.02); }
+  100% { transform: scale(1); }
+}
+@keyframes vital-heartbeat {
+  0%, 100% { box-shadow: 0 1px 0 rgba(255,255,255,0.95) inset, 0 18px 40px rgba(15,23,42,0.08), 0 4px 12px rgba(15,23,42,0.05); }
+  40% { box-shadow: 0 1px 0 rgba(255,255,255,0.95) inset, 0 18px 40px rgba(16,185,129,0.12), 0 0 0 1px rgba(16,185,129,0.2); }
+  55% { box-shadow: 0 1px 0 rgba(255,255,255,0.95) inset, 0 18px 40px rgba(15,23,42,0.08), 0 4px 12px rgba(15,23,42,0.05); }
+  70% { box-shadow: 0 1px 0 rgba(255,255,255,0.95) inset, 0 18px 40px rgba(16,185,129,0.1), 0 0 0 1px rgba(16,185,129,0.15); }
+}
+@keyframes guard-vigil {
+  0%, 100% { transform: scale(var(--bot-scale)) translateY(0) rotate(0deg); }
+  50% { transform: scale(var(--bot-scale)) translateY(-3px) rotate(-1.5deg); }
+}
+@keyframes study-monitor {
+  0%, 100% { transform: scale(var(--bot-scale)) translateY(0) rotate(0deg); }
+  40% { transform: scale(var(--bot-scale)) translateY(-5px) rotate(6deg) translateX(4px); }
+  70% { transform: scale(var(--bot-scale)) translateY(-2px) rotate(3deg); }
+}
+@keyframes study-peer {
+  0%, 100% { transform: scale(var(--bot-scale)) translateY(0) rotate(0deg); }
+  50% { transform: scale(var(--bot-scale)) translateY(-4px) rotate(-5deg) translateX(-3px); }
+}
+@keyframes trader-fire {
+  0% { transform: scale(var(--bot-scale)) translateY(0); }
+  40% { transform: scale(calc(var(--bot-scale) * 1.08)) translateY(-8px); }
+  100% { transform: scale(var(--bot-scale)) translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .desk-fx .fx-beam,
+  .desk-fx .fx-link,
+  .desk-fx .fx-node,
+  .desk-ripple,
+  .desk-floor.is-trade-flash .monitor-screen,
+  .activity-console.is-trade-flash,
+  .activity-console.is-learn-flash,
+  .vital-card.is-pnl-pulse,
+  .vital-card.is-healthy,
+  .bot[data-bot="portfolio-guard"].guard-alert .bot-figure,
+  .bot.is-study-monitor .bot-figure,
+  .bot.is-study-peer .bot-figure,
+  .bot[data-bot="solana-trader"].is-firing .bot-figure {
+    animation: none !important;
+  }
+}

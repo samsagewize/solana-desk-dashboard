@@ -1,5 +1,11 @@
 /* Art upgrade — premium white desk depth (overrides / extends styles.css) */
 :root {
+  /* Reference accents: Coach purple, Trader green, Scout blue, Guard amber */
+  --c-coach: #a855f7;
+  --c-trader: #10b981;
+  --c-scout: #38bdf8;
+  --c-guard: #f59e0b;
+  --c-grok: #6366f1;
   --bg: #eef0f4;
   --bg-soft: #f7f8fa;
   --bg-card: rgba(255, 255, 255, 0.78);

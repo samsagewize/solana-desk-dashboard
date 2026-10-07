@@ -11,6 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/styles.css" />
   <link rel="stylesheet" href="css/art.css" />
+  <link rel="stylesheet" href="css/motion.css" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='4' fill='%23ffffff' stroke='%23d4d4d4'/%3E%3Crect x='10' y='10' width='12' height='12' rx='2' fill='%23171717'/%3E%3C/svg%3E" />
 </head>
 <body>
@@ -82,6 +83,8 @@
           <div class="desk-pad"></div>
         </div>
         <div class="bots" id="bots"></div>
+        <svg class="desk-fx" id="desk-fx" aria-hidden="true"></svg>
+        <div class="desk-ripple" id="desk-ripple" hidden aria-hidden="true"></div>
         <div id="bot-tooltip" class="bot-tooltip glass-lift" hidden role="tooltip"></div>
       </div>
     </section>
@@ -128,13 +131,13 @@
     </section>
 
     <section class="cards" aria-label="Desk summary">
-      <article class="card glass-lift" id="card-wallet">
+      <article class="card glass-lift vital-card" id="card-wallet">
         <h2>Trading wallet</h2>
         <div class="card-body" id="wallet-body">
           <p class="muted">Loading…</p>
         </div>
       </article>
-      <article class="card glass-lift" id="card-pnl">
+      <article class="card glass-lift vital-card" id="card-pnl">
         <h2>Trading PnL</h2>
         <div class="card-body" id="pnl-body">
           <p class="muted">Loading…</p>

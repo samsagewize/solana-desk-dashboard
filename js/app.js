@@ -164,6 +164,9 @@
   let streamSeq = 0;
   let reduceMotion = false;
   let savedActiveBotId = null;
+  let idleStudyTimer = null;
+  let learnFxTimer = null;
+  let motionBooted = false;
 
   const $ = (sel, el = document) => el.querySelector(sel);
 
@@ -773,6 +776,7 @@
       </div>
       <div class="sub" style="margin-top:0.35rem">${escapeHtml(pnl?.goalLabel || "Positive-PnL mode")}</div>
     `;
+    syncVitalCards(pnl);
   }
 
   function renderCaps(caps) {
@@ -798,21 +802,40 @@
     return e.id || `${e.ts}|${e.bot}|${e.title}`;
   }
 
+  function classifyEvent(e) {
+    const blob = `${e?.title || ""} ${e?.message || ""} ${(e?.tags || []).join(" ")} ${e?.level || ""}`.toLowerCase();
+    const bot = e?.bot || "";
+    const isTrade =
+      /\b(buy|sell|fill|filled|execut|trade|order)\b/.test(blob) ||
+      (e?.level === "signal" && bot === "solana-trader") ||
+      (e?.tags || []).some((t) => /buy|sell|fill|trade/i.test(t));
+    const isLearn =
+      bot === "coach-bot" ||
+      /\b(learn|lesson|coach|review|mistak)/.test(blob) ||
+      (e?.tags || []).some((t) => /learn|coach|review|lesson/i.test(t));
+    return { isTrade, isLearn };
+  }
+
   function buildFeedItem(e, opts) {
     const fresh = opts?.fresh ? " fresh" : "";
     const level = e.level ? ` level-${escapeHtml(e.level)}` : "";
     const botClass = escapeHtml(e.bot || "");
+    const kind = classifyEvent(e);
+    const kindClass = kind.isTrade ? " is-trade" : kind.isLearn ? " is-learn" : "";
     const msg = e.message
       ? `<span class="line-msg">${escapeHtml(e.message)}</span>`
+      : "";
+    const learnBadge = kind.isLearn
+      ? `<span class="line-level learn-tag">LEARN</span>`
       : "";
     const levelBadge = e.level
       ? `<span class="line-level">${escapeHtml(e.level)}</span>`
       : "";
-    return `<li class="${fresh}${level}" data-eid="${escapeHtml(eventKey(e))}">
+    return `<li class="${fresh}${level}${kindClass}" data-eid="${escapeHtml(eventKey(e))}">
       <span class="ts">${escapeHtml(fmtTimeCompact(e.ts))}</span>
       <span class="bot-tag ${botClass}">${escapeHtml(botShort(e.bot))}</span>
       <span class="line-body">
-        <span class="line-title">${escapeHtml(e.title || "event")}</span>${levelBadge}
+        <span class="line-title">${escapeHtml(e.title || "event")}</span>${learnBadge}${levelBadge}
         ${msg}
       </span>
     </li>`;
@@ -856,6 +879,9 @@
           ? `<li class="cursor-line" aria-hidden="true">[${botShort(activeBotId)}] working</li>`
           : "");
 
+    const freshEvents = isFirstPaint
+      ? []
+      : list.filter((e) => !prevIds.has(eventKey(e)));
     knownEventIds = nextIds;
     if (countEl) {
       countEl.textContent =
@@ -866,6 +892,15 @@
       if (viewport) viewport.scrollTop = 0;
     } else if (stickBottom && viewport) {
       viewport.scrollTop = 0; // newest at top — stay at top on refresh
+    }
+
+    if (!isFirstPaint && freshEvents.length) {
+      reactToEvents(freshEvents);
+    } else if (isFirstPaint && list.length && !motionBooted) {
+      motionBooted = true;
+      // Soft boot cue from newest persisted event
+      const top = list.find((e) => !e._ephemeral) || list[0];
+      if (top) reactToEvents([top], { soft: true });
     }
   }
 
@@ -979,6 +1014,12 @@
     }
     if (floor) floor.classList.toggle("is-desk-paused", deskPaused);
     if (consoleEl) consoleEl.classList.toggle("is-desk-paused", deskPaused);
+    document.body.classList.toggle("is-desk-paused", deskPaused);
+    if (deskPaused) {
+      clearTradeFx();
+      clearLearnFx();
+      clearIdleStudy();
+    }
     const live = $("#console-live");
     if (live && deskPaused) {
       live.textContent = "PAUSED";
@@ -1250,6 +1291,214 @@
     }
   }
 
+
+  function deskPoint(el, floor) {
+    if (!el || !floor) return null;
+    const a = el.getBoundingClientRect();
+    const b = floor.getBoundingClientRect();
+    return {
+      x: a.left - b.left + a.width / 2,
+      y: a.top - b.top + a.height * 0.35,
+    };
+  }
+
+  function ensureFxSvg() {
+    const svg = $("#desk-fx");
+    if (!svg) return null;
+    if (!svg.querySelector("#beamGrad")) {
+      svg.innerHTML = `
+        <defs>
+          <linearGradient id="beamGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#34d399"/>
+            <stop offset="100%" stop-color="#6ee7b7"/>
+          </linearGradient>
+        </defs>`;
+    }
+    return svg;
+  }
+
+  function clearTradeFx() {
+    const floor = $("#desk-floor");
+    const cons = $(".activity-console");
+    const ripple = $("#desk-ripple");
+    const svg = $("#desk-fx");
+    floor?.classList.remove("is-trade-flash");
+    cons?.classList.remove("is-trade-flash");
+    ripple?.classList.remove("is-on");
+    if (ripple) ripple.hidden = true;
+    $$bots($("#bots") || document).forEach((b) => b.classList.remove("is-firing"));
+    svg?.querySelectorAll(".fx-beam").forEach((n) => n.remove());
+    $("#card-pnl")?.classList.remove("is-pnl-pulse");
+    $("#card-wallet")?.classList.remove("is-pnl-pulse");
+  }
+
+  function clearLearnFx() {
+    if (learnFxTimer) {
+      clearTimeout(learnFxTimer);
+      learnFxTimer = null;
+    }
+    const cons = $(".activity-console");
+    cons?.classList.remove("is-learn-flash");
+    $$bots($("#bots") || document).forEach((b) => b.classList.remove("coach-glow"));
+    const svg = $("#desk-fx");
+    svg?.querySelectorAll(".fx-link,.fx-node").forEach((n) => n.remove());
+  }
+
+  function playTradeFx(soft) {
+    if (reduceMotion || deskPaused) return;
+    const floor = $("#desk-floor");
+    const trader = document.querySelector('.bot[data-bot="solana-trader"]');
+    const monitor = floor?.querySelector(".desk-monitor") || floor?.querySelector(".monitor-screen");
+    const svg = ensureFxSvg();
+    if (!floor || !trader || !monitor || !svg) return;
+
+    clearTradeFx();
+    const from = deskPoint(trader, floor);
+    const to = deskPoint(monitor, floor);
+    if (!from || !to) return;
+
+    const line = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    const mx = (from.x + to.x) / 2;
+    const my = Math.min(from.y, to.y) - 28;
+    line.setAttribute(
+      "d",
+      `M ${from.x.toFixed(1)} ${from.y.toFixed(1)} Q ${mx.toFixed(1)} ${my.toFixed(1)} ${to.x.toFixed(1)} ${to.y.toFixed(1)}`
+    );
+    line.setAttribute("class", "fx-beam is-on");
+    svg.appendChild(line);
+
+    trader.classList.add("is-firing");
+    floor.classList.add("is-trade-flash");
+    $(".activity-console")?.classList.add("is-trade-flash");
+    const ripple = $("#desk-ripple");
+    if (ripple) {
+      ripple.hidden = false;
+      ripple.classList.remove("is-on");
+      void ripple.offsetWidth;
+      ripple.classList.add("is-on");
+    }
+    if (!soft) {
+      $("#card-pnl")?.classList.add("is-pnl-pulse");
+      $("#card-wallet")?.classList.add("is-pnl-pulse");
+    }
+    setTimeout(clearTradeFx, soft ? 700 : 1000);
+  }
+
+  function playLearnFx(soft) {
+    if (reduceMotion || deskPaused) return;
+    const floor = $("#desk-floor");
+    const svg = ensureFxSvg();
+    const coach = document.querySelector('.bot[data-bot="coach-bot"]');
+    if (!floor || !svg || !coach) return;
+
+    clearLearnFx();
+    const peers = ["solana-scout", "solana-trader", "portfolio-guard"]
+      .map((id) => document.querySelector(`.bot[data-bot="${id}"]`))
+      .filter(Boolean);
+    const c = deskPoint(coach, floor);
+    if (!c) return;
+
+    coach.classList.add("coach-glow");
+    $(".activity-console")?.classList.add("is-learn-flash");
+
+    for (const peer of peers) {
+      const p = deskPoint(peer, floor);
+      if (!p) continue;
+      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      const mx = (c.x + p.x) / 2;
+      const my = (c.y + p.y) / 2 - 16;
+      path.setAttribute(
+        "d",
+        `M ${c.x.toFixed(1)} ${c.y.toFixed(1)} Q ${mx.toFixed(1)} ${my.toFixed(1)} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`
+      );
+      path.setAttribute("class", "fx-link is-on");
+      svg.appendChild(path);
+      const node = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+      node.setAttribute("cx", p.x.toFixed(1));
+      node.setAttribute("cy", p.y.toFixed(1));
+      node.setAttribute("r", "3");
+      node.setAttribute("class", "fx-node is-on");
+      svg.appendChild(node);
+    }
+    const hub = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    hub.setAttribute("cx", c.x.toFixed(1));
+    hub.setAttribute("cy", c.y.toFixed(1));
+    hub.setAttribute("r", "4");
+    hub.setAttribute("class", "fx-node is-on");
+    svg.appendChild(hub);
+
+    learnFxTimer = setTimeout(clearLearnFx, soft ? 1600 : 2800);
+  }
+
+  function reactToEvents(events, opts) {
+    if (!events?.length || deskPaused || reduceMotion) return;
+    const soft = !!(opts && opts.soft);
+    let trade = false;
+    let learn = false;
+    for (const e of events) {
+      const k = classifyEvent(e);
+      if (k.isTrade) trade = true;
+      if (k.isLearn) learn = true;
+    }
+    if (trade) playTradeFx(soft);
+    if (learn) playLearnFx(soft);
+  }
+
+  function syncVitalCards(pnl) {
+    const day = pnl?.dayPnlUsd;
+    const wallet = $("#card-wallet");
+    const card = $("#card-pnl");
+    for (const el of [wallet, card]) {
+      if (!el) continue;
+      el.classList.remove("is-healthy", "is-warn");
+      if (day == null || Number.isNaN(Number(day))) continue;
+      if (Number(day) < 0) el.classList.add("is-warn");
+      else el.classList.add("is-healthy");
+    }
+  }
+
+  function clearIdleStudy() {
+    $$bots($("#bots") || document).forEach((b) => {
+      b.classList.remove("is-study-monitor", "is-study-peer");
+    });
+  }
+
+  function runIdleStudyTick() {
+    if (deskPaused || reduceMotion) return;
+    clearIdleStudy();
+    const bots = $$bots($("#bots") || document);
+    if (!bots.length) return;
+    // Guard always alert
+    const guard = document.querySelector('.bot[data-bot="portfolio-guard"]');
+    guard?.classList.add("guard-alert");
+
+    const scanners = bots.filter((b) => b.dataset.bot !== "portfolio-guard");
+    if (!scanners.length) return;
+    const pick = scanners[Math.floor(Math.random() * scanners.length)];
+    const mode = Math.random() > 0.45 ? "monitor" : "peer";
+    if (mode === "monitor") {
+      pick.classList.add("is-study-monitor");
+    } else {
+      pick.classList.add("is-study-peer");
+      const others = scanners.filter((b) => b !== pick);
+      if (others.length) {
+        others[Math.floor(Math.random() * others.length)].classList.add("is-study-peer");
+      }
+    }
+    setTimeout(() => {
+      if (!deskPaused) clearIdleStudy();
+    }, 3200);
+  }
+
+  function scheduleIdleStudy() {
+    if (idleStudyTimer) clearInterval(idleStudyTimer);
+    if (reduceMotion) return;
+    document.querySelector('.bot[data-bot="portfolio-guard"]')?.classList.add("guard-alert");
+    idleStudyTimer = setInterval(runIdleStudyTick, 7000);
+    setTimeout(runIdleStudyTick, 1800);
+  }
+
+
   function bindParallax() {
     const floor = $("#desk-floor");
     if (!floor || reduceMotion) return;
@@ -1278,6 +1527,7 @@
     });
     await refresh();
     scheduleBotRotation();
+    scheduleIdleStudy();
     setInterval(refresh, REFRESH_MS);
   }
 
