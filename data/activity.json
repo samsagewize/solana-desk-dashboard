@@ -2,7 +2,7 @@
   "meta": {
     "mode": "live",
     "label": "LIVE \u2014 $3k goal meter \u00b7 SI+NTDA+baton \u00b7 TP/skim armed \u00b7 99hEn\u2026",
-    "updatedAt": "2026-10-07T04:48:53.968Z",
+    "updatedAt": "2026-10-07T05:23:04.949Z",
     "bots": [
       "grok-bot",
       "solana-scout",
@@ -11,7 +11,7 @@
       "coach-bot"
     ],
     "owner": "Christian Sanchez",
-    "notes": "First goal $3000 SOL+USDC: stack $5.73 (0.19%). Risk: \u226410\u201315% free SOL/trade; 50% win skim USDC; compound rest. Profit USDC $0. Holdings SI 243.68 \u00b7 NTDA 368.17 \u00b7 baton 226.52."
+    "notes": "CATCRAFT IDEA-007 303.02109 @ ~0.00195 (~0.005 SOL / $0.5909). Baton sold sale-funded. Book tracks live RPC + activity marks."
   },
   "riskCaps": {
     "mode": "positive_pnl_take_profit",
@@ -48,9 +48,9 @@
       0.07,
       0.1
     ],
-    "solBalance": 0.048475491,
+    "solBalance": 0.069434,
     "solPriceUsd": 118.18,
-    "solUsd": 5.7288,
+    "solUsd": 8.2057,
     "usdcBalance": 0,
     "profitUsdc": 0.0,
     "siBalance": 243.682305,
@@ -61,7 +61,7 @@
     "ntdaCostUsd": 4.5,
     "ntdaMark": 0.01216,
     "ntdaMarkUsd": 4.477,
-    "batonBalance": 226.524211,
+    "batonBalance": 0,
     "batonCostUsd": 2.66,
     "batonMark": 0.0108,
     "batonMarkUsd": 2.4465,
@@ -72,13 +72,13 @@
         "symbol": "SOL",
         "mint": "So11111111111111111111111111111111111111112",
         "kind": "native",
-        "qty": 0.048475491,
+        "qty": 0.069434,
         "decimals": 9,
         "priceUsd": 118.18,
-        "valueUsd": 5.7288,
+        "valueUsd": 8.2057,
         "costUsd": null,
         "label": "Free SOL cash",
-        "displayQty": "0.048475",
+        "displayQty": "0.069434",
         "displayLabel": "Free SOL"
       },
       {
@@ -124,26 +124,21 @@
         "displayLabel": "NTDA held"
       },
       {
-        "symbol": "baton",
-        "name": "baton",
-        "mint": "Hg5Ja55T5wESq4vyFoiVCMeHXtGyVA69X2UHq8hgpump",
+        "symbol": "CATCRAFT",
+        "name": "CATCRAFT",
+        "mint": "ADPN2aqzY5RhkBC7bNQWFhTFFEYKY4drHUQG887Cpump",
         "kind": "token2022",
-        "qty": 226.524211,
+        "qty": 303.02109,
         "decimals": 6,
-        "priceUsd": 0.0108,
-        "valueUsd": 2.4465,
-        "costUsd": 2.66,
-        "entry": 0.01174,
-        "stop": 0.00939,
-        "tp1": 0.01468,
-        "tp2": 0.01761,
-        "tp1SkimPct": 50,
-        "afterTp1": "be_stop",
-        "unrealizedUsd": -0.2135,
-        "label": "baton \u00b7 Token-2022",
-        "fillSig": "54dS3yLZL9qtwCYw\u2026",
-        "displayQty": "226.52",
-        "displayLabel": "baton held"
+        "priceUsd": 0.00195,
+        "valueUsd": 0.5909,
+        "costUsd": 0.5909,
+        "entry": 0.00195,
+        "unrealizedUsd": 0,
+        "label": "CATCRAFT \u00b7 Token-2022 \u00b7 IDEA-007",
+        "displayQty": "303.02",
+        "displayLabel": "CATCRAFT held",
+        "fillSig": "2tutLSfxDc7ndcKYgeTtcpkihLAJbfsVf4w3AXe9hd1YPCng3dT6QKiuWd85mRSVsd2HULXhY6eCaP6UQXjCPk86"
       }
     ],
     "openIdea": "IDEA-001 SI \u00b7 IDEA-002 NTDA \u00b7 IDEA-003 baton",
@@ -153,7 +148,11 @@
     "cashThin": true,
     "note": "Funded 0.17 SOL \u00b7 free 0.048475 SOL \u00b7 SI 243.68 \u00b7 NTDA 368.17 \u00b7 baton 226.52 \u00b7 equity $19.11",
     "solUsdcStackUsd": 5.73,
-    "firstGoalUsd": 3000.0
+    "firstGoalUsd": 3000.0,
+    "catcraftBalance": 303.02109,
+    "catcraftCostUsd": 0.5909,
+    "catcraftMark": 0.00195,
+    "catcraftMarkUsd": 0.5909
   },
   "bots": [
     {
@@ -389,10 +388,10 @@
       "stop": 0.00939,
       "tp1": 0.01468,
       "tp2": 0.01761,
-      "status": "open",
+      "status": "closed",
       "idea": "IDEA-003",
       "mint": "Hg5Ja55T5wESq4vyFoiVCMeHXtGyVA69X2UHq8hgpump",
-      "note": "IDEA-003 \u00b7 baton fill \u00b7 TP 50% skim armed",
+      "note": "Closed via sell \u00b7 funded CATCRAFT \u00b7 realized $ not confirmed in activity.json",
       "fills": [
         {
           "usd": 2.66,
@@ -400,6 +399,33 @@
           "sol": 0.022513135,
           "tx": "54dS3yLZL9qtwCYwURauQ6GD9cX517G3wN2a7dcnUVfBcBA7CaCj3Kh2iAWmf7NxfPDAYfD1E9NiC4XEKTqqH2kk",
           "ts": "2026-10-07T04:47:13.851Z"
+        }
+      ],
+      "closedReason": "sold_sale_funded",
+      "closeSig": "2Cg4ob2hYwakchqYia3upmme8FbycYdjgoiykSoTWe9Zwm8kkEYLyDn2HxFPC8PeQ4VMXWo2DDR1xipJ59e8ds92"
+    },
+    {
+      "id": "pos-catcraft-007",
+      "symbol": "CATCRAFT",
+      "name": "CATCRAFT",
+      "side": "long",
+      "qty": 303.02109,
+      "costUsd": 0.5909,
+      "entry": 0.00195,
+      "markPrice": 0.00195,
+      "markUsd": 0.5909,
+      "unrealizedUsd": 0,
+      "status": "open",
+      "mint": "ADPN2aqzY5RhkBC7bNQWFhTFFEYKY4drHUQG887Cpump",
+      "idea": "IDEA-007",
+      "note": "IDEA-007 \u00b7 sale-funded from baton \u00b7 ~0.005 SOL",
+      "fills": [
+        {
+          "usd": 0.5909,
+          "qty": 303.02109,
+          "sol": 0.005,
+          "tx": "2tutLSfxDc7ndcKYgeTtcpkihLAJbfsVf4w3AXe9hd1YPCng3dT6QKiuWd85mRSVsd2HULXhY6eCaP6UQXjCPk86",
+          "ts": "2026-10-07T05:20:30Z"
         }
       ]
     }
@@ -425,7 +451,7 @@
     "ntdaMark": 0.01216,
     "ntdaMarkUsd": 4.477,
     "ntdaCostUsd": 4.5,
-    "batonQty": 226.524211,
+    "batonQty": 0,
     "batonMark": 0.0108,
     "batonMarkUsd": 2.4465,
     "batonCostUsd": 2.66,
@@ -551,7 +577,11 @@
     "mode": "positive_pnl_take_profit",
     "goalTargetUsd": 3000.0,
     "goalCurrentUsd": 5.73,
-    "goalProgressPct": 0.191
+    "goalProgressPct": 0.191,
+    "catcraftQty": 303.02109,
+    "catcraftCostUsd": 0.5909,
+    "catcraftMark": 0.00195,
+    "catcraftMarkUsd": 0.5909
   },
   "watchlist": [
     {
@@ -664,7 +694,14 @@
         "baton"
       ],
       "source": "chain",
-      "signature": "2Cg4ob2hYwakchqYia3upmme8FbycYdjgoiykSoTWe9Zwm8kkEYLyDn2HxFPC8PeQ4VMXWo2DDR1xipJ59e8ds92"
+      "signature": "2Cg4ob2hYwakchqYia3upmme8FbycYdjgoiykSoTWe9Zwm8kkEYLyDn2HxFPC8PeQ4VMXWo2DDR1xipJ59e8ds92",
+      "symbol": "baton",
+      "side": "sell",
+      "mint": "Hg5Ja55T5wESq4vyFoiVCMeHXtGyVA69X2UHq8hgpump",
+      "qty": 226.524211,
+      "costUsd": 2.66,
+      "status": "closed",
+      "note": "Sale-funded CATCRAFT rotate \u00b7 realized $ not confirmed in feed"
     },
     {
       "id": "tx-2tutLSfx-catcraft-buy",
@@ -684,7 +721,13 @@
       "signature": "2tutLSfxDc7ndcKYgeTtcpkihLAJbfsVf4w3AXe9hd1YPCng3dT6QKiuWd85mRSVsd2HULXhY6eCaP6UQXjCPk86",
       "mint": "ADPN2aqzY5RhkBC7bNQWFhTFFEYKY4drHUQG887Cpump",
       "qty": 303.02109,
-      "solSpent": 0.005
+      "solSpent": 0.005,
+      "symbol": "CATCRAFT",
+      "side": "buy",
+      "costUsd": 0.5909,
+      "entry": 0.00195,
+      "idea": "IDEA-007",
+      "status": "open"
     },
     {
       "id": "evt-043",

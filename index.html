@@ -171,7 +171,7 @@
       <div class="pnl-chart-head">
         <div>
           <h2>Live equity · bot token holder</h2>
-          <p class="pnl-chart-sub">99hEn…Hw92j · RPC marks only · step chart · 1m / 5m / 1h</p>
+          <p class="pnl-chart-sub">99hEn…Hw92j · live fill bubbles · real tx time · 1m / 5m / 1h</p>
         </div>
         <div class="pnl-chart-meta">
           <div class="pnl-tf" id="pnl-tf" role="group" aria-label="Chart timeframe">
@@ -184,12 +184,17 @@
         </div>
       </div>
       <div class="pnl-chart-wrap">
-        <svg id="pnl-chart" class="pnl-chart" viewBox="0 0 640 180" role="img" aria-label="Equity over time"></svg>
+        <svg id="pnl-chart" class="pnl-chart" viewBox="0 0 640 180" role="img" aria-label="Equity over time with live fill bubbles"></svg>
       </div>
       <div class="holdings-block" aria-label="Tokens held by bot wallet">
         <div class="holdings-head">
           <h3>Tokens held</h3>
-          <span id="holdings-total" class="holdings-total">—</span>
+          <div class="holdings-head-actions">
+            <button type="button" id="btn-leader-trades" class="btn btn-ghost btn-leader" title="Best / leader trades this bot made">
+              Leader trades
+            </button>
+            <span id="holdings-total" class="holdings-total">—</span>
+          </div>
         </div>
         <div id="holdings-table" class="holdings-table">
           <p class="muted">Loading holdings…</p>
@@ -205,6 +210,24 @@
         </div>
       </div>
     </section>
+
+
+    <!-- Leader / best trades panel — real fills only, never invents wins -->
+    <div id="leader-modal" class="leader-modal" hidden aria-hidden="true">
+      <div class="leader-backdrop" data-leader-close="1"></div>
+      <div class="leader-panel glass-lift" role="dialog" aria-modal="true" aria-labelledby="leader-title">
+        <div class="leader-chrome">
+          <div>
+            <h2 id="leader-title">Leader trades</h2>
+            <p class="leader-sub">Best closed / realized fills from activity.json · bot book only · no synthetic wins</p>
+          </div>
+          <button type="button" id="btn-leader-close" class="btn btn-ghost" data-leader-close="1" aria-label="Close">Close</button>
+        </div>
+        <div id="leader-body" class="leader-body">
+          <p class="muted">Loading…</p>
+        </div>
+      </div>
+    </div>
 
     <footer class="footer">
       <span id="data-updated">—</span>

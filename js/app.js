@@ -197,6 +197,8 @@
   let lastChainSigs = []; // last ~25 getSignaturesForAddress rows
   let chainPollBusy = false;
   let lastHoldingsSnap = "";
+  /** Prior move% by mint/symbol — flash when tick changes */
+  let lastMovePctByKey = {};
   let chartTf = "5m";
   const CHART_TF_KEY = "solana-desk-chart-tf";
   const TF_MS = { "1m": 60_000, "5m": 300_000, "1h": 3_600_000 };
@@ -209,6 +211,31 @@
   let lastLiveEquityUsd = null; // last equity from live SOL/token RPC
   let liveEquityReady = false; // after first successful live holdings mark
   const TX_STORE_KEY = "solana-desk-txsigs-99hEn";
+
+  /** Curated live fills to always surface on the equity chart (real sigs + blockTimes) */
+  const KNOWN_FILLS = [
+    {
+      signature: "2Cg4ob2hYwakchqYia3upmme8FbycYdjgoiykSoTWe9Zwm8kkEYLyDn2HxFPC8PeQ4VMXWo2DDR1xipJ59e8ds92",
+      symbol: "baton",
+      side: "sell",
+      mint: "Hg5Ja55T5wESq4vyFoiVCMeHXtGyVA69X2UHq8hgpump",
+      blockTime: 1791350459,
+      label: "fill mark · baton sell",
+    },
+    {
+      signature: "2tutLSfxDc7ndcKYgeTtcpkihLAJbfsVf4w3AXe9hd1YPCng3dT6QKiuWd85mRSVsd2HULXhY6eCaP6UQXjCPk86",
+      symbol: "CATCRAFT",
+      side: "buy",
+      mint: "ADPN2aqzY5RhkBC7bNQWFhTFFEYKY4drHUQG887Cpump",
+      qty: 303.02109,
+      solSpent: 0.005,
+      blockTime: 1791350484,
+      label: "fill mark · CATCRAFT buy",
+    },
+  ];
+  const KNOWN_FILL_BY_SIG = Object.fromEntries(
+    KNOWN_FILLS.map((f) => [f.signature, f])
+  );
 
   const $ = (sel, el = document) => el.querySelector(sel);
 
@@ -900,16 +927,51 @@
       });
     }
     if (w.batonBalance != null || p.batonQty != null) {
-      rows.push({
-        symbol: "baton",
-        mint: "Hg5Ja55T5wESq4vyFoiVCMeHXtGyVA69X2UHq8hgpump",
-        label: "baton · Token-2022",
-        kind: "token2022",
-        qty: Number(w.batonBalance ?? p.batonQty),
-        priceUsd: w.batonMark ?? p.batonMark,
-        valueUsd: w.batonMarkUsd ?? p.batonMarkUsd,
-        costUsd: w.batonCostUsd ?? p.batonCostUsd,
-      });
+      const bq = Number(w.batonBalance ?? p.batonQty);
+      if (bq > 0) {
+        rows.push({
+          symbol: "baton",
+          mint: "Hg5Ja55T5wESq4vyFoiVCMeHXtGyVA69X2UHq8hgpump",
+          label: "baton · Token-2022",
+          kind: "token2022",
+          qty: bq,
+          priceUsd: w.batonMark ?? p.batonMark,
+          valueUsd: w.batonMarkUsd ?? p.batonMarkUsd,
+          costUsd: w.batonCostUsd ?? p.batonCostUsd,
+        });
+      }
+    }
+    if (w.catcraftBalance != null || p.catcraftQty != null) {
+      const cq = Number(w.catcraftBalance ?? p.catcraftQty);
+      if (cq > 0) {
+        rows.push({
+          symbol: "CATCRAFT",
+          mint: "ADPN2aqzY5RhkBC7bNQWFhTFFEYKY4drHUQG887Cpump",
+          label: "CATCRAFT · Token-2022",
+          kind: "token2022",
+          qty: cq,
+          priceUsd: w.catcraftMark ?? p.catcraftMark,
+          valueUsd: w.catcraftMarkUsd ?? p.catcraftMarkUsd,
+          costUsd: w.catcraftCostUsd ?? p.catcraftCostUsd,
+          entry: w.catcraftEntry ?? p.catcraftEntry,
+        });
+      }
+    }
+    if (w.gomoBalance != null || p.gomoQty != null) {
+      const gq = Number(w.gomoBalance ?? p.gomoQty);
+      if (gq > 0) {
+        rows.push({
+          symbol: "GOMO",
+          mint: "9XKzy4KahcZaGJPJtz1PtqGPB3CiseoBrx7TcQhEpump",
+          label: "GOMO · Token-2022",
+          kind: "token2022",
+          qty: gq,
+          priceUsd: w.gomoMark ?? p.gomoMark,
+          valueUsd: w.gomoMarkUsd ?? p.gomoMarkUsd,
+          costUsd: w.gomoCostUsd ?? p.gomoCostUsd,
+          entry: w.gomoEntry ?? p.gomoEntry,
+        });
+      }
     }
     return rows;
   }
@@ -1054,11 +1116,109 @@
     `;
   }
 
+  function price24hPct(symbol) {
+    const prices = state?.prices || [];
+    const row = prices.find((p) => p.symbol === symbol);
+    if (row == null || row.change24hPct == null) return null;
+    const n = Number(row.change24hPct);
+    return Number.isNaN(n) ? null : n;
+  }
+
+  function holdingMovePct(h) {
+    if (!h) return { pct: null, kind: null };
+    const qty = Number(h.qty);
+    let value = h.valueUsd;
+    if (value == null && h.priceUsd != null && !Number.isNaN(qty)) {
+      value = qty * Number(h.priceUsd);
+    }
+    const cost = h.costUsd != null ? Number(h.costUsd) : null;
+    if (cost != null && cost > 0 && value != null && !Number.isNaN(Number(value))) {
+      return {
+        pct: ((Number(value) - cost) / cost) * 100,
+        kind: "uPnL",
+      };
+    }
+    const entry = h.entry != null ? Number(h.entry) : null;
+    const mark = h.priceUsd != null ? Number(h.priceUsd) : null;
+    if (entry != null && entry > 0 && mark != null && !Number.isNaN(mark)) {
+      return {
+        pct: ((mark - entry) / entry) * 100,
+        kind: "vs entry",
+      };
+    }
+    const d24 = price24hPct(h.symbol);
+    if (d24 != null) {
+      return { pct: d24, kind: "24h" };
+    }
+    if (h.unrealizedUsd != null && cost != null && cost > 0) {
+      return {
+        pct: (Number(h.unrealizedUsd) / cost) * 100,
+        kind: "uPnL",
+      };
+    }
+    return { pct: null, kind: null };
+  }
+
+  function movePctHtml(h) {
+    const { pct, kind } = holdingMovePct(h);
+    const key = h.mint || h.symbol || "?";
+    if (pct == null || Number.isNaN(pct)) {
+      return `<span class="move-pct flat" title="No mark/cost yet">—</span>`;
+    }
+    const cls = pct > 0.005 ? "pos" : pct < -0.005 ? "neg" : "flat";
+    const prev = lastMovePctByKey[key];
+    const flashed =
+      prev != null && Math.abs(prev - pct) >= 0.01 ? " is-tick" : "";
+    lastMovePctByKey[key] = pct;
+    const sign = pct > 0 ? "+" : "";
+    const lab = kind ? escapeHtml(kind) : "move";
+    return `<span class="move-pct ${cls}${flashed}" title="${lab}">${sign}${pct.toFixed(2)}%<span class="move-kind">${lab}</span></span>`;
+  }
+
+  function enrichHoldingFromBook(h) {
+    if (!h) return h;
+    const positions = state?.positions || [];
+    const pos = positions.find(
+      (p) =>
+        p.status !== "closed" &&
+        ((h.mint && p.mint === h.mint) || p.symbol === h.symbol)
+    );
+    const fileHold =
+      (state?.wallet?.holdings || []).find(
+        (x) => (h.mint && x.mint === h.mint) || x.symbol === h.symbol
+      ) ||
+      (state?.pnl?.holdings || []).find(
+        (x) => (h.mint && x.mint === h.mint) || x.symbol === h.symbol
+      );
+    const src = pos || fileHold || {};
+    const out = { ...h };
+    if (out.costUsd == null && src.costUsd != null) out.costUsd = src.costUsd;
+    if (out.entry == null && (src.entry != null || src.markPrice != null)) {
+      out.entry = src.entry ?? null;
+    }
+    if (out.unrealizedUsd == null && src.unrealizedUsd != null) {
+      out.unrealizedUsd = src.unrealizedUsd;
+    }
+    if (out.priceUsd == null && (src.markPrice != null || src.priceUsd != null)) {
+      out.priceUsd = src.markPrice ?? src.priceUsd;
+    }
+    if (
+      out.valueUsd == null &&
+      out.priceUsd != null &&
+      out.qty != null
+    ) {
+      out.valueUsd = Number(out.qty) * Number(out.priceUsd);
+    }
+    if (out.tp1 == null && src.tp1 != null) out.tp1 = src.tp1;
+    if (out.stop == null && src.stop != null) out.stop = src.stop;
+    return out;
+  }
+
   function renderHoldingsTable(wallet) {
     const el = $("#holdings-table");
     const totalEl = $("#holdings-total");
     if (!el) return;
-    const holdings = getHoldings(wallet || state?.wallet);
+    const holdings = getHoldings(wallet || state?.wallet).map(enrichHoldingFromBook);
     const tp = state?.takeProfit || state?.pnl?.takeProfit || {};
     const levels = tp.levels || {};
     if (!holdings.length) {
@@ -1118,14 +1278,17 @@
             ${mintRow}
           </div>
           <div class="qty"><span class="qty-lab">${escapeHtml(qtyLab)}</span><span class="holding-qty-big">${escapeHtml(qtyStr)}</span></div>
-          <div>
+          <div class="holding-mark-col">
             <div class="val">${fmtUsd(value)}</div>
             <div class="mark">mark ${escapeHtml(mark)}</div>
+            ${movePctHtml(h)}
           </div>
           ${tpPill}
           <div class="upnl ${upnlCls}">${
             upnl == null
-              ? "Native SOL cash"
+              ? h.symbol === "SOL"
+                ? "Native SOL cash"
+                : "No cost basis yet"
               : `uPnL ${upnl >= 0 ? "+" : ""}${fmtUsd(upnl)}${costBit}${tpDetail}`
           }</div>
         </div>`;
@@ -1135,6 +1298,12 @@
       totalEl.textContent = `book ${fmtUsd(sum)} · ${holdings.length} lines`;
     }
     bindCopyButtons(el);
+    // clear tick class after animation
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        el.querySelectorAll(".move-pct.is-tick").forEach((n) => n.classList.remove("is-tick"));
+      }, 700);
+    });
   }
 
   function bindCopyButtons(root) {
@@ -1175,26 +1344,328 @@
         const sig = s?.signature || "";
         const err = s?.err;
         const ok = !err;
+        const known = lookupKnownFill(sig);
         const ts = s?.blockTime
           ? new Date(s.blockTime * 1000).toISOString()
-          : null;
+          : known
+            ? new Date(known.blockTime * 1000).toISOString()
+            : null;
         const status = ok
           ? `<span class="tx-status ok">OK</span>`
           : `<span class="tx-status fail">FAIL</span>`;
-        return `<div class="tx-row${ok ? "" : " is-fail"}">
+        const fillTag = known
+          ? `<span class="tx-fill-tag tx-fill-${escapeHtml(known.side || "fill")}">${escapeHtml(known.symbol)} ${escapeHtml(known.side || "")}</span>`
+          : "";
+        const qtyBit =
+          known?.qty != null
+            ? `<span class="tx-fill-meta">${escapeHtml(Number(known.qty).toFixed(known.qty >= 10 ? 2 : 5))}${known.solSpent != null ? ` · ${escapeHtml(String(known.solSpent))} SOL` : ""}</span>`
+            : known?.solSpent != null
+              ? `<span class="tx-fill-meta">${escapeHtml(String(known.solSpent))} SOL</span>`
+              : "";
+        return `<div class="tx-row${ok ? "" : " is-fail"}${known ? " is-known-fill" : ""}">
           <div class="tx-time">${escapeHtml(ts ? fmtTimeCompact(ts) : "—")}</div>
-          <div class="tx-status-cell">${status}</div>
+          <div class="tx-status-cell">${status}${fillTag}</div>
           <div class="tx-sig">
             <code title="${escapeHtml(sig)}">${escapeHtml(shortSig(sig))}</code>
             ${copyBtn(sig, "Copy signature")}
+            ${qtyBit}
           </div>
           <div class="tx-links">
             ${extLink(solscanTxUrl(sig), "Solscan ↗", "solscan-link")}
+            ${
+              known?.mint
+                ? extLink(solscanTokenUrl(known.mint), "Token ↗", "solscan-link")
+                : ""
+            }
           </div>
         </div>`;
       })
       .join("");
     bindCopyButtons(el);
+  }
+
+  function numOrNull(v) {
+    if (v == null || v === "") return null;
+    const n = Number(v);
+    return Number.isNaN(n) ? null : n;
+  }
+
+  /** Derive leader/best trades from activity.json only — never invent PnL. */
+  function deriveLeaderTrades(data) {
+    const events = (data?.events || []).filter((e) => !e._ephemeral);
+    const positions = data?.positions || [];
+    const trades = [];
+
+    for (const e of events) {
+      const tags = (e.tags || []).map((t) => String(t).toLowerCase());
+      const blob = `${e.title || ""} ${e.message || ""}`.toLowerCase();
+      const isFill =
+        tags.some((t) => /^(buy|sell|fill|trade|swap)$/.test(t)) ||
+        /\b(buy|sell|filled|fill)\b/.test(blob) ||
+        e.side === "buy" ||
+        e.side === "sell" ||
+        e.source === "chain";
+      if (!isFill && e.realizedUsd == null && e.pnlUsd == null && e.pnlPct == null) {
+        continue;
+      }
+      const side =
+        e.side ||
+        (tags.includes("sell") || /\bsell\b/.test(blob)
+          ? "sell"
+          : tags.includes("buy") || /\bbuy\b/.test(blob)
+            ? "buy"
+            : tags.includes("fill")
+              ? "fill"
+              : null);
+      const symbol =
+        e.symbol ||
+        tags.find((t) =>
+          ["si", "ntda", "baton", "catcraft", "gomo", "sol", "usdc"].includes(t)
+        )?.toUpperCase?.() ||
+        (tags.includes("baton")
+          ? "baton"
+          : tags.includes("catcraft")
+            ? "CATCRAFT"
+            : null);
+      const realized = numOrNull(e.realizedUsd ?? e.pnlUsd ?? e.realizedPnlUsd);
+      const pct = numOrNull(e.pnlPct ?? e.realizedPct ?? e.returnPct);
+      const cost = numOrNull(e.costUsd ?? e.notionalUsd ?? e.usd);
+      const qty = numOrNull(e.qty);
+      trades.push({
+        id: e.id || eventKey(e),
+        ts: e.ts,
+        bot: e.bot || "solana-trader",
+        title: e.title || "Fill",
+        message: e.message || "",
+        symbol: symbol || "?",
+        side: side || "fill",
+        qty,
+        costUsd: cost,
+        entry: numOrNull(e.entry),
+        realizedUsd: realized,
+        pnlPct: pct,
+        status: e.status || (side === "sell" ? "closed" : "open"),
+        signature: e.signature || null,
+        mint: e.mint || null,
+        note: e.note || null,
+        source: "event",
+      });
+    }
+
+    for (const p of positions) {
+      const realized = numOrNull(p.realizedUsd ?? p.pnlUsd);
+      const pct = numOrNull(p.pnlPct ?? p.realizedPct);
+      const upnl = numOrNull(p.unrealizedUsd);
+      const cost = numOrNull(p.costUsd);
+      let upnlPct = null;
+      if (upnl != null && cost != null && cost > 0) upnlPct = (upnl / cost) * 100;
+      const closed = String(p.status || "").toLowerCase() === "closed";
+      trades.push({
+        id: p.id || `pos-${p.symbol}`,
+        ts: p.closedAt || (p.fills && p.fills.slice(-1)[0]?.ts) || null,
+        bot: "solana-trader",
+        title: closed
+          ? `${p.symbol} closed`
+          : `${p.symbol} open · uPnL`,
+        message: p.note || "",
+        symbol: p.symbol,
+        side: closed ? "sell" : "long",
+        qty: numOrNull(p.qty),
+        costUsd: cost,
+        entry: numOrNull(p.entry),
+        realizedUsd: closed ? realized : null,
+        pnlPct: closed ? pct : upnlPct,
+        unrealizedUsd: closed ? null : upnl,
+        status: closed ? "closed" : "open",
+        signature: p.closeSig || p.fillSig || (p.fills && p.fills[0]?.tx) || null,
+        mint: p.mint || null,
+        note: p.closedReason || p.note || null,
+        source: "position",
+      });
+    }
+
+    // Dedupe by id
+    const byId = new Map();
+    for (const t of trades) {
+      const prev = byId.get(t.id);
+      if (!prev) {
+        byId.set(t.id, t);
+        continue;
+      }
+      // Prefer row with realized / richer fields
+      const score = (x) =>
+        (x.realizedUsd != null ? 4 : 0) +
+        (x.pnlPct != null ? 2 : 0) +
+        (x.signature ? 1 : 0);
+      if (score(t) >= score(prev)) byId.set(t.id, { ...prev, ...t });
+    }
+    return [...byId.values()];
+  }
+
+  function rankLeaderTrades(trades) {
+    const closedWithPnl = [];
+    const closedNoPnl = [];
+    const openWithUpnl = [];
+    const fills = [];
+    for (const t of trades) {
+      const closed = t.status === "closed" || t.side === "sell";
+      if (closed && (t.realizedUsd != null || t.pnlPct != null)) {
+        closedWithPnl.push(t);
+      } else if (closed) {
+        closedNoPnl.push(t);
+      } else if (t.unrealizedUsd != null || (t.status === "open" && t.pnlPct != null && t.source === "position")) {
+        openWithUpnl.push(t);
+      } else {
+        fills.push(t);
+      }
+    }
+    const byBest = (a, b) => {
+      const ap = a.pnlPct != null ? a.pnlPct : -Infinity;
+      const bp = b.pnlPct != null ? b.pnlPct : -Infinity;
+      if (bp !== ap) return bp - ap;
+      const ad = a.realizedUsd != null ? a.realizedUsd : -Infinity;
+      const bd = b.realizedUsd != null ? b.realizedUsd : -Infinity;
+      if (bd !== ad) return bd - ad;
+      return new Date(b.ts || 0) - new Date(a.ts || 0);
+    };
+    closedWithPnl.sort(byBest);
+    openWithUpnl.sort(byBest);
+    closedNoPnl.sort((a, b) => new Date(b.ts || 0) - new Date(a.ts || 0));
+    fills.sort((a, b) => new Date(b.ts || 0) - new Date(a.ts || 0));
+    return { closedWithPnl, closedNoPnl, openWithUpnl, fills };
+  }
+
+  function leaderTradeRowHtml(t, badge) {
+    const pnl =
+      t.realizedUsd != null
+        ? `<span class="leader-pnl ${pnlClass(t.realizedUsd)}">${t.realizedUsd >= 0 ? "+" : ""}${fmtUsd(t.realizedUsd)}</span>`
+        : t.unrealizedUsd != null
+          ? `<span class="leader-pnl ${pnlClass(t.unrealizedUsd)}">uPnL ${t.unrealizedUsd >= 0 ? "+" : ""}${fmtUsd(t.unrealizedUsd)}</span>`
+          : `<span class="leader-pnl flat">PnL n/a</span>`;
+    const pct =
+      t.pnlPct != null
+        ? `<span class="move-pct ${pnlClass(t.pnlPct)}">${t.pnlPct >= 0 ? "+" : ""}${Number(t.pnlPct).toFixed(2)}%</span>`
+        : "";
+    const sig = t.signature
+      ? `${extLink(solscanTxUrl(String(t.signature).replace(/…/g, "")), "Solscan ↗", "solscan-link")}`
+      : "";
+    // Truncated sigs in positions can't open full Solscan — still show if length ok
+    const sigOk = t.signature && String(t.signature).length > 40;
+    const links = sigOk ? sig : (t.mint ? extLink(solscanTokenUrl(t.mint), "Token ↗", "solscan-link") : "");
+    const meta = [
+      t.side ? escapeHtml(String(t.side).toUpperCase()) : "",
+      t.qty != null ? `${Number(t.qty).toLocaleString(undefined, { maximumFractionDigits: 4 })} qty` : "",
+      t.costUsd != null ? `cost ${fmtUsd(t.costUsd)}` : "",
+      t.ts ? fmtTimeCompact(t.ts) : "",
+    ]
+      .filter(Boolean)
+      .join(" · ");
+    return `<div class="leader-row">
+      <div class="leader-row-top">
+        <span class="leader-sym">${escapeHtml(t.symbol)}</span>
+        <span class="leader-badge">${escapeHtml(badge)}</span>
+        ${pct}
+        ${pnl}
+      </div>
+      <div class="leader-title">${escapeHtml(t.title)}</div>
+      <div class="leader-meta">${meta}${links ? ` · ${links}` : ""}</div>
+      ${t.note ? `<div class="leader-note">${escapeHtml(t.note)}</div>` : ""}
+    </div>`;
+  }
+
+  function renderLeaderTradesPanel() {
+    const body = $("#leader-body");
+    if (!body) return;
+    const ranked = rankLeaderTrades(deriveLeaderTrades(state || {}));
+    const parts = [];
+
+    if (ranked.closedWithPnl.length) {
+      parts.push(`<h3 class="leader-section">Best closed · by PnL%</h3>`);
+      parts.push(
+        ranked.closedWithPnl
+          .slice(0, 12)
+          .map((t, i) => leaderTradeRowHtml(t, i === 0 ? "LEADER" : `#${i + 1}`))
+          .join("")
+      );
+    } else {
+      parts.push(
+        `<div class="leader-empty">No closed trades with confirmed realized PnL yet — history is thin. Showing real fills only (nothing invented).</div>`
+      );
+    }
+
+    if (ranked.closedNoPnl.length) {
+      parts.push(`<h3 class="leader-section">Closed / sells · PnL not confirmed</h3>`);
+      parts.push(
+        ranked.closedNoPnl
+          .slice(0, 8)
+          .map((t) => leaderTradeRowHtml(t, "CLOSED"))
+          .join("")
+      );
+    }
+
+    if (ranked.openWithUpnl.length) {
+      parts.push(`<h3 class="leader-section">Open book · unrealized</h3>`);
+      parts.push(
+        ranked.openWithUpnl
+          .slice(0, 8)
+          .map((t) => leaderTradeRowHtml(t, "OPEN"))
+          .join("")
+      );
+    }
+
+    const fillExtra = ranked.fills.filter(
+      (t) =>
+        !ranked.closedWithPnl.some((x) => x.id === t.id) &&
+        !ranked.closedNoPnl.some((x) => x.id === t.id) &&
+        !ranked.openWithUpnl.some((x) => x.id === t.id)
+    );
+    if (fillExtra.length) {
+      parts.push(`<h3 class="leader-section">Recent fills</h3>`);
+      parts.push(
+        fillExtra
+          .slice(0, 10)
+          .map((t) => leaderTradeRowHtml(t, "FILL"))
+          .join("")
+      );
+    }
+
+    if (parts.length === 1 && ranked.closedWithPnl.length === 0 && !ranked.closedNoPnl.length && !ranked.openWithUpnl.length && !fillExtra.length) {
+      parts.push(`<p class="muted">No trade/fill events in activity.json yet.</p>`);
+    }
+
+    body.innerHTML = parts.join("");
+  }
+
+  function openLeaderModal() {
+    const modal = $("#leader-modal");
+    if (!modal) return;
+    renderLeaderTradesPanel();
+    modal.hidden = false;
+    modal.setAttribute("aria-hidden", "false");
+    document.body.classList.add("leader-open");
+    $("#btn-leader-close")?.focus();
+  }
+
+  function closeLeaderModal() {
+    const modal = $("#leader-modal");
+    if (!modal) return;
+    modal.hidden = true;
+    modal.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("leader-open");
+  }
+
+  function bindLeaderTradesUi() {
+    $("#btn-leader-trades")?.addEventListener("click", () => {
+      openLeaderModal();
+    });
+    $("#leader-modal")?.addEventListener("click", (e) => {
+      if (e.target?.dataset?.leaderClose === "1" || e.target?.closest?.("[data-leader-close]")) {
+        closeLeaderModal();
+      }
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") closeLeaderModal();
+    });
   }
 
   function eventKey(e) {
@@ -1537,6 +2008,73 @@
       .join("|");
   }
 
+  /** Largest holdings qty/value change → short symbol for bubble label */
+  function detectHoldingsDelta(prev, next) {
+    const prevMap = new Map();
+    const nextMap = new Map();
+    for (const h of prev || []) {
+      const k = h.mint || h.symbol;
+      if (k) prevMap.set(k, h);
+    }
+    for (const h of next || []) {
+      const k = h.mint || h.symbol;
+      if (k) nextMap.set(k, h);
+    }
+    let best = null;
+    let bestScore = 0;
+    const keys = new Set([...prevMap.keys(), ...nextMap.keys()]);
+    for (const k of keys) {
+      const a = prevMap.get(k);
+      const b = nextMap.get(k);
+      const qa = Number(a?.qty || 0);
+      const qb = Number(b?.qty || 0);
+      const d = qb - qa;
+      if (Math.abs(d) < 1e-12) continue;
+      const sym = (b || a)?.symbol || mintSymbol(k);
+      const px = Number((b || a)?.priceUsd);
+      const valueScore =
+        px > 0 && !Number.isNaN(px) ? Math.abs(d) * px : Math.abs(d);
+      // Prefer non-SOL token moves for the bubble tag (fee dust is common)
+      const score = valueScore * (sym === "SOL" ? 0.35 : 1);
+      if (score > bestScore) {
+        bestScore = score;
+        best = { symbol: sym, mint: k, qtyDelta: d, side: d > 0 ? "buy" : "sell" };
+      }
+    }
+    return best;
+  }
+
+  /**
+   * Real % only — vs prior equity mark, else vs startingBookUsd entry.
+   * Returns null when no baseline (never invent).
+   */
+  function computeMarkPct(equityUsd, priorEquityUsd, entryUsd) {
+    const val = Number(equityUsd);
+    if (!Number.isFinite(val)) return null;
+    const prior = Number(priorEquityUsd);
+    if (Number.isFinite(prior) && prior > 0) {
+      return ((val - prior) / prior) * 100;
+    }
+    const entry = Number(entryUsd);
+    if (Number.isFinite(entry) && entry > 0) {
+      return ((val - entry) / entry) * 100;
+    }
+    return null;
+  }
+
+  /** Display %+ with Unicode minus; null if no real pct */
+  function fmtBubblePct(pct) {
+    if (pct == null || !Number.isFinite(Number(pct))) return null;
+    const n = Number(pct);
+    if (Math.abs(n) < 0.005) return "0.0%";
+    const sign = n > 0 ? "+" : "\u2212";
+    return sign + Math.abs(n).toFixed(1) + "%";
+  }
+
+  function lookupKnownFill(sig) {
+    return sig ? KNOWN_FILL_BY_SIG[sig] || null : null;
+  }
+
   function estimateEquityFromHoldings(holdings, solBal) {
     let sum = 0;
     let used = false;
@@ -1556,36 +2094,57 @@
     return used ? sum : null;
   }
 
-  function pushEquityMark(equityUsd, label, force) {
-    if (equityUsd == null || Number.isNaN(Number(equityUsd))) return;
+  function pushEquityMark(equityUsd, label, force, meta) {
+    if (equityUsd == null || Number.isNaN(Number(equityUsd))) return null;
     const val = Number(equityUsd);
-    if (Number.isNaN(val)) return;
+    if (Number.isNaN(val)) return null;
     const pts = readStoredEquity();
     const last = pts[pts.length - 1];
     const changed =
       !last || Math.abs(Number(last.equityUsd) - val) >= EQUITY_EPS;
     // Realtime marks only: skip identical equity (no heartbeat / synthetic drift).
     // force=true still records on fills/boot even if flat (documents the event).
-    if (!force && !changed) return;
-    // Avoid duplicate fill marks at same value within 1.5s
+    if (!force && !changed) return null;
+    const metaTs = meta?.ts ? new Date(meta.ts).getTime() : NaN;
+    const tsIso = Number.isFinite(metaTs)
+      ? new Date(metaTs).toISOString()
+      : new Date().toISOString();
+    // Dedupe: same sig already stored, or identical fill within 1.5s
+    if (meta?.sig && pts.some((p) => p.sig === meta.sig)) {
+      return null;
+    }
     if (
       force &&
       last &&
       Math.abs(Number(last.equityUsd) - val) < EQUITY_EPS &&
-      Date.now() - new Date(last.ts).getTime() < 1500
+      Math.abs(new Date(tsIso).getTime() - new Date(last.ts).getTime()) < 1500 &&
+      !meta?.sig
     ) {
-      return;
+      return null;
     }
-    pts.push({
-      ts: new Date().toISOString(),
+    const entry = Number(state?.pnl?.startingBookUsd);
+    const pct = computeMarkPct(val, last?.equityUsd, entry);
+    const point = {
+      ts: tsIso,
       equityUsd: val,
       label: label || (changed ? "rpc mark" : "mark"),
       source: "rpc",
-    });
+      symbol: meta?.symbol || null,
+      side: meta?.side || null,
+      sig: meta?.sig || null,
+      mint: meta?.mint || null,
+      qty: meta?.qty != null ? Number(meta.qty) : null,
+      solSpent: meta?.solSpent != null ? Number(meta.solSpent) : null,
+      pct: pct != null && Number.isFinite(pct) ? pct : null,
+      kind: meta?.kind || null,
+    };
+    pts.push(point);
+    pts.sort((a, b) => new Date(a.ts) - new Date(b.ts));
     writeStoredEquity(pts);
+    return point;
   }
 
-  function applyLiveEquity(equity, holdingsChanged, forceMark, fillLabel) {
+  function applyLiveEquity(equity, holdingsChanged, forceMark, fillLabel, meta) {
     if (equity == null || Number.isNaN(Number(equity))) return false;
     const val = Number(equity);
     const prev = lastLiveEquityUsd;
@@ -1608,9 +2167,50 @@
     pushEquityMark(
       val,
       holdingsChanged || forceMark ? fillLabel || "rpc mark" : "rpc mark",
-      !!(forceMark || holdingsChanged)
+      !!(forceMark || holdingsChanged),
+      meta || null
     );
     return true;
+  }
+
+  /** Ensure curated fills appear as chart bubbles (real blockTime + Solscan sig). */
+  function seedKnownFillMarks(equityUsd) {
+    if (equityUsd == null || Number.isNaN(Number(equityUsd))) return;
+    const val = Number(equityUsd);
+    const pts = readStoredEquity();
+    const have = new Set(pts.filter((p) => p.sig).map((p) => p.sig));
+    let added = false;
+    // Prior mark before these fills (for real % — not invented)
+    const fillTimes = KNOWN_FILLS.map((f) => f.blockTime * 1000);
+    const minFill = Math.min(...fillTimes);
+    const prior = [...pts]
+      .filter((p) => new Date(p.ts).getTime() < minFill - 500)
+      .pop();
+    const entry = Number(state?.pnl?.startingBookUsd);
+    for (const fill of KNOWN_FILLS) {
+      if (have.has(fill.signature)) continue;
+      const tsIso = new Date(fill.blockTime * 1000).toISOString();
+      const pct = computeMarkPct(val, prior?.equityUsd, entry);
+      pts.push({
+        ts: tsIso,
+        equityUsd: val,
+        label: fill.label || "fill mark",
+        source: "rpc",
+        symbol: fill.symbol || null,
+        side: fill.side || null,
+        sig: fill.signature,
+        mint: fill.mint || null,
+        qty: fill.qty != null ? Number(fill.qty) : null,
+        solSpent: fill.solSpent != null ? Number(fill.solSpent) : null,
+        pct: pct != null && Number.isFinite(pct) ? pct : null,
+        kind: "fill",
+      });
+      added = true;
+    }
+    if (added) {
+      pts.sort((a, b) => new Date(a.ts) - new Date(b.ts));
+      writeStoredEquity(pts);
+    }
   }
 
   function injectChainEvents(events) {
@@ -1632,9 +2232,38 @@
 
   function mergeLiveTokenRows(accounts, kind) {
     const priceByMint = {};
-    const prev = state?.wallet?.holdings || [];
+    const metaByMint = {};
+    const prev = [
+      ...(state?.wallet?.holdings || []),
+      ...(state?.pnl?.holdings || []),
+    ];
     for (const h of prev) {
-      if (h.mint && h.priceUsd != null) priceByMint[h.mint] = Number(h.priceUsd);
+      if (!h?.mint) continue;
+      if (h.priceUsd != null) priceByMint[h.mint] = Number(h.priceUsd);
+      metaByMint[h.mint] = {
+        costUsd: h.costUsd,
+        entry: h.entry,
+        unrealizedUsd: h.unrealizedUsd,
+        tp1: h.tp1,
+        stop: h.stop,
+        name: h.name,
+      };
+    }
+    // positions as fall-back cost/entry
+    for (const p of state?.positions || []) {
+      if (!p?.mint || p.status === "closed") continue;
+      const cur = metaByMint[p.mint] || {};
+      metaByMint[p.mint] = {
+        costUsd: cur.costUsd ?? p.costUsd,
+        entry: cur.entry ?? p.entry,
+        unrealizedUsd: cur.unrealizedUsd ?? p.unrealizedUsd,
+        tp1: cur.tp1 ?? p.tp1,
+        stop: cur.stop ?? p.stop,
+        name: cur.name ?? p.name,
+      };
+      if (p.markPrice != null && priceByMint[p.mint] == null) {
+        priceByMint[p.mint] = Number(p.markPrice);
+      }
     }
     const rows = [];
     for (const acc of accounts || []) {
@@ -1645,6 +2274,7 @@
       if (!qty || qty <= 0) continue;
       const mint = info.mint;
       const symbol = mintSymbol(mint);
+      const meta = metaByMint[mint] || {};
       const priceUsd = priceByMint[mint];
       const valueUsd =
         priceUsd != null && !Number.isNaN(priceUsd) ? qty * priceUsd : null;
@@ -1656,6 +2286,12 @@
         decimals: tok.decimals,
         priceUsd: priceUsd ?? null,
         valueUsd,
+        costUsd: meta.costUsd ?? null,
+        entry: meta.entry ?? null,
+        unrealizedUsd: meta.unrealizedUsd ?? null,
+        tp1: meta.tp1,
+        stop: meta.stop,
+        name: meta.name,
         displayQty: qty >= 1 ? qty.toFixed(2) : qty.toFixed(6),
         displayLabel: `${symbol} held`,
         label: `${symbol} · live`,
@@ -1667,6 +2303,7 @@
   async function refreshLiveHoldings(opts) {
     const forceMark = !!(opts && opts.forceMark);
     const fillLabel = opts?.fillLabel || "live mark";
+    const fillMetaIn = opts?.meta || null;
     try {
       const [solLive, classic, t22] = await Promise.all([
         fetchAgentSolBalance(),
@@ -1725,8 +2362,27 @@
       state.wallet.solBalance = solRow.qty;
       state.wallet.solUsd = solRow.valueUsd;
       const equity = estimateEquityFromHoldings(holdings, solRow.qty);
+      const delta = detectHoldingsDelta(prevHoldings, holdings);
+      const known = fillMetaIn?.sig ? lookupKnownFill(fillMetaIn.sig) : null;
+      const markMeta = {
+        ts: fillMetaIn?.ts || null,
+        sig: fillMetaIn?.sig || known?.signature || null,
+        symbol:
+          fillMetaIn?.symbol ||
+          known?.symbol ||
+          delta?.symbol ||
+          null,
+        side: fillMetaIn?.side || known?.side || delta?.side || null,
+        mint: fillMetaIn?.mint || known?.mint || delta?.mint || null,
+        qty: fillMetaIn?.qty ?? known?.qty ?? null,
+        solSpent: fillMetaIn?.solSpent ?? known?.solSpent ?? null,
+        kind:
+          fillMetaIn?.kind ||
+          (forceMark || changed ? "fill" : null),
+      };
       if (equity != null) {
-        applyLiveEquity(equity, changed, forceMark, fillLabel);
+        applyLiveEquity(equity, changed, forceMark, fillLabel, markMeta);
+        seedKnownFillMarks(equity);
       }
 
       // Sync known symbol balances for cards
@@ -1742,6 +2398,14 @@
         if (h.symbol === "baton") {
           state.wallet.batonBalance = h.qty;
           state.wallet.batonMarkUsd = h.valueUsd;
+        }
+        if (h.symbol === "CATCRAFT") {
+          state.wallet.catcraftBalance = h.qty;
+          state.wallet.catcraftMarkUsd = h.valueUsd;
+        }
+        if (h.symbol === "GOMO") {
+          state.wallet.gomoBalance = h.qty;
+          state.wallet.gomoMarkUsd = h.valueUsd;
         }
       }
 
@@ -1790,6 +2454,7 @@
       if (fresh.length) saveKnownTxSigs(knownTxSigs);
 
       const newEvents = [];
+      const okFills = [];
       // Oldest first so feed + chimes follow fill order
       fresh
         .slice()
@@ -1797,23 +2462,53 @@
         .forEach((s) => {
           const sig = s.signature;
           const err = s.err;
+          const known = lookupKnownFill(sig);
           const ts = s.blockTime
             ? new Date(s.blockTime * 1000).toISOString()
-            : new Date().toISOString();
+            : known
+              ? new Date(known.blockTime * 1000).toISOString()
+              : new Date().toISOString();
+          const sym = known?.symbol;
+          const side = known?.side;
+          const title = err
+            ? "On-chain tx failed"
+            : known
+              ? `On-chain fill · ${sym} ${side}`
+              : "On-chain fill";
+          const detail = known
+            ? known.qty != null && known.solSpent != null
+              ? `${sym} ${side} · ${Number(known.qty).toFixed(2)} · ${known.solSpent} SOL · ${shortSig(sig)}`
+              : `${sym} ${side} · ${shortSig(sig)}`
+            : `Live tx ${shortSig(sig)} on 99hEn… · refreshing holdings/PnL`;
           newEvents.push({
             id: `tx-${sig}`,
             ts,
             bot: "solana-trader",
             level: err ? "warn" : "signal",
-            title: err ? "On-chain tx failed" : "On-chain fill",
+            title,
             message: err
               ? `Tx ${shortSig(sig)} errored on AGENT book · open Solscan`
-              : `Live tx ${shortSig(sig)} on 99hEn… · refreshing holdings/PnL`,
-            tags: ["fill", "tx", "chain"],
+              : detail,
+            tags: ["fill", "tx", "chain", side, sym].filter(Boolean),
             source: "chain",
             signature: sig,
+            symbol: sym || null,
+            side: side || null,
             _ephemeral: true,
           });
+          if (!err) {
+            okFills.push({
+              sig,
+              ts,
+              symbol: sym || null,
+              side: side || null,
+              mint: known?.mint || null,
+              qty: known?.qty ?? null,
+              solSpent: known?.solSpent ?? null,
+              kind: "fill",
+              label: known?.label || (sym ? `fill mark · ${sym}` : "fill mark"),
+            });
+          }
         });
 
       if (newEvents.length) {
@@ -1821,10 +2516,37 @@
         // Chime already fired via renderFeed → reactToEvents per trade
       }
 
-      await refreshLiveHoldings({
-        forceMark: newEvents.length > 0,
-        fillLabel: newEvents.length ? "fill mark" : "mark",
+      // Refresh book once, then stamp each fill at its real blockTime
+      const result = await refreshLiveHoldings({
+        forceMark: okFills.length > 0,
+        fillLabel: okFills.length
+          ? okFills[okFills.length - 1].label
+          : "mark",
+        meta: okFills.length ? okFills[okFills.length - 1] : null,
       });
+      const eq =
+        result?.equity ??
+        lastLiveEquityUsd ??
+        state?.wallet?.totalUsd ??
+        null;
+      if (okFills.length && eq != null) {
+        for (const fill of okFills) {
+          pushEquityMark(eq, fill.label, true, {
+            ts: fill.ts,
+            sig: fill.sig,
+            symbol: fill.symbol,
+            side: fill.side,
+            mint: fill.mint,
+            qty: fill.qty,
+            solSpent: fill.solSpent,
+            kind: "fill",
+          });
+        }
+        seedKnownFillMarks(eq);
+        renderEquityChart(state);
+      } else if (eq != null) {
+        seedKnownFillMarks(eq);
+      }
     } catch (err) {
       console.warn("chain poll failed", err);
       // Holdings refresh still OK on soft failure; marks only if equity actually changes
@@ -2456,7 +3178,14 @@
 
     const W = 640;
     const H = 180;
-    const pad = { l: 48, r: 16, t: 16, b: 30 };
+    const hasFillHints = points.some(
+      (p) =>
+        !p._visual &&
+        (p.kind === "fill" ||
+          p.sig ||
+          /fill|tx|swap|buy|sell/i.test(p.label || ""))
+    );
+    const pad = { l: 48, r: 16, t: hasFillHints ? 38 : 16, b: 30 };
     const vals = points.map((p) => p.equityUsd);
     let minV = Math.min(...vals);
     let maxV = Math.max(...vals);
@@ -2490,9 +3219,48 @@
     );
     const gridVals = [maxV, (maxV + minV) / 2, minV];
     const fillMarks = realPts
-      .map((p, i) => ({ p, i: points.indexOf(p) }))
-      .filter(({ p }) => /fill|tx|swap|buy|sell|boot/i.test(p.label || ""));
+      .map((p) => ({ p, i: points.indexOf(p) }))
+      .filter(
+        ({ p, i }) =>
+          i >= 0 &&
+          (p.kind === "fill" ||
+            p.sig ||
+            /fill|tx|swap|buy|sell/i.test(p.label || ""))
+      );
     const axisTicks = timeAxisTicks(cut, now, chartTf);
+
+    function bubblePctFor(markP, markIdxInPoints) {
+      // Prefer stored real pct; else recompute vs prior mark / entry (never invent)
+      if (markP.pct != null && Number.isFinite(Number(markP.pct))) {
+        return Number(markP.pct);
+      }
+      let priorEq = null;
+      for (let j = markIdxInPoints - 1; j >= 0; j--) {
+        const q = points[j];
+        if (q._visual) continue;
+        if (q.sig && markP.sig && q.sig === markP.sig) continue;
+        priorEq = q.equityUsd;
+        break;
+      }
+      // If clustered fills share equity, walk stored series for earlier baseline
+      if (priorEq == null || Math.abs(Number(priorEq) - Number(markP.equityUsd)) < EQUITY_EPS) {
+        const all = mergeEquitySeries(data);
+        const t0 = new Date(markP.ts).getTime();
+        for (let j = all.length - 1; j >= 0; j--) {
+          const q = all[j];
+          const t = new Date(q.ts).getTime();
+          if (t >= t0) continue;
+          if (q.sig && markP.sig && q.sig === markP.sig) continue;
+          if (Math.abs(Number(q.equityUsd) - Number(markP.equityUsd)) >= EQUITY_EPS) {
+            priorEq = q.equityUsd;
+            break;
+          }
+          if (priorEq == null) priorEq = q.equityUsd;
+        }
+      }
+      const entry = Number(state?.pnl?.startingBookUsd);
+      return computeMarkPct(markP.equityUsd, priorEq, entry);
+    }
 
     svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
     const dark = currentTheme() === "dark";
@@ -2534,7 +3302,65 @@
         })
         .join("")}
       ${fillMarks
-        .map(({ i }) => `<circle class="fill-mark" cx="${xs[i].toFixed(1)}" cy="${ys[i].toFixed(1)}" r="3.2"></circle>`)
+        .map(({ p, i }, fi) => {
+          const cx = xs[i];
+          const cy = ys[i];
+          const pct = bubblePctFor(p, i);
+          // One % label per equity step — avoid repeating same delta on clustered fills
+          let showPct = pct != null;
+          if (showPct && fi < fillMarks.length - 1) {
+            const nxt = fillMarks[fi + 1].p;
+            if (
+              Math.abs(Number(nxt.equityUsd) - Number(p.equityUsd)) < EQUITY_EPS
+            ) {
+              showPct = false;
+            }
+          }
+          const pctLabel = showPct ? fmtBubblePct(pct) : null;
+          const up =
+            pct != null ? pct > 0.05 : /buy/i.test(p.side || p.label || "");
+          const down =
+            pct != null ? pct < -0.05 : /sell/i.test(p.side || p.label || "");
+          const dir = down ? "is-down" : up ? "is-up" : "is-flat";
+          const age = now - new Date(p.ts).getTime();
+          const pop = !reduceMotion && age >= 0 && age < 14_000 ? " is-pop" : "";
+          const sym = p.symbol ? String(p.symbol).slice(0, 10) : "";
+          const side = p.side ? String(p.side) : "";
+          const labelY = cy - (sym ? 22 : 14);
+          const symY = cy - 34;
+          const tipParts = [
+            p.label || "fill",
+            sym && side ? `${sym} ${side}` : sym || side,
+            pctLabel,
+            p.qty != null ? `qty ${Number(p.qty).toFixed(2)}` : null,
+            p.solSpent != null ? `${p.solSpent} SOL` : null,
+            `$${Number(p.equityUsd).toFixed(2)}`,
+            fmtTimeCompact(p.ts),
+            p.sig ? shortSig(p.sig) : null,
+          ].filter(Boolean);
+          const tip = escapeHtml(tipParts.join(" · "));
+          const core = `
+            <g class="eq-bubble ${dir}${pop}" data-fi="${fi}" transform="translate(${cx.toFixed(1)} ${cy.toFixed(1)})">
+              <circle class="eq-bubble-ring" cx="0" cy="0" r="9"></circle>
+              <circle class="eq-bubble-core fill-mark" cx="0" cy="0" r="4.2"></circle>
+              ${
+                pctLabel
+                  ? `<text class="eq-bubble-pct" x="0" y="${(labelY - cy).toFixed(1)}" text-anchor="middle">${escapeHtml(pctLabel)}</text>`
+                  : ""
+              }
+              ${
+                sym
+                  ? `<text class="eq-bubble-sym" x="0" y="${(symY - cy).toFixed(1)}" text-anchor="middle">${escapeHtml(sym)}</text>`
+                  : ""
+              }
+              <title>${tip}</title>
+            </g>`;
+          if (p.sig) {
+            const href = escapeHtml(solscanTxUrl(p.sig));
+            return `<a class="eq-bubble-link" href="${href}" target="_blank" rel="noopener noreferrer">${core}</a>`;
+          }
+          return core;
+        })
         .join("")}
       <text class="axis-label" x="${pad.l}" y="${H - 8}">${escapeHtml(fmtAxisTime(cut, chartTf))}</text>
       <text class="axis-label" x="${W - pad.r}" y="${H - 8}" text-anchor="end">${escapeHtml(fmtAxisTime(now, chartTf))} · ${tfLabel}</text>
@@ -2550,7 +3376,8 @@
     }
     if (lastEl) {
       const src = liveEquityReady ? "live RPC" : "seed";
-      lastEl.innerHTML = `<span class="eq-live-pill${liveEquityReady ? " is-live" : ""}">${src}</span> equity <strong>${fmtUsd(last)}</strong> · ${realPts.length} marks · ${tfLabel}${rpcCount ? ` · ${rpcCount} rpc` : ""}`;
+      const fillN = fillMarks.length;
+      lastEl.innerHTML = `<span class="eq-live-pill${liveEquityReady ? " is-live" : ""}">${src}</span> equity <strong>${fmtUsd(last)}</strong> · ${realPts.length} marks · ${tfLabel}${rpcCount ? ` · ${rpcCount} rpc` : ""}${fillN ? ` · ${fillN} fill bubble${fillN === 1 ? "" : "s"}` : ""}`;
     }
   }
 
@@ -2653,6 +3480,7 @@
     syncThemeUi();
     $("#btn-theme")?.addEventListener("click", toggleTheme);
     bindWalletUi();
+    bindLeaderTradesUi();
     updateConnectUi();
     syncPauseUi();
     syncMuteUi();

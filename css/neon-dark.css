@@ -576,6 +576,59 @@ html[data-theme="dark"] .pnl-chart .eq-line.is-flat {
   filter: none;
 }
 
+html[data-theme="dark"] .pnl-chart .eq-bubble-core,
+html[data-theme="dark"] .pnl-chart .fill-mark {
+  stroke: #0a0c12;
+}
+html[data-theme="dark"] .pnl-chart .eq-bubble.is-up .eq-bubble-core {
+  fill: #22d3ee;
+  filter: drop-shadow(0 0 6px rgba(34, 211, 238, 0.7));
+}
+html[data-theme="dark"] .pnl-chart .eq-bubble.is-up .eq-bubble-ring {
+  stroke: rgba(34, 211, 238, 0.55);
+}
+html[data-theme="dark"] .pnl-chart .eq-bubble.is-down .eq-bubble-core {
+  fill: #f472b6;
+  filter: drop-shadow(0 0 6px rgba(244, 114, 182, 0.65));
+}
+html[data-theme="dark"] .pnl-chart .eq-bubble.is-down .eq-bubble-ring {
+  stroke: rgba(244, 114, 182, 0.55);
+}
+html[data-theme="dark"] .pnl-chart .eq-bubble.is-flat .eq-bubble-core {
+  fill: #e879f9;
+  filter: drop-shadow(0 0 6px rgba(232, 121, 249, 0.65));
+}
+html[data-theme="dark"] .pnl-chart .eq-bubble-pct {
+  stroke: rgba(10, 12, 18, 0.92);
+  stroke-width: 3.2px;
+}
+html[data-theme="dark"] .pnl-chart .eq-bubble.is-up .eq-bubble-pct { fill: #a3e635; }
+html[data-theme="dark"] .pnl-chart .eq-bubble.is-down .eq-bubble-pct { fill: #f472b6; }
+html[data-theme="dark"] .pnl-chart .eq-bubble.is-flat .eq-bubble-pct { fill: #e879f9; }
+html[data-theme="dark"] .pnl-chart .eq-bubble-sym {
+  fill: #94a3b8;
+  stroke: rgba(10, 12, 18, 0.9);
+}
+html[data-theme="dark"] .tx-fill-tag {
+  border-color: rgba(232, 121, 249, 0.4);
+  background: rgba(232, 121, 249, 0.12);
+  color: #e879f9;
+}
+html[data-theme="dark"] .tx-fill-tag.tx-fill-buy {
+  border-color: rgba(34, 211, 238, 0.45);
+  background: rgba(34, 211, 238, 0.12);
+  color: #67e8f9;
+}
+html[data-theme="dark"] .tx-fill-tag.tx-fill-sell {
+  border-color: rgba(244, 114, 182, 0.45);
+  background: rgba(244, 114, 182, 0.12);
+  color: #f9a8d4;
+}
+html[data-theme="dark"] .tx-row.is-known-fill {
+  border-color: rgba(232, 121, 249, 0.35);
+  box-shadow: 0 0 14px rgba(232, 121, 249, 0.1);
+}
+
 html[data-theme="dark"] .holding-row {
   background: rgba(10, 14, 22, 0.75);
   border: 1px solid rgba(34, 211, 238, 0.12);
@@ -758,3 +811,73 @@ html[data-theme="dark"] .tx-status.fail {
 html[data-theme="dark"] .tx-block {
   border-top-color: rgba(34, 211, 238, 0.14);
 }
+
+
+/* —— Holdings move % + leader trades (neon) —— */
+html[data-theme="dark"] .btn-leader {
+  border-color: rgba(163, 230, 53, 0.45) !important;
+  background: rgba(163, 230, 53, 0.1) !important;
+  color: #bef264 !important;
+  box-shadow: 0 0 12px rgba(163, 230, 53, 0.12);
+}
+html[data-theme="dark"] .btn-leader:hover {
+  border-color: rgba(34, 211, 238, 0.55) !important;
+  box-shadow: 0 0 16px rgba(34, 211, 238, 0.25);
+  color: #22d3ee !important;
+}
+html[data-theme="dark"] .move-pct.pos {
+  color: var(--neon-lime);
+  background: rgba(163, 230, 53, 0.12);
+  text-shadow: 0 0 8px rgba(163, 230, 53, 0.35);
+}
+html[data-theme="dark"] .move-pct.neg {
+  color: var(--neon-magenta);
+  background: rgba(244, 114, 182, 0.12);
+  text-shadow: 0 0 8px rgba(244, 114, 182, 0.3);
+}
+html[data-theme="dark"] .move-pct.flat {
+  color: #94a3b8;
+  background: rgba(148, 163, 184, 0.1);
+}
+html[data-theme="dark"] .move-pct.is-tick.pos {
+  box-shadow: 0 0 14px rgba(163, 230, 53, 0.35);
+}
+html[data-theme="dark"] .move-pct.is-tick.neg {
+  box-shadow: 0 0 14px rgba(244, 114, 182, 0.35);
+}
+html[data-theme="dark"] .leader-backdrop {
+  background: rgba(2, 4, 12, 0.72);
+}
+html[data-theme="dark"] .leader-panel {
+  background: rgba(8, 12, 20, 0.95);
+  border: 1px solid rgba(34, 211, 238, 0.28);
+  box-shadow:
+    0 0 0 1px rgba(163, 230, 53, 0.08),
+    0 24px 60px rgba(0, 0, 0, 0.55),
+    0 0 40px rgba(34, 211, 238, 0.12);
+}
+html[data-theme="dark"] .leader-chrome h2 {
+  color: #e2e8f0;
+  text-shadow: 0 0 12px rgba(34, 211, 238, 0.25);
+}
+html[data-theme="dark"] .leader-empty {
+  background: rgba(10, 14, 22, 0.8);
+  border-color: rgba(34, 211, 238, 0.22);
+  color: #94a3b8;
+}
+html[data-theme="dark"] .leader-row {
+  background: rgba(10, 14, 22, 0.85);
+  border-color: rgba(34, 211, 238, 0.14);
+}
+html[data-theme="dark"] .leader-row:hover {
+  border-color: rgba(34, 211, 238, 0.35);
+  box-shadow: 0 0 14px rgba(34, 211, 238, 0.1);
+}
+html[data-theme="dark"] .leader-badge {
+  border-color: rgba(163, 230, 53, 0.45);
+  background: rgba(163, 230, 53, 0.12);
+  color: #bef264;
+}
+html[data-theme="dark"] .leader-pnl.pos { color: var(--neon-lime); }
+html[data-theme="dark"] .leader-pnl.neg { color: var(--neon-magenta); }
+html[data-theme="dark"] .leader-sym { color: #f1f5f9; }
